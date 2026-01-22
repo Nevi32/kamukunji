@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shoe Inventory & Sales Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #faf8f3;
+            color: #1a1a1a;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: #1a1a1a;
+            color: #faf8f3;
+            padding: 30px 0;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(250,248,243,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        nav {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 30px;
+            background: transparent;
+            color: #faf8f3;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(250,248,243,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
+        }
+
+        .tab-button.active {
+            background: #faf8f3;
+            color: #1a1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            margin-bottom: 25px;
+            color: #1a1a1a;
+            font-weight: 400;
+            font-size: 1.8rem;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            color: #1a1a1a;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1a1a1a;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(26,26,26,0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: monospace;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .button {
+            padding: 14px 32px;
+            background: #1a1a1a;
+            color: #faf8f3;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(250,248,243,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.15);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: transparent;
+            color: #1a1a1a;
+            border: 2px solid #1a1a1a;
+        }
+
+        .button.secondary:hover {
+            background: #1a1a1a;
+            color: #faf8f3;
+        }
+
+        .button.danger {
+            background: #c62828;
+        }
+
+        .button.danger:hover {
+            background: #b71c1c;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .inventory-card {
+            background: linear-gradient(145deg, #fff, #f9f9f9);
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .inventory-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: #1a1a1a;
+            border-radius: 0 0 0 30px;
+            opacity: 0.05;
+        }
+
+        .inventory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .inventory-card h3 {
+            margin-bottom: 15px;
+            color: #1a1a1a;
+            font-size: 1.3rem;
+            padding-right: 40px;
+        }
+
+        .inventory-card .detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .inventory-card .detail:last-child {
+            border-bottom: none;
+        }
+
+        .inventory-card .detail span:first-child {
+            color: #666;
+        }
+
+        .inventory-card .detail span:last-child {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .quantity-badge {
+            background: #1a1a1a;
+            color: #faf8f3;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .sales-item {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-left: 4px solid #1a1a1a;
+            transition: transform 0.2s ease;
+        }
+
+        .sales-item:hover {
+            transform: translateX(5px);
+        }
+
+        .sales-item .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .sales-item .details {
+            font-size: 0.9rem;
+            color: #555;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .report-card {
+            background: linear-gradient(145deg, #fff, #f9f9f9);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #1a1a1a;
+        }
+
+        .report-card h3 {
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .report-card .value {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 15px 0;
+        }
+
+        .report-section {
+            margin-top: 40px;
+        }
+
+        .report-section h2 {
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            font-weight: 400;
+        }
+
+        .stock-low {
+            background: #fff9e6;
+        }
+
+        .stock-low .quantity-badge {
+            background: #d4a000;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .date-filter input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            color: #999;
+            font-size: 1.2rem;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            background: #ffebee;
+            color: #c62828;
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border-radius: 25px;
+            padding: 35px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-modal:hover {
+            color: #1a1a1a;
+            background: #f5f5f5;
+        }
+
+        /* New styles for modal form */
+        .color-section {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+
+        .color-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .color-title {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .size-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .size-row label {
+            display: none;
+        }
+
+        .remove-size-btn, .remove-color-btn {
+            background: #ffebee;
+            color: #c62828;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 45px;
+        }
+
+        .remove-size-btn:hover {
+            background: #ffcdd2;
+        }
+
+        .remove-color-btn {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .remove-color-btn:hover {
+            background: #ffe0b2;
+        }
+
+        .add-size-btn, .add-color-btn {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .add-size-btn:hover {
+            background: #c8e6c9;
+        }
+
+        .add-color-btn {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 12px 25px;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+
+        .add-color-btn:hover {
+            background: #bbdefb;
+        }
+
+        .size-labels {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 10px;
+            margin-bottom: 8px;
+            padding: 0 5px;
+        }
+
+        .size-labels span {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .size-labels span:last-child {
+            grid-column: span 2;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+            
+            .tab-button {
+                min-width: 100%;
+            }
+            
+            .date-filter {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .modal-content {
+                padding: 25px;
+            }
+            
+            .size-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            .size-row input:last-child {
+                grid-column: span 2;
+            }
+            
+            .remove-size-btn {
+                grid-column: span 2;
+                justify-self: start;
+                width: auto;
+                padding: 8px 20px;
+            }
+            
+            .size-labels {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Shoe Inventory & Sales Manager</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav>
+            <button class="tab-button active" onclick="switchTab('inventory')">📦 Inventory</button>
+            <button class="tab-button" onclick="switchTab('sales')">💰 Sales</button>
+            <button class="tab-button" onclick="switchTab('reports')">📊 Reports</button>
+        </nav>
+
+        <!-- Inventory Tab -->
+        <div id="inventory-tab" class="tab-content active">
+            <div class="card">
+                <h2>Inventory Entry</h2>
+                <button class="button" onclick="openInventoryModal()">+ Add New Inventory</button>
+            </div>
+
+            <div class="card">
+                <h2>Current Inventory</h2>
+                <div id="inventory-list"></div>
+            </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="sales-tab" class="tab-content">
+            <div class="card">
+                <h2>Record Sales</h2>
+                <div class="form-group">
+                    <label for="sales-date">Sales Date</label>
+                    <input type="date" id="sales-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="sales-items">Sales Items</label>
+                    <div id="sales-items-container"></div>
+                    <button class="button secondary" onclick="addSalesItem()">+ Add Item</button>
+                </div>
+                <div class="form-group">
+                    <label>Total Amount</label>
+                    <input type="number" id="sales-total" placeholder="0.00" step="0.01" readonly>
+                </div>
+                <div class="button-group">
+                    <button class="button" onclick="recordSales()">Record Sale</button>
+                    <button class="button secondary" onclick="clearSalesForm()">Clear</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Sales History</h2>
+                <div id="sales-list"></div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports-tab" class="tab-content">
+            <div class="card">
+                <h2>Inventory Movement Report</h2>
+                <div class="date-filter">
+                    <input type="date" id="report-start-date">
+                    <input type="date" id="report-end-date">
+                    <button class="button" onclick="generateReport()">Generate Report</button>
+                </div>
+                
+                <div class="report-grid" id="summary-cards"></div>
+
+                <div class="report-section">
+                    <h2>Stock Movement</h2>
+                    <div id="movement-report"></div>
+                </div>
+
+                <div class="report-section">
+                    <h2>Low Stock Alerts</h2>
+                    <div id="low-stock-report"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div id="inventory-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Inventory</h2>
+                <button class="close-modal" onclick="closeInventoryModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="modal-shoe-name">Shoe Name *</label>
+                <input type="text" id="modal-shoe-name" placeholder="e.g., Nike Air Max" required>
+            </div>
+
+            <div class="form-group">
+                <label for="modal-date">Date *</label>
+                <input type="date" id="modal-date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="modal-atno">ATNO (optional)</label>
+                <input type="text" id="modal-atno" placeholder="Auto-generated if empty">
+            </div>
+
+            <div id="colors-container">
+                <!-- Dynamic color sections will be added here -->
+            </div>
+            
+            <button class="add-color-btn" onclick="addColorSection()">+ Add Color</button>
+
+            <div class="button-group">
+                <button class="button" onclick="saveInventoryFromModal()">Save Inventory</button>
+                <button class="button secondary" onclick="closeInventoryModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Management
+        class ShoeStore {
+            constructor() {
+                this.inventory = this.loadFromStorage('inventory') || [];
+                this.sales = this.loadFromStorage('sales') || [];
+                this.atnoCounter = this.loadFromStorage('atnoCounter') || 1;
+            }
+
+            loadFromStorage(key) {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : null;
+                } catch (e) {
+                    console.error(`Error loading ${key}:`, e);
+                    return null;
+                }
+            }
+
+            saveToStorage(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    console.error(`Error saving ${key}:`, e);
+                }
+            }
+
+            generateATNO() {
+                const atno = `ATNO-${String(this.atnoCounter).padStart(6, '0')}`;
+                this.atnoCounter++;
+                this.saveToStorage('atnoCounter', this.atnoCounter);
+                return atno;
+            }
+
+            addInventory(items) {
+                const date = document.getElementById('modal-date').value || new Date().toISOString().split('T')[0];
+                
+                items.forEach(item => {
+                    const existingItem = this.inventory.find(inv => 
+                        inv.name === item.name && 
+                        inv.color === item.color && 
+                        inv.size === item.size
+                    );
+
+                    if (existingItem) {
+                        existingItem.quantity += item.quantity;
+                        existingItem.lastUpdated = date;
+                    } else {
+                        this.inventory.push({
+                            id: Date.now() + Math.random(),
+                            name: item.name,
+                            color: item.color,
+                            size: item.size,
+                            quantity: item.quantity,
+                            atno: item.atno || this.generateATNO(),
+                            dateAdded: date,
+                            lastUpdated: date
+                        });
+                    }
+                });
+
+                this.saveToStorage('inventory', this.inventory);
+                this.renderInventory();
+            }
+
+            recordSale(saleData) {
+                this.sales.push({
+                    id: Date.now(),
+                    date: saleData.date,
+                    items: saleData.items,
+                    total: saleData.total
+                });
+
+                // Update inventory
+                saleData.items.forEach(saleItem => {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (inventoryItem) {
+                        inventoryItem.quantity -= saleItem.quantity;
+                    }
+                });
+
+                // Remove items with 0 quantity
+                this.inventory = this.inventory.filter(inv => inv.quantity > 0);
+
+                this.saveToStorage('inventory', this.inventory);
+                this.saveToStorage('sales', this.sales);
+                this.renderSales();
+                this.renderInventory();
+            }
+
+            getInventoryReport(startDate, endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59);
+
+                const inventorySnapshot = this.inventory.filter(item => 
+                    new Date(item.dateAdded) <= end
+                );
+
+                const salesInPeriod = this.sales.filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    return saleDate >= start && saleDate <= end;
+                });
+
+                const movementMap = new Map();
+
+                // Track initial inventory
+                inventorySnapshot.forEach(item => {
+                    const key = `${item.name}-${item.color}-${item.size}`;
+                    movementMap.set(key, {
+                        name: item.name,
+                        color: item.color,
+                        size: item.size,
+                        initial: item.quantity,
+                        sold: 0,
+                        current: item.quantity
+                    });
+                });
+
+                // Track sales
+                salesInPeriod.forEach(sale => {
+                    sale.items.forEach(saleItem => {
+                        const originalItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                        if (originalItem) {
+                            const key = `${originalItem.name}-${originalItem.color}-${originalItem.size}`;
+                            const movement = movementMap.get(key);
+                            if (movement) {
+                                movement.sold += saleItem.quantity;
+                                movement.current -= saleItem.quantity;
+                            }
+                        }
+                    });
+                });
+
+                return Array.from(movementMap.values());
+            }
+        }
+
+        // Initialize store
+        const store = new ShoeStore();
+
+        // Modal Functions
+        let colorSectionCount = 0;
+
+        function openInventoryModal() {
+            document.getElementById('inventory-modal').style.display = 'block';
+            document.getElementById('modal-shoe-name').value = '';
+            document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-atno').value = '';
+            document.getElementById('colors-container').innerHTML = '';
+            colorSectionCount = 0;
+            addColorSection();
+        }
+
+        function closeInventoryModal() {
+            document.getElementById('inventory-modal').style.display = 'none';
+        }
+
+        function addColorSection() {
+            colorSectionCount++;
+            const container = document.getElementById('colors-container');
+            
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'color-section';
+            colorDiv.id = `color-section-${colorSectionCount}`;
+            
+            colorDiv.innerHTML = `
+                <div class="color-header">
+                    <span class="color-title">Color ${colorSectionCount}</span>
+                    <button class="remove-color-btn" onclick="removeColorSection(${colorSectionCount})">Remove Color</button>
+                </div>
+                <div class="form-group">
+                    <label>Color Name *</label>
+                    <input type="text" class="color-name" placeholder="e.g., Black, White, Red" required>
+                </div>
+                
+                <div class="size-labels">
+                    <span>Size</span>
+                    <span>Quantity</span>
+                    <span></span>
+                </div>
+                
+                <div class="sizes-container"></div>
+                
+                <button class="add-size-btn" onclick="addSizeRow(${colorSectionCount})">+ Add Size</button>
+            `;
+            
+            container.appendChild(colorDiv);
+            
+            // Add first size row
+            addSizeRow(colorSectionCount);
+        }
+
+        function removeColorSection(id) {
+            const section = document.getElementById(`color-section-${id}`);
+            if (section && document.querySelectorAll('.color-section').length > 1) {
+                section.remove();
+            } else {
+                alert('You need at least one color section');
+            }
+        }
+
+        let sizeRowCount = 0;
+
+        function addSizeRow(colorId) {
+            sizeRowCount++;
+            const container = document.querySelector(`#color-section-${colorId} .sizes-container`);
+            
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'size-row';
+            rowDiv.id = `size-row-${sizeRowCount}`;
+            
+            rowDiv.innerHTML = `
+                <input type="text" class="size-input" placeholder="Size (e.g., 9, 10.5)" required>
+                <input type="number" class="quantity-input" placeholder="Quantity" min="1" required>
+                <button class="remove-size-btn" onclick="removeSizeRow(${sizeRowCount})">&times;</button>
+            `;
+            
+            container.appendChild(rowDiv);
+        }
+
+        function removeSizeRow(id) {
+            const row = document.getElementById(`size-row-${id}`);
+            if (row && document.querySelectorAll('.size-row').length > 1) {
+                row.remove();
+            } else {
+                alert('You need at least one size row');
+            }
+        }
+
+        function saveInventoryFromModal() {
+            const shoeName = document.getElementById('modal-shoe-name').value.trim();
+            const date = document.getElementById('modal-date').value;
+            const atno = document.getElementById('modal-atno').value || 'N/A';
+            
+            if (!shoeName) {
+                alert('Please enter shoe name');
+                return;
+            }
+            
+            if (!date) {
+                alert('Please select date');
+                return;
+            }
+            
+            const items = [];
+            
+            // Loop through color sections
+            const colorSections = document.querySelectorAll('.color-section');
+            for (const section of colorSections) {
+                const colorName = section.querySelector('.color-name').value.trim();
+                if (!colorName) {
+                    alert('Please enter color name for all colors');
+                    return;
+                }
+                
+                // Loop through size rows in this color
+                const sizeRows = section.querySelectorAll('.size-row');
+                for (const row of sizeRows) {
+                    const size = row.querySelector('.size-input').value.trim();
+                    const quantity = parseInt(row.querySelector('.quantity-input').value);
+                    
+                    if (!size) {
+                        alert('Please enter size for all entries');
+                        return;
+                    }
+                    
+                    if (!quantity || quantity <= 0) {
+                        alert('Please enter valid quantity for all entries');
+                        return;
+                    }
+                    
+                    items.push({
+                        name: shoeName,
+                        color: colorName,
+                        size: size,
+                        quantity: quantity,
+                        atno: atno
+                    });
+                }
+            }
+            
+            if (items.length === 0) {
+                alert('Please add at least one size entry');
+                return;
+            }
+            
+            store.addInventory(items);
+            alert(`${items.length} inventory item(s) added successfully!`);
+            closeInventoryModal();
+        }
+
+        // Sales Functions
+        let salesItemCount = 0;
+
+        function addSalesItem() {
+            salesItemCount++;
+            const container = document.getElementById('sales-items-container');
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'sales-item';
+            itemDiv.id = `sales-item-${salesItemCount}`;
+            
+            const inventoryOptions = store.inventory.map(item => 
+                `<option value="${item.id}">${item.name} - ${item.color} - Size ${item.size} (Qty: ${item.quantity})</option>`
+            ).join('');
+
+            itemDiv.innerHTML = `
+                <div class="header">
+                    <span>Item ${salesItemCount}</span>
+                    <button class="delete-btn" onclick="removeSalesItem(${salesItemCount})">&times;</button>
+                </div>
+                <div class="details">
+                    <select class="sales-inventory-select" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateSalesItem(${salesItemCount})">
+                        <option value="">Select Item</option>
+                        ${inventoryOptions}
+                    </select>
+                    <input type="number" class="sales-quantity" placeholder="Quantity" min="1" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateSalesItem(${salesItemCount})">
+                    <input type="number" class="sales-price" placeholder="Price per unit" min="0" step="0.01" style="width: 100%; padding: 8px;" onchange="updateSalesItem(${salesItemCount})">
+                    <input type="hidden" class="sales-item-total" value="0">
+                </div>
+            `;
+            
+            container.appendChild(itemDiv);
+        }
+
+        function removeSalesItem(id) {
+            const item = document.getElementById(`sales-item-${id}`);
+            if (item) {
+                item.remove();
+                updateTotalSales();
+            }
+        }
+
+        function updateSalesItem(id) {
+            const itemDiv = document.getElementById(`sales-item-${id}`);
+            const quantity = parseFloat(itemDiv.querySelector('.sales-quantity').value) || 0;
+            const price = parseFloat(itemDiv.querySelector('.sales-price').value) || 0;
+            const total = quantity * price;
+            
+            itemDiv.querySelector('.sales-item-total').value = total;
+            updateTotalSales();
+        }
+
+        function updateTotalSales() {
+            let total = 0;
+            document.querySelectorAll('.sales-item-total').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById('sales-total').value = total.toFixed(2);
+        }
+
+        function recordSales() {
+            const date = document.getElementById('sales-date').value;
+            if (!date) {
+                alert('Please select sales date');
+                return;
+            }
+
+            const items = [];
+            let valid = true;
+
+            document.querySelectorAll('.sales-item').forEach(itemDiv => {
+                const inventoryId = itemDiv.querySelector('.sales-inventory-select').value;
+                const quantity = parseInt(itemDiv.querySelector('.sales-quantity').value);
+                const price = parseFloat(itemDiv.querySelector('.sales-price').value);
+
+                if (!inventoryId || !quantity || !price) {
+                    valid = false;
+                    return;
+                }
+
+                const inventoryItem = store.inventory.find(inv => inv.id === inventoryId);
+                if (!inventoryItem || inventoryItem.quantity < quantity) {
+                    alert(`Insufficient quantity for ${inventoryItem.name}`);
+                    valid = false;
+                    return;
+                }
+
+                items.push({
+                    inventoryId: inventoryId,
+                    quantity: quantity,
+                    price: price
+                });
+            });
+
+            if (!valid) {
+                alert('Please fill all item details correctly');
+                return;
+            }
+
+            if (items.length === 0) {
+                alert('Please add at least one item');
+                return;
+            }
+
+            const total = parseFloat(document.getElementById('sales-total').value);
+
+            store.recordSale({
+                date: date,
+                items: items,
+                total: total
+            });
+
+            alert('Sale recorded successfully!');
+            clearSalesForm();
+        }
+
+        function clearSalesForm() {
+            document.getElementById('sales-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('sales-items-container').innerHTML = '';
+            document.getElementById('sales-total').value = '0.00';
+            salesItemCount = 0;
+            addSalesItem();
+        }
+
+        // Report Functions
+        function generateReport() {
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            const movement = store.getInventoryReport(startDate, endDate);
+            renderMovementReport(movement);
+            renderLowStockReport();
+        }
+
+        function renderMovementReport(movement) {
+            const container = document.getElementById('movement-report');
+            const summaryContainer = document.getElementById('summary-cards');
+
+            if (movement.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No movement data available</p></div>';
+                summaryContainer.innerHTML = '';
+                return;
+            }
+
+            // Summary cards
+            const totalItems = movement.length;
+            const totalSold = movement.reduce((sum, m) => sum + m.sold, 0);
+            const currentValue = movement.reduce((sum, m) => sum + m.current, 0);
+            const totalRevenue = store.sales
+                .filter(s => {
+                    const saleDate = new Date(s.date);
+                    const start = new Date(document.getElementById('report-start-date').value);
+                    const end = new Date(document.getElementById('report-end-date').value);
+                    end.setHours(23, 59, 59);
+                    return saleDate >= start && saleDate <= end;
+                })
+                .reduce((sum, s) => sum + s.total, 0);
+
+            summaryContainer.innerHTML = `
+                <div class="report-card">
+                    <h3>Total Items Tracked</h3>
+                    <div class="value">${totalItems}</div>
+                </div>
+                <div class="report-card">
+                    <h3>Total Units Sold</h3>
+                    <div class="value">${totalSold}</div>
+                </div>
+                <div class="report-card">
+                    <h3>Current Stock</h3>
+                    <div class="value">${currentValue}</div>
+                </div>
+                <div class="report-card">
+                    <h3>Total Revenue</h3>
+                    <div class="value">KES ${totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                </div>
+            `;
+
+            // Movement details
+            container.innerHTML = movement.map(m => `
+                <div class="sales-item">
+                    <div class="header">
+                        <span>${m.name} - ${m.color} - Size ${m.size}</span>
+                    </div>
+                    <div class="details">
+                        <div>Initial Stock: <strong>${m.initial}</strong></div>
+                        <div>Sold: <strong style="color: #d4a000;">${m.sold}</strong></div>
+                        <div>Current Stock: <strong style="color: #1a1a1a;">${m.current}</strong></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderLowStockReport() {
+            const container = document.getElementById('low-stock-report');
+            const lowStock = store.inventory.filter(item => item.quantity <= 3);
+
+            if (lowStock.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>All items are well stocked</p></div>';
+                return;
+            }
+
+            container.innerHTML = lowStock.map(item => `
+                <div class="inventory-card stock-low">
+                    <h3>${item.name}</h3>
+                    <div class="detail">
+                        <span>Color:</span>
+                        <span>${item.color}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Size:</span>
+                        <span>${item.size}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Quantity:</span>
+                        <span><span class="quantity-badge">${item.quantity}</span></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Functions
+        function renderInventory() {
+            const container = document.getElementById('inventory-list');
+            
+            if (store.inventory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No inventory items</p></div>';
+                return;
+            }
+
+            const grouped = {};
+            store.inventory.forEach(item => {
+                if (!grouped[item.name]) grouped[item.name] = [];
+                grouped[item.name].push(item);
+            });
+
+            container.innerHTML = Object.entries(grouped).map(([name, items]) => `
+                <div class="card inventory-card">
+                    <h3>${name}</h3>
+                    ${items.map(item => `
+                        <div class="detail">
+                            <span>${item.color} - Size ${item.size} (${item.atno})</span>
+                            <span><span class="quantity-badge">${item.quantity} pairs</span></span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteInventory('${item.id}')">&times;</button>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function renderSales() {
+            const container = document.getElementById('sales-list');
+            
+            if (store.sales.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No sales recorded</p></div>';
+                return;
+            }
+
+            container.innerHTML = store.sales
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .map(sale => `
+                    <div class="sales-item">
+                        <div class="header">
+                            <span>${new Date(sale.date).toLocaleDateString()}</span>
+                            <span style="font-weight: bold;">KES ${sale.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="details">
+                            ${sale.items.map(item => {
+                                const inventoryItem = store.inventory.find(inv => inv.id === item.inventoryId);
+                                return inventoryItem ? 
+                                    `<div>${inventoryItem.name} - ${inventoryItem.color} - Size ${inventoryItem.size} (${item.quantity} @ KES ${item.price})</div>` : 
+                                    '';
+                            }).join('')}
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function renderSalesItemSelector() {
+            const container = document.getElementById('sales-items-container');
+            if (!container.innerHTML.trim()) {
+                addSalesItem();
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function deleteInventory(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                store.inventory = store.inventory.filter(item => item.id !== id);
+                store.saveToStorage('inventory', store.inventory);
+                store.renderInventory();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sales-date').value = today;
+            document.getElementById('report-start-date').value = today;
+            document.getElementById('report-end-date').value = today;
+
+            // Render data
+            renderInventory();
+            renderSales();
+            renderSalesItemSelector();
+            generateReport();
+        });
+    </script>
+</body>
+</html>
