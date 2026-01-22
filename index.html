@@ -170,12 +170,6 @@
             box-shadow: 0 0 0 3px rgba(26,26,26,0.1);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 120px;
-            font-family: monospace;
-        }
-
         .help-text {
             font-size: 0.85rem;
             color: #666;
@@ -238,6 +232,14 @@
 
         .button.danger:hover {
             background: #b71c1c;
+        }
+
+        .button.success {
+            background: #2e7d32;
+        }
+
+        .button.success:hover {
+            background: #1b5e20;
         }
 
         .button-group {
@@ -439,23 +441,34 @@
             opacity: 0.3;
         }
 
-        .delete-btn {
+        .action-buttons {
+            display: flex;
+            gap: 8px;
             position: absolute;
             top: 15px;
             right: 15px;
+        }
+
+        .edit-btn, .delete-btn {
             background: transparent;
             border: none;
             cursor: pointer;
             padding: 8px;
-            border-radius: 10px;
+            border-radius: 8px;
             transition: all 0.3s ease;
             color: #999;
-            font-size: 1.2rem;
+            font-size: 1rem;
             width: 35px;
             height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .edit-btn:hover {
+            background: #e3f2fd;
+            color: #1565c0;
+            transform: scale(1.1);
         }
 
         .delete-btn:hover {
@@ -519,7 +532,6 @@
             background: #f5f5f5;
         }
 
-        /* New styles for modal form */
         .color-section {
             background: #f9f9f9;
             border-radius: 15px;
@@ -542,7 +554,7 @@
 
         .size-row {
             display: grid;
-            grid-template-columns: 1fr 1fr auto auto;
+            grid-template-columns: 1fr 1fr auto;
             gap: 10px;
             align-items: center;
             margin-bottom: 10px;
@@ -613,7 +625,7 @@
 
         .size-labels {
             display: grid;
-            grid-template-columns: 1fr 1fr auto auto;
+            grid-template-columns: 1fr 1fr auto;
             gap: 10px;
             margin-bottom: 8px;
             padding: 0 5px;
@@ -669,6 +681,11 @@
             
             .size-labels {
                 display: none;
+            }
+            
+            .action-buttons {
+                top: 10px;
+                right: 10px;
             }
         }
     </style>
@@ -758,7 +775,7 @@
     <div id="inventory-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Inventory</h2>
+                <h2 id="inventory-modal-title">Add Inventory</h2>
                 <button class="close-modal" onclick="closeInventoryModal()">&times;</button>
             </div>
             
@@ -784,8 +801,40 @@
             <button class="add-color-btn" onclick="addColorSection()">+ Add Color</button>
 
             <div class="button-group">
-                <button class="button" onclick="saveInventoryFromModal()">Save Inventory</button>
+                <button class="button" id="save-inventory-btn" onclick="saveInventoryFromModal()">Save Inventory</button>
                 <button class="button secondary" onclick="closeInventoryModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Modal -->
+    <div id="sales-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="sales-modal-title">Edit Sale</h2>
+                <button class="close-modal" onclick="closeSalesModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="modal-sales-date">Sales Date *</label>
+                <input type="date" id="modal-sales-date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Sale Items</label>
+                <div id="modal-sales-items-container"></div>
+                <button class="add-color-btn" onclick="addItemToEditSale()">+ Add Item</button>
+            </div>
+
+            <div class="form-group">
+                <label>Total Amount</label>
+                <input type="number" id="modal-sales-total" placeholder="0.00" step="0.01" readonly>
+            </div>
+
+            <div class="button-group">
+                <button class="button success" onclick="updateSaleFromModal()">Update Sale</button>
+                <button class="button danger" onclick="deleteSaleFromModal()">Delete Sale</button>
+                <button class="button secondary" onclick="closeSalesModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -852,10 +901,34 @@
                 });
 
                 this.saveToStorage('inventory', this.inventory);
-                this.renderInventory();
+                renderInventory(); // Call global function
+            }
+
+            updateInventoryItem(id, updates) {
+                const itemIndex = this.inventory.findIndex(inv => inv.id === id);
+                if (itemIndex !== -1) {
+                    this.inventory[itemIndex] = { ...this.inventory[itemIndex], ...updates };
+                    this.saveToStorage('inventory', this.inventory);
+                    renderInventory();
+                }
+            }
+
+            deleteInventory(id) {
+                this.inventory = this.inventory.filter(item => item.id !== id);
+                this.saveToStorage('inventory', this.inventory);
+                renderInventory();
             }
 
             recordSale(saleData) {
+                // Check inventory availability first
+                for (const saleItem of saleData.items) {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (!inventoryItem || inventoryItem.quantity < saleItem.quantity) {
+                        throw new Error(`Insufficient quantity for ${inventoryItem?.name || 'Unknown item'}`);
+                    }
+                }
+
+                // Record the sale
                 this.sales.push({
                     id: Date.now(),
                     date: saleData.date,
@@ -876,8 +949,81 @@
 
                 this.saveToStorage('inventory', this.inventory);
                 this.saveToStorage('sales', this.sales);
-                this.renderSales();
-                this.renderInventory();
+                renderSales();
+                renderInventory();
+            }
+
+            updateSale(id, saleData) {
+                const saleIndex = this.sales.findIndex(s => s.id === id);
+                if (saleIndex === -1) return;
+
+                const oldSale = this.sales[saleIndex];
+                
+                // Return old inventory
+                oldSale.items.forEach(saleItem => {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (inventoryItem) {
+                        inventoryItem.quantity += saleItem.quantity;
+                    }
+                });
+
+                // Check new inventory availability
+                for (const saleItem of saleData.items) {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (!inventoryItem || inventoryItem.quantity < saleItem.quantity) {
+                        // Restore old inventory if new sale is invalid
+                        oldSale.items.forEach(saleItem => {
+                            const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                            if (inventoryItem) {
+                                inventoryItem.quantity -= saleItem.quantity;
+                            }
+                        });
+                        throw new Error(`Insufficient quantity for ${inventoryItem?.name || 'Unknown item'}`);
+                    }
+                }
+
+                // Update sale
+                this.sales[saleIndex] = {
+                    id: id,
+                    date: saleData.date,
+                    items: saleData.items,
+                    total: saleData.total
+                };
+
+                // Apply new inventory changes
+                saleData.items.forEach(saleItem => {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (inventoryItem) {
+                        inventoryItem.quantity -= saleItem.quantity;
+                    }
+                });
+
+                // Remove items with 0 quantity
+                this.inventory = this.inventory.filter(inv => inv.quantity > 0);
+
+                this.saveToStorage('inventory', this.inventory);
+                this.saveToStorage('sales', this.sales);
+                renderSales();
+                renderInventory();
+            }
+
+            deleteSale(id) {
+                const sale = this.sales.find(s => s.id === id);
+                if (!sale) return;
+
+                // Return inventory
+                sale.items.forEach(saleItem => {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (inventoryItem) {
+                        inventoryItem.quantity += saleItem.quantity;
+                    }
+                });
+
+                this.sales = this.sales.filter(s => s.id !== id);
+                this.saveToStorage('sales', this.sales);
+                this.saveToStorage('inventory', this.inventory);
+                renderSales();
+                renderInventory();
             }
 
             getInventoryReport(startDate, endDate) {
@@ -933,10 +1079,13 @@
 
         // Modal Functions
         let colorSectionCount = 0;
+        let currentEditSaleId = null;
 
         function openInventoryModal() {
             document.getElementById('inventory-modal').style.display = 'block';
+            document.getElementById('inventory-modal-title').textContent = 'Add Inventory';
             document.getElementById('modal-shoe-name').value = '';
+            document.getElementById('modal-shoe-name').disabled = false;
             document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('modal-atno').value = '';
             document.getElementById('colors-container').innerHTML = '';
@@ -944,8 +1093,39 @@
             addColorSection();
         }
 
+        function openEditInventoryModal(itemId) {
+            const item = store.inventory.find(inv => inv.id === itemId);
+            if (!item) return;
+
+            document.getElementById('inventory-modal').style.display = 'block';
+            document.getElementById('inventory-modal-title').textContent = 'Edit Inventory';
+            document.getElementById('modal-shoe-name').value = item.name;
+            document.getElementById('modal-shoe-name').disabled = true; // Keep name locked
+            document.getElementById('modal-date').value = item.dateAdded;
+            document.getElementById('modal-atno').value = item.atno;
+            document.getElementById('colors-container').innerHTML = '';
+            colorSectionCount = 0;
+            
+            // Group by color for editing
+            const grouped = {};
+            store.inventory
+                .filter(inv => inv.name === item.name)
+                .forEach(inv => {
+                    if (!grouped[inv.color]) grouped[inv.color] = [];
+                    grouped[inv.color].push(inv);
+                });
+            
+            Object.entries(grouped).forEach(([color, items]) => {
+                addColorSectionForEdit(color, items);
+            });
+            
+            // Store current item ID for update
+            document.getElementById('save-inventory-btn').onclick = () => updateInventoryFromModal(item.name);
+        }
+
         function closeInventoryModal() {
             document.getElementById('inventory-modal').style.display = 'none';
+            document.getElementById('save-inventory-btn').onclick = saveInventoryFromModal;
         }
 
         function addColorSection() {
@@ -983,6 +1163,43 @@
             addSizeRow(colorSectionCount);
         }
 
+        function addColorSectionForEdit(color, items) {
+            colorSectionCount++;
+            const container = document.getElementById('colors-container');
+            
+            const colorDiv = document.createElement('div');
+            colorDiv.className = 'color-section';
+            colorDiv.id = `color-section-${colorSectionCount}`;
+            
+            colorDiv.innerHTML = `
+                <div class="color-header">
+                    <span class="color-title">Color: ${color}</span>
+                    <button class="remove-color-btn" onclick="removeColorSection(${colorSectionCount})">Remove Color</button>
+                </div>
+                <div class="form-group">
+                    <label>Color Name *</label>
+                    <input type="text" class="color-name" value="${color}" required>
+                </div>
+                
+                <div class="size-labels">
+                    <span>Size</span>
+                    <span>Quantity</span>
+                    <span></span>
+                </div>
+                
+                <div class="sizes-container"></div>
+                
+                <button class="add-size-btn" onclick="addSizeRow(${colorSectionCount})">+ Add Size</button>
+            `;
+            
+            container.appendChild(colorDiv);
+            
+            // Add existing size rows
+            items.forEach(item => {
+                addSizeRowForEdit(colorSectionCount, item);
+            });
+        }
+
         function removeColorSection(id) {
             const section = document.getElementById(`color-section-${id}`);
             if (section && document.querySelectorAll('.color-section').length > 1) {
@@ -1005,6 +1222,24 @@
             rowDiv.innerHTML = `
                 <input type="text" class="size-input" placeholder="Size (e.g., 9, 10.5)" required>
                 <input type="number" class="quantity-input" placeholder="Quantity" min="1" required>
+                <button class="remove-size-btn" onclick="removeSizeRow(${sizeRowCount})">&times;</button>
+            `;
+            
+            container.appendChild(rowDiv);
+        }
+
+        function addSizeRowForEdit(colorId, item) {
+            sizeRowCount++;
+            const container = document.querySelector(`#color-section-${colorId} .sizes-container`);
+            
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'size-row';
+            rowDiv.id = `size-row-${sizeRowCount}`;
+            rowDiv.dataset.itemId = item.id;
+            
+            rowDiv.innerHTML = `
+                <input type="text" class="size-input" value="${item.size}" required>
+                <input type="number" class="quantity-input" value="${item.quantity}" min="1" required>
                 <button class="remove-size-btn" onclick="removeSizeRow(${sizeRowCount})">&times;</button>
             `;
             
@@ -1082,8 +1317,102 @@
             closeInventoryModal();
         }
 
+        function updateInventoryFromModal(originalName) {
+            const date = document.getElementById('modal-date').value;
+            const atno = document.getElementById('modal-atno').value || 'N/A';
+            
+            if (!date) {
+                alert('Please select date');
+                return;
+            }
+            
+            const items = [];
+            
+            // Loop through color sections
+            const colorSections = document.querySelectorAll('.color-section');
+            for (const section of colorSections) {
+                const colorName = section.querySelector('.color-name').value.trim();
+                if (!colorName) {
+                    alert('Please enter color name for all colors');
+                    return;
+                }
+                
+                // Loop through size rows in this color
+                const sizeRows = section.querySelectorAll('.size-row');
+                for (const row of sizeRows) {
+                    const size = row.querySelector('.size-input').value.trim();
+                    const quantity = parseInt(row.querySelector('.quantity-input').value);
+                    const itemId = row.dataset.itemId;
+                    
+                    if (!size) {
+                        alert('Please enter size for all entries');
+                        return;
+                    }
+                    
+                    if (!quantity || quantity <= 0) {
+                        alert('Please enter valid quantity for all entries');
+                        return;
+                    }
+                    
+                    items.push({
+                        id: itemId,
+                        name: originalName,
+                        color: colorName,
+                        size: size,
+                        quantity: quantity,
+                        atno: atno,
+                        dateAdded: date,
+                        lastUpdated: date
+                    });
+                }
+            }
+            
+            // Delete old items and add new ones
+            store.inventory = store.inventory.filter(inv => inv.name !== originalName);
+            store.saveToStorage('inventory', store.inventory);
+            
+            items.forEach(item => {
+                const {id, ...newItem} = item;
+                store.inventory.push({
+                    id: id || (Date.now() + Math.random()),
+                    ...newItem
+                });
+            });
+            
+            store.saveToStorage('inventory', store.inventory);
+            renderInventory();
+            alert('Inventory updated successfully!');
+            closeInventoryModal();
+            document.getElementById('save-inventory-btn').onclick = saveInventoryFromModal;
+        }
+
         // Sales Functions
         let salesItemCount = 0;
+
+        function openEditSaleModal(saleId) {
+            const sale = store.sales.find(s => s.id === saleId);
+            if (!sale) return;
+
+            currentEditSaleId = saleId;
+            document.getElementById('sales-modal').style.display = 'block';
+            document.getElementById('sales-modal-title').textContent = 'Edit Sale';
+            document.getElementById('modal-sales-date').value = sale.date;
+            
+            // Clear and populate items
+            document.getElementById('modal-sales-items-container').innerHTML = '';
+            salesItemCount = 0;
+            
+            sale.items.forEach(saleItem => {
+                addItemToEditSale(saleItem);
+            });
+            
+            updateEditSaleTotal();
+        }
+
+        function closeSalesModal() {
+            document.getElementById('sales-modal').style.display = 'none';
+            currentEditSaleId = null;
+        }
 
         function addSalesItem() {
             salesItemCount++;
@@ -1116,11 +1445,54 @@
             container.appendChild(itemDiv);
         }
 
+        function addItemToEditSale(saleItem = null) {
+            salesItemCount++;
+            const container = document.getElementById('modal-sales-items-container');
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'sales-item';
+            itemDiv.id = `edit-sales-item-${salesItemCount}`;
+            
+            const inventoryOptions = store.inventory.map(item => 
+                `<option value="${item.id}">${item.name} - ${item.color} - Size ${item.size} (Qty: ${item.quantity})</option>`
+            ).join('');
+
+            itemDiv.innerHTML = `
+                <div class="header">
+                    <span>Item ${salesItemCount}</span>
+                    <button class="delete-btn" onclick="removeEditSalesItem(${salesItemCount})">&times;</button>
+                </div>
+                <div class="details">
+                    <select class="edit-sales-inventory-select" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateEditSaleItem(${salesItemCount})" ${saleItem ? 'data-original-id="' + saleItem.inventoryId + '"' : ''}>
+                        <option value="">Select Item</option>
+                        ${inventoryOptions}
+                    </select>
+                    <input type="number" class="edit-sales-quantity" placeholder="Quantity" min="1" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateEditSaleItem(${salesItemCount})" value="${saleItem ? saleItem.quantity : ''}">
+                    <input type="number" class="edit-sales-price" placeholder="Price per unit" min="0" step="0.01" style="width: 100%; padding: 8px;" onchange="updateEditSaleItem(${salesItemCount})" value="${saleItem ? saleItem.price : ''}">
+                    <input type="hidden" class="edit-sales-item-total" value="${saleItem ? saleItem.quantity * saleItem.price : '0'}">
+                </div>
+            `;
+            
+            container.appendChild(itemDiv);
+            
+            if (saleItem) {
+                itemDiv.querySelector('.edit-sales-inventory-select').value = saleItem.inventoryId;
+            }
+        }
+
         function removeSalesItem(id) {
             const item = document.getElementById(`sales-item-${id}`);
             if (item) {
                 item.remove();
                 updateTotalSales();
+            }
+        }
+
+        function removeEditSalesItem(id) {
+            const item = document.getElementById(`edit-sales-item-${id}`);
+            if (item) {
+                item.remove();
+                updateEditSaleTotal();
             }
         }
 
@@ -1134,12 +1506,30 @@
             updateTotalSales();
         }
 
+        function updateEditSaleItem(id) {
+            const itemDiv = document.getElementById(`edit-sales-item-${id}`);
+            const quantity = parseFloat(itemDiv.querySelector('.edit-sales-quantity').value) || 0;
+            const price = parseFloat(itemDiv.querySelector('.edit-sales-price').value) || 0;
+            const total = quantity * price;
+            
+            itemDiv.querySelector('.edit-sales-item-total').value = total;
+            updateEditSaleTotal();
+        }
+
         function updateTotalSales() {
             let total = 0;
             document.querySelectorAll('.sales-item-total').forEach(input => {
                 total += parseFloat(input.value) || 0;
             });
             document.getElementById('sales-total').value = total.toFixed(2);
+        }
+
+        function updateEditSaleTotal() {
+            let total = 0;
+            document.querySelectorAll('.edit-sales-item-total').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById('modal-sales-total').value = total.toFixed(2);
         }
 
         function recordSales() {
@@ -1188,14 +1578,81 @@
 
             const total = parseFloat(document.getElementById('sales-total').value);
 
-            store.recordSale({
-                date: date,
-                items: items,
-                total: total
+            try {
+                store.recordSale({
+                    date: date,
+                    items: items,
+                    total: total
+                });
+                alert('Sale recorded successfully!');
+                clearSalesForm();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function updateSaleFromModal() {
+            if (!currentEditSaleId) return;
+
+            const date = document.getElementById('modal-sales-date').value;
+            if (!date) {
+                alert('Please select sales date');
+                return;
+            }
+
+            const items = [];
+            let valid = true;
+
+            document.querySelectorAll('[id^="edit-sales-item-"]').forEach(itemDiv => {
+                const inventoryId = itemDiv.querySelector('.edit-sales-inventory-select').value;
+                const quantity = parseInt(itemDiv.querySelector('.edit-sales-quantity').value);
+                const price = parseFloat(itemDiv.querySelector('.edit-sales-price').value);
+
+                if (!inventoryId || !quantity || !price) {
+                    valid = false;
+                    return;
+                }
+
+                items.push({
+                    inventoryId: inventoryId,
+                    quantity: quantity,
+                    price: price
+                });
             });
 
-            alert('Sale recorded successfully!');
-            clearSalesForm();
+            if (!valid) {
+                alert('Please fill all item details correctly');
+                return;
+            }
+
+            if (items.length === 0) {
+                alert('Please add at least one item');
+                return;
+            }
+
+            const total = parseFloat(document.getElementById('modal-sales-total').value);
+
+            try {
+                store.updateSale(currentEditSaleId, {
+                    date: date,
+                    items: items,
+                    total: total
+                });
+                alert('Sale updated successfully!');
+                closeSalesModal();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function deleteSaleFromModal() {
+            if (!currentEditSaleId) return;
+            
+            if (confirm('Are you sure you want to delete this sale?')) {
+                store.deleteSale(currentEditSaleId);
+                alert('Sale deleted successfully!');
+                closeSalesModal();
+            }
         }
 
         function clearSalesForm() {
@@ -1206,7 +1663,90 @@
             addSalesItem();
         }
 
-        // Report Functions
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Render Functions
+        function renderInventory() {
+            const container = document.getElementById('inventory-list');
+            
+            if (store.inventory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No inventory items</p></div>';
+                return;
+            }
+
+            const grouped = {};
+            store.inventory.forEach(item => {
+                if (!grouped[item.name]) grouped[item.name] = [];
+                grouped[item.name].push(item);
+            });
+
+            container.innerHTML = Object.entries(grouped).map(([name, items]) => `
+                <div class="card inventory-card">
+                    <h3>${name}</h3>
+                    ${items.map(item => `
+                        <div class="detail">
+                            <span>${item.color} - Size ${item.size} (${item.atno})</span>
+                            <span><span class="quantity-badge">${item.quantity} pairs</span></span>
+                        </div>
+                        <div class="action-buttons" style="position: absolute; top: 15px; right: 15px;">
+                            <button class="edit-btn" onclick="openEditInventoryModal('${item.id}')">✏️</button>
+                            <button class="delete-btn" onclick="deleteInventoryItem('${item.id}')">&times;</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function renderSales() {
+            const container = document.getElementById('sales-list');
+            
+            if (store.sales.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No sales recorded</p></div>';
+                return;
+            }
+
+            container.innerHTML = store.sales
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .map(sale => `
+                    <div class="sales-item">
+                        <div class="header">
+                            <span>${new Date(sale.date).toLocaleDateString()}</span>
+                            <span style="font-weight: bold;">KES ${sale.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="details">
+                            ${sale.items.map(item => {
+                                const inventoryItem = store.inventory.find(inv => inv.id === item.inventoryId);
+                                return inventoryItem ? 
+                                    `<div>${inventoryItem.name} - ${inventoryItem.color} - Size ${inventoryItem.size} (${item.quantity} @ KES ${item.price})</div>` : 
+                                    '';
+                            }).join('')}
+                        </div>
+                        <div class="action-buttons" style="position: absolute; top: 15px; right: 15px;">
+                            <button class="edit-btn" onclick="openEditSaleModal(${sale.id})">✏️</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function deleteInventoryItem(id) {
+            if (confirm('Are you sure you want to delete this inventory item? This will NOT affect recorded sales.')) {
+                store.deleteInventory(id);
+            }
+        }
+
+        function renderSalesItemSelector() {
+            const container = document.getElementById('sales-items-container');
+            if (!container.innerHTML.trim()) {
+                addSalesItem();
+            }
+        }
+
         function generateReport() {
             const startDate = document.getElementById('report-start-date').value;
             const endDate = document.getElementById('report-end-date').value;
@@ -1217,29 +1757,25 @@
             }
 
             const movement = store.getInventoryReport(startDate, endDate);
-            renderMovementReport(movement);
-            renderLowStockReport();
-        }
-
-        function renderMovementReport(movement) {
-            const container = document.getElementById('movement-report');
+            
+            // Summary cards
             const summaryContainer = document.getElementById('summary-cards');
-
+            const container = document.getElementById('movement-report');
+            
             if (movement.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No movement data available</p></div>';
+                container.innerHTML = '<div class="empty-state"><p>No movement data available for selected period</p></div>';
                 summaryContainer.innerHTML = '';
                 return;
             }
 
-            // Summary cards
             const totalItems = movement.length;
             const totalSold = movement.reduce((sum, m) => sum + m.sold, 0);
             const currentValue = movement.reduce((sum, m) => sum + m.current, 0);
             const totalRevenue = store.sales
                 .filter(s => {
                     const saleDate = new Date(s.date);
-                    const start = new Date(document.getElementById('report-start-date').value);
-                    const end = new Date(document.getElementById('report-end-date').value);
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
                     end.setHours(23, 59, 59);
                     return saleDate >= start && saleDate <= end;
                 })
@@ -1277,18 +1813,17 @@
                     </div>
                 </div>
             `).join('');
-        }
 
-        function renderLowStockReport() {
-            const container = document.getElementById('low-stock-report');
+            // Low stock report
+            const lowStockContainer = document.getElementById('low-stock-report');
             const lowStock = store.inventory.filter(item => item.quantity <= 3);
 
             if (lowStock.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>All items are well stocked</p></div>';
+                lowStockContainer.innerHTML = '<div class="empty-state"><p>All items are well stocked</p></div>';
                 return;
             }
 
-            container.innerHTML = lowStock.map(item => `
+            lowStockContainer.innerHTML = lowStock.map(item => `
                 <div class="inventory-card stock-low">
                     <h3>${item.name}</h3>
                     <div class="detail">
@@ -1305,86 +1840,6 @@
                     </div>
                 </div>
             `).join('');
-        }
-
-        // Render Functions
-        function renderInventory() {
-            const container = document.getElementById('inventory-list');
-            
-            if (store.inventory.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No inventory items</p></div>';
-                return;
-            }
-
-            const grouped = {};
-            store.inventory.forEach(item => {
-                if (!grouped[item.name]) grouped[item.name] = [];
-                grouped[item.name].push(item);
-            });
-
-            container.innerHTML = Object.entries(grouped).map(([name, items]) => `
-                <div class="card inventory-card">
-                    <h3>${name}</h3>
-                    ${items.map(item => `
-                        <div class="detail">
-                            <span>${item.color} - Size ${item.size} (${item.atno})</span>
-                            <span><span class="quantity-badge">${item.quantity} pairs</span></span>
-                        </div>
-                        <button class="delete-btn" onclick="deleteInventory('${item.id}')">&times;</button>
-                    `).join('')}
-                </div>
-            `).join('');
-        }
-
-        function renderSales() {
-            const container = document.getElementById('sales-list');
-            
-            if (store.sales.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No sales recorded</p></div>';
-                return;
-            }
-
-            container.innerHTML = store.sales
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .map(sale => `
-                    <div class="sales-item">
-                        <div class="header">
-                            <span>${new Date(sale.date).toLocaleDateString()}</span>
-                            <span style="font-weight: bold;">KES ${sale.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-                        </div>
-                        <div class="details">
-                            ${sale.items.map(item => {
-                                const inventoryItem = store.inventory.find(inv => inv.id === item.inventoryId);
-                                return inventoryItem ? 
-                                    `<div>${inventoryItem.name} - ${inventoryItem.color} - Size ${inventoryItem.size} (${item.quantity} @ KES ${item.price})</div>` : 
-                                    '';
-                            }).join('')}
-                        </div>
-                    </div>
-                `).join('');
-        }
-
-        function renderSalesItemSelector() {
-            const container = document.getElementById('sales-items-container');
-            if (!container.innerHTML.trim()) {
-                addSalesItem();
-            }
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function deleteInventory(id) {
-            if (confirm('Are you sure you want to delete this item?')) {
-                store.inventory = store.inventory.filter(item => item.id !== id);
-                store.saveToStorage('inventory', store.inventory);
-                store.renderInventory();
-            }
         }
 
         // Initialize
