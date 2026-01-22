@@ -170,6 +170,12 @@
             box-shadow: 0 0 0 3px rgba(26,26,26,0.1);
         }
 
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: monospace;
+        }
+
         .help-text {
             font-size: 0.85rem;
             color: #666;
@@ -232,14 +238,6 @@
 
         .button.danger:hover {
             background: #b71c1c;
-        }
-
-        .button.success {
-            background: #2e7d32;
-        }
-
-        .button.success:hover {
-            background: #1b5e20;
         }
 
         .button-group {
@@ -328,6 +326,7 @@
             margin-bottom: 15px;
             border-left: 4px solid #1a1a1a;
             transition: transform 0.2s ease;
+            position: relative;
         }
 
         .sales-item:hover {
@@ -441,23 +440,17 @@
             opacity: 0.3;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 8px;
+        .delete-btn, .edit-btn {
             position: absolute;
             top: 15px;
-            right: 15px;
-        }
-
-        .edit-btn, .delete-btn {
             background: transparent;
             border: none;
             cursor: pointer;
             padding: 8px;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.3s ease;
             color: #999;
-            font-size: 1rem;
+            font-size: 1.2rem;
             width: 35px;
             height: 35px;
             display: flex;
@@ -465,15 +458,23 @@
             justify-content: center;
         }
 
-        .edit-btn:hover {
-            background: #e3f2fd;
-            color: #1565c0;
-            transform: scale(1.1);
+        .delete-btn {
+            right: 15px;
+        }
+
+        .edit-btn {
+            right: 55px;
         }
 
         .delete-btn:hover {
             background: #ffebee;
             color: #c62828;
+            transform: scale(1.1);
+        }
+
+        .edit-btn:hover {
+            background: #e3f2fd;
+            color: #1565c0;
             transform: scale(1.1);
         }
 
@@ -637,9 +638,49 @@
             font-weight: 500;
         }
 
-        .size-labels span:last-child {
-            grid-column: span 2;
-            text-align: center;
+        .payment-method-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .payment-method-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 20px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .payment-method-btn.active {
+            background: #1a1a1a;
+            color: #faf8f3;
+            border-color: #1a1a1a;
+        }
+
+        .payment-split {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .payment-split.active {
+            display: grid;
+        }
+
+        .action-buttons {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 5px;
         }
 
         @media (max-width: 768px) {
@@ -681,11 +722,6 @@
             
             .size-labels {
                 display: none;
-            }
-            
-            .action-buttons {
-                top: 10px;
-                right: 10px;
             }
         }
     </style>
@@ -733,6 +769,24 @@
                 <div class="form-group">
                     <label>Total Amount</label>
                     <input type="number" id="sales-total" placeholder="0.00" step="0.01" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-method-group">
+                        <button type="button" class="payment-method-btn active" onclick="selectPaymentMethod('cash')">💵 Cash</button>
+                        <button type="button" class="payment-method-btn" onclick="selectPaymentMethod('mpesa')">📱 M-Pesa</button>
+                        <button type="button" class="payment-method-btn" onclick="selectPaymentMethod('split')">🔀 Split</button>
+                    </div>
+                    <div id="payment-split" class="payment-split">
+                        <div>
+                            <label>Cash Amount</label>
+                            <input type="number" id="cash-amount" placeholder="0.00" step="0.01" oninput="updateSplitPayment()">
+                        </div>
+                        <div>
+                            <label>M-Pesa Amount</label>
+                            <input type="number" id="mpesa-amount" placeholder="0.00" step="0.01" oninput="updateSplitPayment()">
+                        </div>
+                    </div>
                 </div>
                 <div class="button-group">
                     <button class="button" onclick="recordSales()">Record Sale</button>
@@ -801,40 +855,102 @@
             <button class="add-color-btn" onclick="addColorSection()">+ Add Color</button>
 
             <div class="button-group">
-                <button class="button" id="save-inventory-btn" onclick="saveInventoryFromModal()">Save Inventory</button>
+                <button class="button" onclick="saveInventoryFromModal()">Save Inventory</button>
                 <button class="button secondary" onclick="closeInventoryModal()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Sales Modal -->
-    <div id="sales-modal" class="modal">
+    <!-- Edit Inventory Item Modal -->
+    <div id="edit-inventory-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="sales-modal-title">Edit Sale</h2>
-                <button class="close-modal" onclick="closeSalesModal()">&times;</button>
+                <h2>Edit Inventory Item</h2>
+                <button class="close-modal" onclick="closeEditInventoryModal()">&times;</button>
             </div>
             
+            <input type="hidden" id="edit-item-id">
+            
             <div class="form-group">
-                <label for="modal-sales-date">Sales Date *</label>
-                <input type="date" id="modal-sales-date" required>
+                <label for="edit-item-name">Shoe Name *</label>
+                <input type="text" id="edit-item-name" required>
             </div>
 
             <div class="form-group">
-                <label>Sale Items</label>
-                <div id="modal-sales-items-container"></div>
-                <button class="add-color-btn" onclick="addItemToEditSale()">+ Add Item</button>
+                <label for="edit-item-color">Color *</label>
+                <input type="text" id="edit-item-color" required>
             </div>
 
             <div class="form-group">
-                <label>Total Amount</label>
-                <input type="number" id="modal-sales-total" placeholder="0.00" step="0.01" readonly>
+                <label for="edit-item-size">Size *</label>
+                <input type="text" id="edit-item-size" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-item-quantity">Quantity *</label>
+                <input type="number" id="edit-item-quantity" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-item-atno">ATNO</label>
+                <input type="text" id="edit-item-atno">
             </div>
 
             <div class="button-group">
-                <button class="button success" onclick="updateSaleFromModal()">Update Sale</button>
-                <button class="button danger" onclick="deleteSaleFromModal()">Delete Sale</button>
-                <button class="button secondary" onclick="closeSalesModal()">Cancel</button>
+                <button class="button" onclick="saveEditInventory()">Save Changes</button>
+                <button class="button secondary" onclick="closeEditInventoryModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Sales Modal -->
+    <div id="edit-sales-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Sale</h2>
+                <button class="close-modal" onclick="closeEditSalesModal()">&times;</button>
+            </div>
+            
+            <input type="hidden" id="edit-sale-id">
+            
+            <div class="form-group">
+                <label for="edit-sales-date">Sales Date</label>
+                <input type="date" id="edit-sales-date" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Sales Items</label>
+                <div id="edit-sales-items-container"></div>
+                <button class="button secondary" onclick="addEditSalesItem()">+ Add Item</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Total Amount</label>
+                <input type="number" id="edit-sales-total" placeholder="0.00" step="0.01" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label>Payment Method</label>
+                <div class="payment-method-group">
+                    <button type="button" class="payment-method-btn" onclick="selectEditPaymentMethod('cash')">💵 Cash</button>
+                    <button type="button" class="payment-method-btn" onclick="selectEditPaymentMethod('mpesa')">📱 M-Pesa</button>
+                    <button type="button" class="payment-method-btn" onclick="selectEditPaymentMethod('split')">🔀 Split</button>
+                </div>
+                <div id="edit-payment-split" class="payment-split">
+                    <div>
+                        <label>Cash Amount</label>
+                        <input type="number" id="edit-cash-amount" placeholder="0.00" step="0.01" oninput="updateEditSplitPayment()">
+                    </div>
+                    <div>
+                        <label>M-Pesa Amount</label>
+                        <input type="number" id="edit-mpesa-amount" placeholder="0.00" step="0.01" oninput="updateEditSplitPayment()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="button" onclick="saveEditSales()">Save Changes</button>
+                <button class="button secondary" onclick="closeEditSalesModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -843,12 +959,12 @@
         // Data Management
         class ShoeStore {
             constructor() {
-                this.inventory = this.loadFromStorage('inventory') || [];
-                this.sales = this.loadFromStorage('sales') || [];
-                this.atnoCounter = this.loadFromStorage('atnoCounter') || 1;
+                this.inventory = this.loadData('inventory') || [];
+                this.sales = this.loadData('sales') || [];
+                this.atnoCounter = this.loadData('atnoCounter') || 1;
             }
 
-            loadFromStorage(key) {
+            loadData(key) {
                 try {
                     const data = localStorage.getItem(key);
                     return data ? JSON.parse(data) : null;
@@ -858,7 +974,7 @@
                 }
             }
 
-            saveToStorage(key, data) {
+            saveData(key, data) {
                 try {
                     localStorage.setItem(key, JSON.stringify(data));
                 } catch (e) {
@@ -869,7 +985,7 @@
             generateATNO() {
                 const atno = `ATNO-${String(this.atnoCounter).padStart(6, '0')}`;
                 this.atnoCounter++;
-                this.saveToStorage('atnoCounter', this.atnoCounter);
+                this.saveData('atnoCounter', this.atnoCounter);
                 return atno;
             }
 
@@ -900,40 +1016,17 @@
                     }
                 });
 
-                this.saveToStorage('inventory', this.inventory);
-                renderInventory(); // Call global function
-            }
-
-            updateInventoryItem(id, updates) {
-                const itemIndex = this.inventory.findIndex(inv => inv.id === id);
-                if (itemIndex !== -1) {
-                    this.inventory[itemIndex] = { ...this.inventory[itemIndex], ...updates };
-                    this.saveToStorage('inventory', this.inventory);
-                    renderInventory();
-                }
-            }
-
-            deleteInventory(id) {
-                this.inventory = this.inventory.filter(item => item.id !== id);
-                this.saveToStorage('inventory', this.inventory);
+                this.saveData('inventory', this.inventory);
                 renderInventory();
             }
 
             recordSale(saleData) {
-                // Check inventory availability first
-                for (const saleItem of saleData.items) {
-                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
-                    if (!inventoryItem || inventoryItem.quantity < saleItem.quantity) {
-                        throw new Error(`Insufficient quantity for ${inventoryItem?.name || 'Unknown item'}`);
-                    }
-                }
-
-                // Record the sale
                 this.sales.push({
                     id: Date.now(),
                     date: saleData.date,
                     items: saleData.items,
-                    total: saleData.total
+                    total: saleData.total,
+                    paymentMethod: saleData.paymentMethod
                 });
 
                 // Update inventory
@@ -947,19 +1040,50 @@
                 // Remove items with 0 quantity
                 this.inventory = this.inventory.filter(inv => inv.quantity > 0);
 
-                this.saveToStorage('inventory', this.inventory);
-                this.saveToStorage('sales', this.sales);
+                this.saveData('inventory', this.inventory);
+                this.saveData('sales', this.sales);
                 renderSales();
                 renderInventory();
             }
 
-            updateSale(id, saleData) {
-                const saleIndex = this.sales.findIndex(s => s.id === id);
+            deleteSale(saleId) {
+                const sale = this.sales.find(s => s.id === saleId);
+                if (!sale) return;
+
+                // Restore inventory
+                sale.items.forEach(saleItem => {
+                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
+                    if (inventoryItem) {
+                        inventoryItem.quantity += saleItem.quantity;
+                    } else {
+                        // If item was deleted, recreate it
+                        this.inventory.push({
+                            id: saleItem.inventoryId,
+                            name: saleItem.name,
+                            color: saleItem.color,
+                            size: saleItem.size,
+                            quantity: saleItem.quantity,
+                            atno: saleItem.atno || this.generateATNO(),
+                            dateAdded: sale.date,
+                            lastUpdated: new Date().toISOString().split('T')[0]
+                        });
+                    }
+                });
+
+                this.sales = this.sales.filter(s => s.id !== saleId);
+                this.saveData('inventory', this.inventory);
+                this.saveData('sales', this.sales);
+                renderSales();
+                renderInventory();
+            }
+
+            updateSale(saleId, saleData) {
+                const saleIndex = this.sales.findIndex(s => s.id === saleId);
                 if (saleIndex === -1) return;
 
                 const oldSale = this.sales[saleIndex];
-                
-                // Return old inventory
+
+                // Restore old inventory
                 oldSale.items.forEach(saleItem => {
                     const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
                     if (inventoryItem) {
@@ -967,30 +1091,7 @@
                     }
                 });
 
-                // Check new inventory availability
-                for (const saleItem of saleData.items) {
-                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
-                    if (!inventoryItem || inventoryItem.quantity < saleItem.quantity) {
-                        // Restore old inventory if new sale is invalid
-                        oldSale.items.forEach(saleItem => {
-                            const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
-                            if (inventoryItem) {
-                                inventoryItem.quantity -= saleItem.quantity;
-                            }
-                        });
-                        throw new Error(`Insufficient quantity for ${inventoryItem?.name || 'Unknown item'}`);
-                    }
-                }
-
-                // Update sale
-                this.sales[saleIndex] = {
-                    id: id,
-                    date: saleData.date,
-                    items: saleData.items,
-                    total: saleData.total
-                };
-
-                // Apply new inventory changes
+                // Apply new sale
                 saleData.items.forEach(saleItem => {
                     const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
                     if (inventoryItem) {
@@ -998,32 +1099,32 @@
                     }
                 });
 
-                // Remove items with 0 quantity
-                this.inventory = this.inventory.filter(inv => inv.quantity > 0);
+                this.sales[saleIndex] = {
+                    ...oldSale,
+                    ...saleData
+                };
 
-                this.saveToStorage('inventory', this.inventory);
-                this.saveToStorage('sales', this.sales);
+                this.inventory = this.inventory.filter(inv => inv.quantity > 0);
+                this.saveData('inventory', this.inventory);
+                this.saveData('sales', this.sales);
                 renderSales();
                 renderInventory();
             }
 
-            deleteSale(id) {
-                const sale = this.sales.find(s => s.id === id);
-                if (!sale) return;
-
-                // Return inventory
-                sale.items.forEach(saleItem => {
-                    const inventoryItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
-                    if (inventoryItem) {
-                        inventoryItem.quantity += saleItem.quantity;
-                    }
-                });
-
-                this.sales = this.sales.filter(s => s.id !== id);
-                this.saveToStorage('sales', this.sales);
-                this.saveToStorage('inventory', this.inventory);
-                renderSales();
+            deleteInventoryItem(id) {
+                this.inventory = this.inventory.filter(item => item.id != id);
+                this.saveData('inventory', this.inventory);
                 renderInventory();
+            }
+
+            updateInventoryItem(id, updates) {
+                const item = this.inventory.find(inv => inv.id == id);
+                if (item) {
+                    Object.assign(item, updates);
+                    item.lastUpdated = new Date().toISOString().split('T')[0];
+                    this.saveData('inventory', this.inventory);
+                    renderInventory();
+                }
             }
 
             getInventoryReport(startDate, endDate) {
@@ -1058,14 +1159,13 @@
                 // Track sales
                 salesInPeriod.forEach(sale => {
                     sale.items.forEach(saleItem => {
-                        const originalItem = this.inventory.find(inv => inv.id === saleItem.inventoryId);
-                        if (originalItem) {
-                            const key = `${originalItem.name}-${originalItem.color}-${originalItem.size}`;
-                            const movement = movementMap.get(key);
-                            if (movement) {
-                                movement.sold += saleItem.quantity;
-                                movement.current -= saleItem.quantity;
-                            }
+                        const originalItem = this.inventory.find(inv => inv.id === saleItem.inventoryId) || 
+                            {name: saleItem.name, color: saleItem.color, size: saleItem.size};
+                        const key = `${originalItem.name}-${originalItem.color}-${originalItem.size}`;
+                        const movement = movementMap.get(key);
+                        if (movement) {
+                            movement.sold += saleItem.quantity;
+                            movement.current -= saleItem.quantity;
                         }
                     });
                 });
@@ -1079,13 +1179,12 @@
 
         // Modal Functions
         let colorSectionCount = 0;
-        let currentEditSaleId = null;
+        let currentPaymentMethod = 'cash';
+        let currentEditPaymentMethod = 'cash';
 
         function openInventoryModal() {
             document.getElementById('inventory-modal').style.display = 'block';
-            document.getElementById('inventory-modal-title').textContent = 'Add Inventory';
             document.getElementById('modal-shoe-name').value = '';
-            document.getElementById('modal-shoe-name').disabled = false;
             document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('modal-atno').value = '';
             document.getElementById('colors-container').innerHTML = '';
@@ -1093,39 +1192,8 @@
             addColorSection();
         }
 
-        function openEditInventoryModal(itemId) {
-            const item = store.inventory.find(inv => inv.id === itemId);
-            if (!item) return;
-
-            document.getElementById('inventory-modal').style.display = 'block';
-            document.getElementById('inventory-modal-title').textContent = 'Edit Inventory';
-            document.getElementById('modal-shoe-name').value = item.name;
-            document.getElementById('modal-shoe-name').disabled = true; // Keep name locked
-            document.getElementById('modal-date').value = item.dateAdded;
-            document.getElementById('modal-atno').value = item.atno;
-            document.getElementById('colors-container').innerHTML = '';
-            colorSectionCount = 0;
-            
-            // Group by color for editing
-            const grouped = {};
-            store.inventory
-                .filter(inv => inv.name === item.name)
-                .forEach(inv => {
-                    if (!grouped[inv.color]) grouped[inv.color] = [];
-                    grouped[inv.color].push(inv);
-                });
-            
-            Object.entries(grouped).forEach(([color, items]) => {
-                addColorSectionForEdit(color, items);
-            });
-            
-            // Store current item ID for update
-            document.getElementById('save-inventory-btn').onclick = () => updateInventoryFromModal(item.name);
-        }
-
         function closeInventoryModal() {
             document.getElementById('inventory-modal').style.display = 'none';
-            document.getElementById('save-inventory-btn').onclick = saveInventoryFromModal;
         }
 
         function addColorSection() {
@@ -1158,46 +1226,7 @@
             `;
             
             container.appendChild(colorDiv);
-            
-            // Add first size row
             addSizeRow(colorSectionCount);
-        }
-
-        function addColorSectionForEdit(color, items) {
-            colorSectionCount++;
-            const container = document.getElementById('colors-container');
-            
-            const colorDiv = document.createElement('div');
-            colorDiv.className = 'color-section';
-            colorDiv.id = `color-section-${colorSectionCount}`;
-            
-            colorDiv.innerHTML = `
-                <div class="color-header">
-                    <span class="color-title">Color: ${color}</span>
-                    <button class="remove-color-btn" onclick="removeColorSection(${colorSectionCount})">Remove Color</button>
-                </div>
-                <div class="form-group">
-                    <label>Color Name *</label>
-                    <input type="text" class="color-name" value="${color}" required>
-                </div>
-                
-                <div class="size-labels">
-                    <span>Size</span>
-                    <span>Quantity</span>
-                    <span></span>
-                </div>
-                
-                <div class="sizes-container"></div>
-                
-                <button class="add-size-btn" onclick="addSizeRow(${colorSectionCount})">+ Add Size</button>
-            `;
-            
-            container.appendChild(colorDiv);
-            
-            // Add existing size rows
-            items.forEach(item => {
-                addSizeRowForEdit(colorSectionCount, item);
-            });
         }
 
         function removeColorSection(id) {
@@ -1228,37 +1257,22 @@
             container.appendChild(rowDiv);
         }
 
-        function addSizeRowForEdit(colorId, item) {
-            sizeRowCount++;
-            const container = document.querySelector(`#color-section-${colorId} .sizes-container`);
-            
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'size-row';
-            rowDiv.id = `size-row-${sizeRowCount}`;
-            rowDiv.dataset.itemId = item.id;
-            
-            rowDiv.innerHTML = `
-                <input type="text" class="size-input" value="${item.size}" required>
-                <input type="number" class="quantity-input" value="${item.quantity}" min="1" required>
-                <button class="remove-size-btn" onclick="removeSizeRow(${sizeRowCount})">&times;</button>
-            `;
-            
-            container.appendChild(rowDiv);
-        }
-
         function removeSizeRow(id) {
             const row = document.getElementById(`size-row-${id}`);
-            if (row && document.querySelectorAll('.size-row').length > 1) {
+            const parentSection = row.closest('.color-section');
+            const sizeRows = parentSection.querySelectorAll('.size-row');
+            
+            if (sizeRows.length > 1) {
                 row.remove();
             } else {
-                alert('You need at least one size row');
+                alert('You need at least one size row per color');
             }
         }
 
         function saveInventoryFromModal() {
             const shoeName = document.getElementById('modal-shoe-name').value.trim();
             const date = document.getElementById('modal-date').value;
-            const atno = document.getElementById('modal-atno').value || 'N/A';
+            const atno = document.getElementById('modal-atno').value || '';
             
             if (!shoeName) {
                 alert('Please enter shoe name');
@@ -1271,9 +1285,8 @@
             }
             
             const items = [];
-            
-            // Loop through color sections
             const colorSections = document.querySelectorAll('.color-section');
+            
             for (const section of colorSections) {
                 const colorName = section.querySelector('.color-name').value.trim();
                 if (!colorName) {
@@ -1281,7 +1294,6 @@
                     return;
                 }
                 
-                // Loop through size rows in this color
                 const sizeRows = section.querySelectorAll('.size-row');
                 for (const row of sizeRows) {
                     const size = row.querySelector('.size-input').value.trim();
@@ -1317,101 +1329,76 @@
             closeInventoryModal();
         }
 
-        function updateInventoryFromModal(originalName) {
-            const date = document.getElementById('modal-date').value;
-            const atno = document.getElementById('modal-atno').value || 'N/A';
-            
-            if (!date) {
-                alert('Please select date');
+        // Edit Inventory Functions
+        function openEditInventoryModal(id) {
+            const item = store.inventory.find(inv => inv.id == id);
+            if (!item) return;
+
+            document.getElementById('edit-item-id').value = item.id;
+            document.getElementById('edit-item-name').value = item.name;
+            document.getElementById('edit-item-color').value = item.color;
+            document.getElementById('edit-item-size').value = item.size;
+            document.getElementById('edit-item-quantity').value = item.quantity;
+            document.getElementById('edit-item-atno').value = item.atno;
+
+            document.getElementById('edit-inventory-modal').style.display = 'block';
+        }
+
+        function closeEditInventoryModal() {
+            document.getElementById('edit-inventory-modal').style.display = 'none';
+        }
+
+        function saveEditInventory() {
+            const id = document.getElementById('edit-item-id').value;
+            const name = document.getElementById('edit-item-name').value.trim();
+            const color = document.getElementById('edit-item-color').value.trim();
+            const size = document.getElementById('edit-item-size').value.trim();
+            const quantity = parseInt(document.getElementById('edit-item-quantity').value);
+            const atno = document.getElementById('edit-item-atno').value.trim();
+
+            if (!name || !color || !size || quantity < 0) {
+                alert('Please fill all required fields');
                 return;
             }
-            
-            const items = [];
-            
-            // Loop through color sections
-            const colorSections = document.querySelectorAll('.color-section');
-            for (const section of colorSections) {
-                const colorName = section.querySelector('.color-name').value.trim();
-                if (!colorName) {
-                    alert('Please enter color name for all colors');
-                    return;
-                }
-                
-                // Loop through size rows in this color
-                const sizeRows = section.querySelectorAll('.size-row');
-                for (const row of sizeRows) {
-                    const size = row.querySelector('.size-input').value.trim();
-                    const quantity = parseInt(row.querySelector('.quantity-input').value);
-                    const itemId = row.dataset.itemId;
-                    
-                    if (!size) {
-                        alert('Please enter size for all entries');
-                        return;
-                    }
-                    
-                    if (!quantity || quantity <= 0) {
-                        alert('Please enter valid quantity for all entries');
-                        return;
-                    }
-                    
-                    items.push({
-                        id: itemId,
-                        name: originalName,
-                        color: colorName,
-                        size: size,
-                        quantity: quantity,
-                        atno: atno,
-                        dateAdded: date,
-                        lastUpdated: date
-                    });
-                }
+
+            store.updateInventoryItem(id, { name, color, size, quantity, atno });
+            alert('Inventory item updated successfully!');
+            closeEditInventoryModal();
+        }
+
+        function deleteInventory(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                store.deleteInventoryItem(id);
+                alert('Item deleted successfully!');
             }
-            
-            // Delete old items and add new ones
-            store.inventory = store.inventory.filter(inv => inv.name !== originalName);
-            store.saveToStorage('inventory', store.inventory);
-            
-            items.forEach(item => {
-                const {id, ...newItem} = item;
-                store.inventory.push({
-                    id: id || (Date.now() + Math.random()),
-                    ...newItem
-                });
-            });
-            
-            store.saveToStorage('inventory', store.inventory);
-            renderInventory();
-            alert('Inventory updated successfully!');
-            closeInventoryModal();
-            document.getElementById('save-inventory-btn').onclick = saveInventoryFromModal;
         }
 
         // Sales Functions
         let salesItemCount = 0;
+        let editSalesItemCount = 0;
 
-        function openEditSaleModal(saleId) {
-            const sale = store.sales.find(s => s.id === saleId);
-            if (!sale) return;
-
-            currentEditSaleId = saleId;
-            document.getElementById('sales-modal').style.display = 'block';
-            document.getElementById('sales-modal-title').textContent = 'Edit Sale';
-            document.getElementById('modal-sales-date').value = sale.date;
-            
-            // Clear and populate items
-            document.getElementById('modal-sales-items-container').innerHTML = '';
-            salesItemCount = 0;
-            
-            sale.items.forEach(saleItem => {
-                addItemToEditSale(saleItem);
+        function selectPaymentMethod(method) {
+            currentPaymentMethod = method;
+            document.querySelectorAll('#sales-tab .payment-method-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
-            
-            updateEditSaleTotal();
+            event.target.classList.add('active');
+
+            const splitSection = document.getElementById('payment-split');
+            if (method === 'split') {
+                splitSection.classList.add('active');
+            } else {
+                splitSection.classList.remove('active');
+                document.getElementById('cash-amount').value = '';
+                document.getElementById('mpesa-amount').value = '';
+            }
         }
 
-        function closeSalesModal() {
-            document.getElementById('sales-modal').style.display = 'none';
-            currentEditSaleId = null;
+        function updateSplitPayment() {
+            const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+            const mpesaAmount = parseFloat(document.getElementById('mpesa-amount').value) || 0;
+            const total = cashAmount + mpesaAmount;
+            document.getElementById('sales-total').value = total.toFixed(2);
         }
 
         function addSalesItem() {
@@ -1429,7 +1416,7 @@
             itemDiv.innerHTML = `
                 <div class="header">
                     <span>Item ${salesItemCount}</span>
-                    <button class="delete-btn" onclick="removeSalesItem(${salesItemCount})">&times;</button>
+                    <button class="delete-btn" onclick="removeSalesItem(${salesItemCount})" style="position: static;">&times;</button>
                 </div>
                 <div class="details">
                     <select class="sales-inventory-select" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateSalesItem(${salesItemCount})">
@@ -1445,54 +1432,11 @@
             container.appendChild(itemDiv);
         }
 
-        function addItemToEditSale(saleItem = null) {
-            salesItemCount++;
-            const container = document.getElementById('modal-sales-items-container');
-            
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'sales-item';
-            itemDiv.id = `edit-sales-item-${salesItemCount}`;
-            
-            const inventoryOptions = store.inventory.map(item => 
-                `<option value="${item.id}">${item.name} - ${item.color} - Size ${item.size} (Qty: ${item.quantity})</option>`
-            ).join('');
-
-            itemDiv.innerHTML = `
-                <div class="header">
-                    <span>Item ${salesItemCount}</span>
-                    <button class="delete-btn" onclick="removeEditSalesItem(${salesItemCount})">&times;</button>
-                </div>
-                <div class="details">
-                    <select class="edit-sales-inventory-select" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateEditSaleItem(${salesItemCount})" ${saleItem ? 'data-original-id="' + saleItem.inventoryId + '"' : ''}>
-                        <option value="">Select Item</option>
-                        ${inventoryOptions}
-                    </select>
-                    <input type="number" class="edit-sales-quantity" placeholder="Quantity" min="1" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateEditSaleItem(${salesItemCount})" value="${saleItem ? saleItem.quantity : ''}">
-                    <input type="number" class="edit-sales-price" placeholder="Price per unit" min="0" step="0.01" style="width: 100%; padding: 8px;" onchange="updateEditSaleItem(${salesItemCount})" value="${saleItem ? saleItem.price : ''}">
-                    <input type="hidden" class="edit-sales-item-total" value="${saleItem ? saleItem.quantity * saleItem.price : '0'}">
-                </div>
-            `;
-            
-            container.appendChild(itemDiv);
-            
-            if (saleItem) {
-                itemDiv.querySelector('.edit-sales-inventory-select').value = saleItem.inventoryId;
-            }
-        }
-
         function removeSalesItem(id) {
             const item = document.getElementById(`sales-item-${id}`);
             if (item) {
                 item.remove();
                 updateTotalSales();
-            }
-        }
-
-        function removeEditSalesItem(id) {
-            const item = document.getElementById(`edit-sales-item-${id}`);
-            if (item) {
-                item.remove();
-                updateEditSaleTotal();
             }
         }
 
@@ -1506,30 +1450,14 @@
             updateTotalSales();
         }
 
-        function updateEditSaleItem(id) {
-            const itemDiv = document.getElementById(`edit-sales-item-${id}`);
-            const quantity = parseFloat(itemDiv.querySelector('.edit-sales-quantity').value) || 0;
-            const price = parseFloat(itemDiv.querySelector('.edit-sales-price').value) || 0;
-            const total = quantity * price;
-            
-            itemDiv.querySelector('.edit-sales-item-total').value = total;
-            updateEditSaleTotal();
-        }
-
         function updateTotalSales() {
+            if (currentPaymentMethod === 'split') return;
+            
             let total = 0;
             document.querySelectorAll('.sales-item-total').forEach(input => {
                 total += parseFloat(input.value) || 0;
             });
             document.getElementById('sales-total').value = total.toFixed(2);
-        }
-
-        function updateEditSaleTotal() {
-            let total = 0;
-            document.querySelectorAll('.edit-sales-item-total').forEach(input => {
-                total += parseFloat(input.value) || 0;
-            });
-            document.getElementById('modal-sales-total').value = total.toFixed(2);
         }
 
         function recordSales() {
@@ -1552,15 +1480,19 @@
                     return;
                 }
 
-                const inventoryItem = store.inventory.find(inv => inv.id === inventoryId);
+                const inventoryItem = store.inventory.find(inv => inv.id == inventoryId);
                 if (!inventoryItem || inventoryItem.quantity < quantity) {
-                    alert(`Insufficient quantity for ${inventoryItem.name}`);
+                    alert(`Insufficient quantity for ${inventoryItem ? inventoryItem.name : 'selected item'}`);
                     valid = false;
                     return;
                 }
 
                 items.push({
                     inventoryId: inventoryId,
+                    name: inventoryItem.name,
+                    color: inventoryItem.color,
+                    size: inventoryItem.size,
+                    atno: inventoryItem.atno,
                     quantity: quantity,
                     price: price
                 });
@@ -1578,23 +1510,193 @@
 
             const total = parseFloat(document.getElementById('sales-total').value);
 
-            try {
-                store.recordSale({
-                    date: date,
-                    items: items,
-                    total: total
-                });
-                alert('Sale recorded successfully!');
-                clearSalesForm();
-            } catch (error) {
-                alert(error.message);
+            let paymentMethod;
+            if (currentPaymentMethod === 'split') {
+                const cashAmount = parseFloat(document.getElementById('cash-amount').value) || 0;
+                const mpesaAmount = parseFloat(document.getElementById('mpesa-amount').value) || 0;
+                
+                if (Math.abs((cashAmount + mpesaAmount) - total) > 0.01) {
+                    alert('Split payment amounts must equal total amount');
+                    return;
+                }
+                
+                paymentMethod = {
+                    type: 'split',
+                    cash: cashAmount,
+                    mpesa: mpesaAmount
+                };
+            } else {
+                paymentMethod = {
+                    type: currentPaymentMethod,
+                    amount: total
+                };
+            }
+
+            store.recordSale({
+                date: date,
+                items: items,
+                total: total,
+                paymentMethod: paymentMethod
+            });
+
+            alert('Sale recorded successfully!');
+            clearSalesForm();
+        }
+
+        function clearSalesForm() {
+            document.getElementById('sales-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('sales-items-container').innerHTML = '';
+            document.getElementById('sales-total').value = '0.00';
+            document.getElementById('cash-amount').value = '';
+            document.getElementById('mpesa-amount').value = '';
+            document.getElementById('payment-split').classList.remove('active');
+            
+            document.querySelectorAll('#sales-tab .payment-method-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('#sales-tab .payment-method-btn').classList.add('active');
+            
+            currentPaymentMethod = 'cash';
+            salesItemCount = 0;
+            addSalesItem();
+        }
+
+        // Edit Sales Functions
+        function selectEditPaymentMethod(method) {
+            currentEditPaymentMethod = method;
+            document.querySelectorAll('#edit-sales-modal .payment-method-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const splitSection = document.getElementById('edit-payment-split');
+            if (method === 'split') {
+                splitSection.classList.add('active');
+            } else {
+                splitSection.classList.remove('active');
+                document.getElementById('edit-cash-amount').value = '';
+                document.getElementById('edit-mpesa-amount').value = '';
             }
         }
 
-        function updateSaleFromModal() {
-            if (!currentEditSaleId) return;
+        function updateEditSplitPayment() {
+            const cashAmount = parseFloat(document.getElementById('edit-cash-amount').value) || 0;
+            const mpesaAmount = parseFloat(document.getElementById('edit-mpesa-amount').value) || 0;
+            const total = cashAmount + mpesaAmount;
+            document.getElementById('edit-sales-total').value = total.toFixed(2);
+        }
 
-            const date = document.getElementById('modal-sales-date').value;
+        function addEditSalesItem() {
+            editSalesItemCount++;
+            const container = document.getElementById('edit-sales-items-container');
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'sales-item';
+            itemDiv.id = `edit-sales-item-${editSalesItemCount}`;
+            
+            const inventoryOptions = store.inventory.map(item => 
+                `<option value="${item.id}">${item.name} - ${item.color} - Size ${item.size} (Qty: ${item.quantity})</option>`
+            ).join('');
+
+            itemDiv.innerHTML = `
+                <div class="header">
+                    <span>Item ${editSalesItemCount}</span>
+                    <button class="delete-btn" onclick="removeEditSalesItem(${editSalesItemCount})" style="position: static;">&times;</button>
+                </div>
+                <div class="details">
+                    <select class="sales-inventory-select" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateEditSalesItem(${editSalesItemCount})">
+                        <option value="">Select Item</option>
+                        ${inventoryOptions}
+                    </select>
+                    <input type="number" class="sales-quantity" placeholder="Quantity" min="1" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="updateEditSalesItem(${editSalesItemCount})">
+                    <input type="number" class="sales-price" placeholder="Price per unit" min="0" step="0.01" style="width: 100%; padding: 8px;" onchange="updateEditSalesItem(${editSalesItemCount})">
+                    <input type="hidden" class="sales-item-total" value="0">
+                </div>
+            `;
+            
+            container.appendChild(itemDiv);
+        }
+
+        function removeEditSalesItem(id) {
+            const item = document.getElementById(`edit-sales-item-${id}`);
+            if (item) {
+                item.remove();
+                updateEditTotalSales();
+            }
+        }
+
+        function updateEditSalesItem(id) {
+            const itemDiv = document.getElementById(`edit-sales-item-${id}`);
+            const quantity = parseFloat(itemDiv.querySelector('.sales-quantity').value) || 0;
+            const price = parseFloat(itemDiv.querySelector('.sales-price').value) || 0;
+            const total = quantity * price;
+            
+            itemDiv.querySelector('.sales-item-total').value = total;
+            updateEditTotalSales();
+        }
+
+        function updateEditTotalSales() {
+            if (currentEditPaymentMethod === 'split') return;
+            
+            let total = 0;
+            document.querySelectorAll('#edit-sales-items-container .sales-item-total').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById('edit-sales-total').value = total.toFixed(2);
+        }
+
+        function openEditSalesModal(saleId) {
+            const sale = store.sales.find(s => s.id === saleId);
+            if (!sale) return;
+
+            document.getElementById('edit-sale-id').value = sale.id;
+            document.getElementById('edit-sales-date').value = sale.date;
+            
+            // Clear items container
+            document.getElementById('edit-sales-items-container').innerHTML = '';
+            editSalesItemCount = 0;
+
+            // Add existing items
+            sale.items.forEach(item => {
+                addEditSalesItem();
+                const itemDiv = document.getElementById(`edit-sales-item-${editSalesItemCount}`);
+                itemDiv.querySelector('.sales-inventory-select').value = item.inventoryId;
+                itemDiv.querySelector('.sales-quantity').value = item.quantity;
+                itemDiv.querySelector('.sales-price').value = item.price;
+                itemDiv.querySelector('.sales-item-total').value = item.quantity * item.price;
+            });
+
+            // Set payment method
+            const paymentMethod = sale.paymentMethod;
+            currentEditPaymentMethod = paymentMethod.type;
+            
+            document.querySelectorAll('#edit-sales-modal .payment-method-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            if (paymentMethod.type === 'split') {
+                document.querySelectorAll('#edit-sales-modal .payment-method-btn')[2].classList.add('active');
+                document.getElementById('edit-payment-split').classList.add('active');
+                document.getElementById('edit-cash-amount').value = paymentMethod.cash;
+                document.getElementById('edit-mpesa-amount').value = paymentMethod.mpesa;
+            } else if (paymentMethod.type === 'mpesa') {
+                document.querySelectorAll('#edit-sales-modal .payment-method-btn')[1].classList.add('active');
+            } else {
+                document.querySelectorAll('#edit-sales-modal .payment-method-btn')[0].classList.add('active');
+            }
+
+            document.getElementById('edit-sales-total').value = sale.total.toFixed(2);
+            document.getElementById('edit-sales-modal').style.display = 'block';
+        }
+
+        function closeEditSalesModal() {
+            document.getElementById('edit-sales-modal').style.display = 'none';
+        }
+
+        function saveEditSales() {
+            const saleId = parseInt(document.getElementById('edit-sale-id').value);
+            const date = document.getElementById('edit-sales-date').value;
+            
             if (!date) {
                 alert('Please select sales date');
                 return;
@@ -1603,18 +1705,24 @@
             const items = [];
             let valid = true;
 
-            document.querySelectorAll('[id^="edit-sales-item-"]').forEach(itemDiv => {
-                const inventoryId = itemDiv.querySelector('.edit-sales-inventory-select').value;
-                const quantity = parseInt(itemDiv.querySelector('.edit-sales-quantity').value);
-                const price = parseFloat(itemDiv.querySelector('.edit-sales-price').value);
+            document.querySelectorAll('#edit-sales-items-container .sales-item').forEach(itemDiv => {
+                const inventoryId = itemDiv.querySelector('.sales-inventory-select').value;
+                const quantity = parseInt(itemDiv.querySelector('.sales-quantity').value);
+                const price = parseFloat(itemDiv.querySelector('.sales-price').value);
 
                 if (!inventoryId || !quantity || !price) {
                     valid = false;
                     return;
                 }
 
+                const inventoryItem = store.inventory.find(inv => inv.id == inventoryId);
+                
                 items.push({
                     inventoryId: inventoryId,
+                    name: inventoryItem ? inventoryItem.name : 'Unknown',
+                    color: inventoryItem ? inventoryItem.color : 'Unknown',
+                    size: inventoryItem ? inventoryItem.size : 'Unknown',
+                    atno: inventoryItem ? inventoryItem.atno : 'N/A',
                     quantity: quantity,
                     price: price
                 });
@@ -1630,123 +1738,49 @@
                 return;
             }
 
-            const total = parseFloat(document.getElementById('modal-sales-total').value);
+            const total = parseFloat(document.getElementById('edit-sales-total').value);
 
-            try {
-                store.updateSale(currentEditSaleId, {
-                    date: date,
-                    items: items,
-                    total: total
-                });
-                alert('Sale updated successfully!');
-                closeSalesModal();
-            } catch (error) {
-                alert(error.message);
-            }
-        }
-
-        function deleteSaleFromModal() {
-            if (!currentEditSaleId) return;
-            
-            if (confirm('Are you sure you want to delete this sale?')) {
-                store.deleteSale(currentEditSaleId);
-                alert('Sale deleted successfully!');
-                closeSalesModal();
-            }
-        }
-
-        function clearSalesForm() {
-            document.getElementById('sales-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('sales-items-container').innerHTML = '';
-            document.getElementById('sales-total').value = '0.00';
-            salesItemCount = 0;
-            addSalesItem();
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // Render Functions
-        function renderInventory() {
-            const container = document.getElementById('inventory-list');
-            
-            if (store.inventory.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No inventory items</p></div>';
-                return;
+            let paymentMethod;
+            if (currentEditPaymentMethod === 'split') {
+                const cashAmount = parseFloat(document.getElementById('edit-cash-amount').value) || 0;
+                const mpesaAmount = parseFloat(document.getElementById('edit-mpesa-amount').value) || 0;
+                
+                if (Math.abs((cashAmount + mpesaAmount) - total) > 0.01) {
+                    alert('Split payment amounts must equal total amount');
+                    return;
+                }
+                
+                paymentMethod = {
+                    type: 'split',
+                    cash: cashAmount,
+                    mpesa: mpesaAmount
+                };
+            } else {
+                paymentMethod = {
+                    type: currentEditPaymentMethod,
+                    amount: total
+                };
             }
 
-            const grouped = {};
-            store.inventory.forEach(item => {
-                if (!grouped[item.name]) grouped[item.name] = [];
-                grouped[item.name].push(item);
+            store.updateSale(saleId, {
+                date: date,
+                items: items,
+                total: total,
+                paymentMethod: paymentMethod
             });
 
-            container.innerHTML = Object.entries(grouped).map(([name, items]) => `
-                <div class="card inventory-card">
-                    <h3>${name}</h3>
-                    ${items.map(item => `
-                        <div class="detail">
-                            <span>${item.color} - Size ${item.size} (${item.atno})</span>
-                            <span><span class="quantity-badge">${item.quantity} pairs</span></span>
-                        </div>
-                        <div class="action-buttons" style="position: absolute; top: 15px; right: 15px;">
-                            <button class="edit-btn" onclick="openEditInventoryModal('${item.id}')">✏️</button>
-                            <button class="delete-btn" onclick="deleteInventoryItem('${item.id}')">&times;</button>
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('');
+            alert('Sale updated successfully!');
+            closeEditSalesModal();
         }
 
-        function renderSales() {
-            const container = document.getElementById('sales-list');
-            
-            if (store.sales.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No sales recorded</p></div>';
-                return;
-            }
-
-            container.innerHTML = store.sales
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .map(sale => `
-                    <div class="sales-item">
-                        <div class="header">
-                            <span>${new Date(sale.date).toLocaleDateString()}</span>
-                            <span style="font-weight: bold;">KES ${sale.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-                        </div>
-                        <div class="details">
-                            ${sale.items.map(item => {
-                                const inventoryItem = store.inventory.find(inv => inv.id === item.inventoryId);
-                                return inventoryItem ? 
-                                    `<div>${inventoryItem.name} - ${inventoryItem.color} - Size ${inventoryItem.size} (${item.quantity} @ KES ${item.price})</div>` : 
-                                    '';
-                            }).join('')}
-                        </div>
-                        <div class="action-buttons" style="position: absolute; top: 15px; right: 15px;">
-                            <button class="edit-btn" onclick="openEditSaleModal(${sale.id})">✏️</button>
-                        </div>
-                    </div>
-                `).join('');
-        }
-
-        function deleteInventoryItem(id) {
-            if (confirm('Are you sure you want to delete this inventory item? This will NOT affect recorded sales.')) {
-                store.deleteInventory(id);
+        function deleteSale(saleId) {
+            if (confirm('Are you sure you want to delete this sale? Inventory will be restored.')) {
+                store.deleteSale(saleId);
+                alert('Sale deleted successfully!');
             }
         }
 
-        function renderSalesItemSelector() {
-            const container = document.getElementById('sales-items-container');
-            if (!container.innerHTML.trim()) {
-                addSalesItem();
-            }
-        }
-
+        // Report Functions
         function generateReport() {
             const startDate = document.getElementById('report-start-date').value;
             const endDate = document.getElementById('report-end-date').value;
@@ -1757,25 +1791,28 @@
             }
 
             const movement = store.getInventoryReport(startDate, endDate);
-            
-            // Summary cards
-            const summaryContainer = document.getElementById('summary-cards');
-            const container = document.getElementById('movement-report');
-            
-            if (movement.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No movement data available for selected period</p></div>';
-                summaryContainer.innerHTML = '';
-                return;
-            }
+            renderMovementReport(movement);
+            renderLowStockReport();
+        }
 
+        function renderMovementReport(movement) {
+            const container = document.getElementById('movement-report');
+            const summaryContainer = document.getElementById('summary-cards');
+
+            if (movement.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No movement data available</p></div>';
+                summaryContainer.innerHTML = '';
+                return;}
+
+            // Summary cards
             const totalItems = movement.length;
             const totalSold = movement.reduce((sum, m) => sum + m.sold, 0);
             const currentValue = movement.reduce((sum, m) => sum + m.current, 0);
             const totalRevenue = store.sales
                 .filter(s => {
                     const saleDate = new Date(s.date);
-                    const start = new Date(startDate);
-                    const end = new Date(endDate);
+                    const start = new Date(document.getElementById('report-start-date').value);
+                    const end = new Date(document.getElementById('report-end-date').value);
                     end.setHours(23, 59, 59);
                     return saleDate >= start && saleDate <= end;
                 })
@@ -1813,17 +1850,18 @@
                     </div>
                 </div>
             `).join('');
+        }
 
-            // Low stock report
-            const lowStockContainer = document.getElementById('low-stock-report');
+        function renderLowStockReport() {
+            const container = document.getElementById('low-stock-report');
             const lowStock = store.inventory.filter(item => item.quantity <= 3);
 
             if (lowStock.length === 0) {
-                lowStockContainer.innerHTML = '<div class="empty-state"><p>All items are well stocked</p></div>';
+                container.innerHTML = '<div class="empty-state"><p>All items are well stocked</p></div>';
                 return;
             }
 
-            lowStockContainer.innerHTML = lowStock.map(item => `
+            container.innerHTML = '<div class="card-grid">' + lowStock.map(item => `
                 <div class="inventory-card stock-low">
                     <h3>${item.name}</h3>
                     <div class="detail">
@@ -1839,7 +1877,119 @@
                         <span><span class="quantity-badge">${item.quantity}</span></span>
                     </div>
                 </div>
-            `).join('');
+            `).join('') + '</div>';
+        }
+
+        // Render Functions
+        function renderInventory() {
+            const container = document.getElementById('inventory-list');
+            
+            if (store.inventory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No inventory items</p></div>';
+                return;
+            }
+
+            const grouped = {};
+            store.inventory.forEach(item => {
+                if (!grouped[item.name]) grouped[item.name] = [];
+                grouped[item.name].push(item);
+            });
+
+            container.innerHTML = '<div class="card-grid">' + Object.entries(grouped).map(([name, items]) => `
+                <div class="inventory-card">
+                    <h3>${name}</h3>
+                    ${items.map(item => `
+                        <div style="position: relative; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                            <div class="action-buttons">
+                                <button class="edit-btn" onclick="openEditInventoryModal('${item.id}')">✏️</button>
+                                <button class="delete-btn" onclick="deleteInventory('${item.id}')">&times;</button>
+                            </div>
+                            <div class="detail">
+                                <span>Color:</span>
+                                <span>${item.color}</span>
+                            </div>
+                            <div class="detail">
+                                <span>Size:</span>
+                                <span>${item.size}</span>
+                            </div>
+                            <div class="detail">
+                                <span>ATNO:</span>
+                                <span>${item.atno}</span>
+                            </div>
+                            <div class="detail">
+                                <span>Quantity:</span>
+                                <span><span class="quantity-badge">${item.quantity} pairs</span></span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('') + '</div>';
+        }
+
+        function renderSales() {
+            const container = document.getElementById('sales-list');
+            
+            if (store.sales.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No sales recorded</p></div>';
+                return;
+            }
+
+            container.innerHTML = store.sales
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .map(sale => {
+                    let paymentInfo = '';
+                    if (sale.paymentMethod.type === 'split') {
+                        paymentInfo = `💵 Cash: KES ${sale.paymentMethod.cash.toLocaleString('en-US', {minimumFractionDigits: 2})} | 📱 M-Pesa: KES ${sale.paymentMethod.mpesa.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    } else if (sale.paymentMethod.type === 'mpesa') {
+                        paymentInfo = `📱 M-Pesa`;
+                    } else {
+                        paymentInfo = `💵 Cash`;
+                    }
+
+                    return `
+                        <div class="sales-item">
+                            <div class="action-buttons">
+                                <button class="edit-btn" onclick="openEditSalesModal(${sale.id})">✏️</button>
+                                <button class="delete-btn" onclick="deleteSale(${sale.id})">&times;</button>
+                            </div>
+                            <div class="header">
+                                <span>${new Date(sale.date).toLocaleDateString()}</span>
+                                <span style="font-weight: bold;">KES ${sale.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            <div class="details">
+                                <div style="grid-column: 1 / -1; margin-bottom: 8px; color: #666;">
+                                    <strong>Payment:</strong> ${paymentInfo}
+                                </div>
+                                ${sale.items.map(item => {
+                                    const inventoryItem = store.inventory.find(inv => inv.id == item.inventoryId);
+                                    const itemName = item.name || (inventoryItem ? inventoryItem.name : 'Unknown');
+                                    const itemColor = item.color || (inventoryItem ? inventoryItem.color : 'Unknown');
+                                    const itemSize = item.size || (inventoryItem ? inventoryItem.size : 'Unknown');
+                                    return `<div>${itemName} - ${itemColor} - Size ${itemSize} (${item.quantity} @ KES ${item.price.toLocaleString('en-US', {minimumFractionDigits: 2})})</div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'reports') {
+                generateReport();
+            }
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
         }
 
         // Initialize
@@ -1853,7 +2003,7 @@
             // Render data
             renderInventory();
             renderSales();
-            renderSalesItemSelector();
+            addSalesItem();
             generateReport();
         });
     </script>
