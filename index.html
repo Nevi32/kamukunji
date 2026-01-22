@@ -147,6 +147,15 @@
             background: #b71c1c;
         }
 
+        .btn-success {
+            background: #43a047;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2e7d32;
+        }
+
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -382,6 +391,59 @@
             padding: 0;
         }
 
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar input[type="text"] {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .toolbar button {
+            white-space: nowrap;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-label {
+            padding: 12px 30px;
+            background: #43a047;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .file-upload-label:hover {
+            background: #2e7d32;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67,160,71,0.3);
+        }
+
+        .info-banner {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f5f3f0;
+        }
+
+        .info-banner p {
+            margin: 5px 0;
+            color: #c8c6c3;
+            font-size: 14px;
+        }
+
         @media (max-width: 768px) {
             .sales-form {
                 grid-template-columns: 1fr;
@@ -393,6 +455,14 @@
 
             .inventory-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .toolbar input[type="text"] {
+                width: 100%;
             }
         }
     </style>
@@ -442,6 +512,19 @@
                     </div>
                     <button type="submit">Add to Inventory</button>
                 </form>
+            </div>
+
+            <div class="info-banner">
+                <p><strong>Data Management:</strong></p>
+                <p>• Download your inventory as CSV to backup or transfer to another browser</p>
+                <p>• Upload a CSV file to restore or import inventory data</p>
+            </div>
+
+            <div class="toolbar">
+                <input type="text" id="inventorySearch" placeholder="Search inventory by name, ATNO, color, or size...">
+                <button onclick="downloadInventoryCSV()" class="btn-secondary">📥 Download Inventory</button>
+                <label for="inventoryUpload" class="file-upload-label">📤 Upload Inventory</label>
+                <input type="file" id="inventoryUpload" accept=".csv" onchange="uploadInventoryCSV(event)">
             </div>
 
             <h2 style="margin-bottom: 15px;">Current Inventory</h2>
@@ -516,6 +599,12 @@
                 </form>
             </div>
 
+            <div class="toolbar" style="justify-content: flex-end;">
+                <button onclick="downloadSalesCSV()" class="btn-secondary">📥 Download Sales</button>
+                <label for="salesUpload" class="file-upload-label">📤 Upload Sales</label>
+                <input type="file" id="salesUpload" accept=".csv" onchange="uploadSalesCSV(event)">
+            </div>
+
             <h2 style="margin-bottom: 15px;">Recent Sales</h2>
             <div id="salesList" class="sales-list"></div>
         </div>
@@ -567,6 +656,12 @@
 
                     <button type="submit" style="margin-top: 20px;">Record Transfer</button>
                 </form>
+            </div>
+
+            <div class="toolbar" style="justify-content: flex-end;">
+                <button onclick="downloadTransfersCSV()" class="btn-secondary">📥 Download Transfers</button>
+                <label for="transfersUpload" class="file-upload-label">📤 Upload Transfers</label>
+                <input type="file" id="transfersUpload" accept=".csv" onchange="uploadTransfersCSV(event)">
             </div>
 
             <h2 style="margin-bottom: 15px;">Transfer History</h2>
@@ -656,6 +751,12 @@
 
         // Add initial color group
         addColorGroup();
+
+        // Inventory search functionality
+        document.getElementById('inventorySearch').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            loadInventory(query);
+        });
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -790,16 +891,27 @@
             return JSON.parse(localStorage.getItem('shoes') || '[]');
         }
 
-        function loadInventory() {
+        function loadInventory(searchQuery = '') {
             const shoes = getShoes();
             const container = document.getElementById('inventoryList');
             
-            if (shoes.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No inventory items yet</p>';
+            let filteredShoes = shoes;
+            if (searchQuery) {
+                filteredShoes = shoes.filter(shoe => {
+                    const nameMatch = shoe.name.toLowerCase().includes(searchQuery);
+                    const atnoMatch = shoe.atno.toLowerCase().includes(searchQuery);
+                    const colorMatch = shoe.inventory.some(inv => inv.color.toLowerCase().includes(searchQuery));
+                    const sizeMatch = shoe.inventory.some(inv => inv.size.toLowerCase().includes(searchQuery));
+                    return nameMatch || atnoMatch || colorMatch || sizeMatch;
+                });
+            }
+
+            if (filteredShoes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No inventory items found</p>';
                 return;
             }
 
-            container.innerHTML = shoes.map(shoe => {
+            container.innerHTML = filteredShoes.map(shoe => {
                 const totalPairs = shoe.inventory.reduce((sum, inv) => sum + inv.qty, 0);
                 const colors = [...new Set(shoe.inventory.map(inv => inv.color))];
                 
@@ -853,7 +965,8 @@
             const colorMap = {};
             shoe.inventory.forEach(inv => {
                 if (!colorMap[inv.color]) {
-                    colorMap[inv.color] = [];}
+                    colorMap[inv.color] = [];
+                }
                 colorMap[inv.color].push({ size: inv.size, qty: inv.qty });
             });
 
@@ -932,6 +1045,231 @@
                 alert('Inventory updated successfully!');
             }
         });
+
+        // CSV DOWNLOAD AND UPLOAD FUNCTIONS
+        function downloadInventoryCSV() {
+            const shoes = getShoes();
+            if (shoes.length === 0) {
+                alert('No inventory data to download');
+                return;
+            }
+
+            let csv = 'ID,Date,Shoe Name,ATNO,Supplier,Cost Per Pair,Color,Size,Quantity\n';
+            
+            shoes.forEach(shoe => {
+                shoe.inventory.forEach(inv => {
+                    csv += `"${shoe.id}","${shoe.date}","${shoe.name}","${shoe.atno}","${shoe.supplier}",${shoe.cost},"${inv.color}","${inv.size}",${inv.qty}\n`;
+                });
+            });
+
+            downloadCSV(csv, 'inventory_' + new Date().toISOString().split('T')[0] + '.csv');
+            alert('Inventory data downloaded successfully!');
+        }
+
+        function uploadInventoryCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const lines = e.target.result.split('\n');
+                    const shoesMap = {};
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        const matches = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g);
+                        if (!matches || matches.length < 9) continue;
+
+                        const [id, date, name, atno, supplier, cost, color, size, qty] = matches.map(m => m.replace(/^"|"$/g, '').trim());
+
+                        if (!shoesMap[id]) {
+                            shoesMap[id] = {
+                                id: id,
+                                date: date,
+                                name: name,
+                                atno: atno,
+                                supplier: supplier,
+                                cost: parseFloat(cost) || 0,
+                                inventory: []
+                            };
+                        }
+
+                        shoesMap[id].inventory.push({
+                            color: color,
+                            size: size,
+                            qty: parseInt(qty) || 0
+                        });
+                    }
+
+                    const newShoes = Object.values(shoesMap);
+                    if (newShoes.length === 0) {
+                        alert('No valid data found in CSV file');
+                        return;
+                    }
+
+                    if (confirm(`Found ${newShoes.length} shoe(s) in the file. This will replace your current inventory. Continue?`)) {
+                        localStorage.setItem('shoes', JSON.stringify(newShoes));
+                        loadInventory();
+                        alert('Inventory data imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error reading CSV file: ' + error.message);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadSalesCSV() {
+            const sales = getSales();
+            if (sales.length === 0) {
+                alert('No sales data to download');
+                return;
+            }
+
+            let csv = 'ID,Date,Customer Name,Shoe ID,Shoe Name,Color,Size,Quantity,Price Per Pair,Total,M-Pesa,Cash\n';
+            
+            sales.forEach(sale => {
+                csv += `"${sale.id}","${sale.date}","${sale.customerName}","${sale.shoeId}","${sale.shoeName}","${sale.color}","${sale.size}",${sale.qty},${sale.pricePerPair},${sale.total},${sale.mpesa},${sale.cash}\n`;
+            });
+
+            downloadCSV(csv, 'sales_' + new Date().toISOString().split('T')[0] + '.csv');
+            alert('Sales data downloaded successfully!');
+        }
+
+        function uploadSalesCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const lines = e.target.result.split('\n');
+                    const salesData = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        const matches = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g);
+                        if (!matches || matches.length < 12) continue;
+
+                        const [id, date, customerName, shoeId, shoeName, color, size, qty, pricePerPair, total, mpesa, cash] = matches.map(m => m.replace(/^"|"$/g, '').trim());
+
+                        salesData.push({
+                            id: id,
+                            date: date,
+                            customerName: customerName,
+                            shoeId: shoeId,
+                            shoeName: shoeName,
+                            color: color,
+                            size: size,
+                            qty: parseInt(qty) || 0,
+                            pricePerPair: parseFloat(pricePerPair) || 0,
+                            total: parseFloat(total) || 0,
+                            mpesa: parseFloat(mpesa) || 0,
+                            cash: parseFloat(cash) || 0
+                        });
+                    }
+
+                    if (salesData.length === 0) {
+                        alert('No valid data found in CSV file');
+                        return;
+                    }
+
+                    if (confirm(`Found ${salesData.length} sale(s) in the file. This will replace your current sales records. Continue?`)) {
+                        localStorage.setItem('sales', JSON.stringify(salesData));
+                        loadSales();
+                        alert('Sales data imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error reading CSV file: ' + error.message);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadTransfersCSV() {
+            const transfers = getTransfers();
+            if (transfers.length === 0) {
+                alert('No transfer data to download');
+                return;
+            }
+
+            let csv = 'ID,Date,Shoe ID,Shoe Name,Color,Size,Quantity,Location\n';
+            
+            transfers.forEach(transfer => {
+                csv += `"${transfer.id}","${transfer.date}","${transfer.shoeId}","${transfer.shoeName}","${transfer.color}","${transfer.size}",${transfer.qty},"${transfer.location}"\n`;
+            });
+
+            downloadCSV(csv, 'transfers_' + new Date().toISOString().split('T')[0] + '.csv');
+            alert('Transfer data downloaded successfully!');
+        }
+
+        function uploadTransfersCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const lines = e.target.result.split('\n');
+                    const transfersData = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        const matches = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g);
+                        if (!matches || matches.length < 8) continue;
+
+                        const [id, date, shoeId, shoeName, color, size, qty, location] = matches.map(m => m.replace(/^"|"$/g, '').trim());
+
+                        transfersData.push({
+                            id: id,
+                            date: date,
+                            shoeId: shoeId,
+                            shoeName: shoeName,
+                            color: color,
+                            size: size,
+                            qty: parseInt(qty) || 0,
+                            location: location
+                        });
+                    }
+
+                    if (transfersData.length === 0) {
+                        alert('No valid data found in CSV file');
+                        return;
+                    }
+
+                    if (confirm(`Found ${transfersData.length} transfer(s) in the file. This will replace your current transfer records. Continue?`)) {
+                        localStorage.setItem('transfers', JSON.stringify(transfersData));
+                        loadTransfers();
+                        alert('Transfer data imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error reading CSV file: ' + error.message);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
         // SALES SEARCH
         document.getElementById('shoeSearch').addEventListener('input', function(e) {
@@ -1021,7 +1359,7 @@
             const customerName = document.getElementById('customerName').value.trim();
             const total = price * qty;
 
-            if (mpesa + cash !== total) {
+            if (Math.abs(mpesa + cash - total) > 0.01) {
                 alert(`Payment amounts (${(mpesa + cash).toFixed(2)}) don't match total (${total.toFixed(2)})`);
                 return;
             }
