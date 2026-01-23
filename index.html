@@ -135,7 +135,7 @@
         }
 
         .btn-secondary:hover {
-            background: #4a4a4a;
+            background: #4a3a4a;
         }
 
         .btn-danger {
@@ -615,7 +615,7 @@
             </div>
 
             <div class="toolbar">
-                <input type="text" id="inventorySearch" placeholder="Search inventory by name, ATNO, color, or size...">
+                <input type="text" id="inventorySearch" placeholder="Search inventory by name, ATNO, color, or size... (use commas for multiple)">
                 <button onclick="downloadInventoryCSV()" class="btn-secondary">📥 Download Inventory</button>
                 <label for="inventoryUpload" class="file-upload-label">📤 Upload Inventory</label>
                 <input type="file" id="inventoryUpload" accept=".csv" onchange="uploadInventoryCSV(event)">
@@ -693,47 +693,27 @@
             <div class="form-card">
                 <h2 style="margin-bottom: 20px;">Record Transfer</h2>
                 <form id="transferForm">
-                    <div class="sales-form">
-                        <div>
-                            <div class="form-group">
-                                <label>Transfer Date</label>
-                                <input type="date" id="transferDate" required>
-                            </div>
-                            <div class="form-group search-box">
-                                <label>Search Shoe</label>
-                                <input type="text" id="transferShoeSearch" placeholder="Type to search..." autocomplete="off">
-                                <div id="transferSearchResults" class="search-results" style="display: none;"></div>
-                            </div>
-                            <div class="form-group">
-                                <label>Selected Shoe</label>
-                                <input type="text" id="transferSelectedShoe" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Transfer To (Location)</label>
-                                <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="form-group">
-                                <label>Available Colors</label>
-                                <select id="transferColor" required>
-                                    <option value="">Select shoe first</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Available Sizes</label>
-                                <select id="transferSize" required>
-                                    <option value="">Select color first</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Quantity (Pairs)</label>
-                                <input type="number" id="transferQty" min="1" required>
-                            </div>
+                    <div class="form-group">
+                        <label>Transfer Date</label>
+                        <input type="date" id="transferDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Transfer To (Location)</label>
+                        <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Shoe & Variant</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="transferSelectedVariant" placeholder="Select shoe, color & size..." readonly style="flex: 1;">
+                            <button type="button" class="btn-secondary" onclick="openTransferSelectionModal()">Select</button>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label>Quantity (Pairs)</label>
+                        <input type="number" id="transferQty" min="1" required>
+                    </div>
 
-                    <button type="submit" style="margin-top: 20px;">Record Transfer</button>
+                    <button type="submit" style="margin-top: 20px; width: 100%;">Record Transfer</button>
                 </form>
             </div>
 
@@ -832,6 +812,20 @@
         </div>
     </div>
 
+    <!-- Variant Selection Modal for Transfers -->
+    <div id="transferSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Shoe & Variant for Transfer</h2>
+                <button class="close-btn" onclick="closeTransferSelectionModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <input type="text" id="transferSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
+            </div>
+            <div id="transferSelectionResults" class="shoe-variant-grid"></div>
+        </div>
+    </div>
+
     <!-- Edit Sale Modal -->
     <div id="editSaleModal" class="modal">
         <div class="modal-content">
@@ -882,6 +876,7 @@
         let currentSaleItems = [];
         let editingSaleId = null;
         let saleItemsForEdit = [];
+        let selectedTransferVariant = null;
 
         // Initialize dates
         document.getElementById('invDate').valueAsDate = new Date();
@@ -891,7 +886,7 @@
         // Add initial color group
         addColorGroup();
 
-        // Inventory search functionality
+        // Inventory search functionality (supports comma-separated terms)
         document.getElementById('inventorySearch').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             loadInventory(query);
@@ -901,6 +896,12 @@
         document.getElementById('shoeSelectionSearch').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             displayShoeVariants(query);
+        });
+
+        // Transfer selection search
+        document.getElementById('transferSelectionSearch').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            displayTransferVariants(query);
         });
 
         function switchTab(tabName) {
@@ -1042,12 +1043,15 @@
             
             let filteredShoes = shoes;
             if (searchQuery) {
+                const terms = searchQuery.toLowerCase().split(',').map(t => t.trim()).filter(t => t);
                 filteredShoes = shoes.filter(shoe => {
-                    const nameMatch = shoe.name.toLowerCase().includes(searchQuery);
-                    const atnoMatch = shoe.atno.toLowerCase().includes(searchQuery);
-                    const colorMatch = shoe.inventory.some(inv => inv.color.toLowerCase().includes(searchQuery));
-                    const sizeMatch = shoe.inventory.some(inv => inv.size.toLowerCase().includes(searchQuery));
-                    return nameMatch || atnoMatch || colorMatch || sizeMatch;
+                    return terms.some(term => {
+                        const nameMatch = shoe.name.toLowerCase().includes(term);
+                        const atnoMatch = shoe.atno.toLowerCase().includes(term);
+                        const colorMatch = shoe.inventory.some(inv => inv.color.toLowerCase().includes(term));
+                        const sizeMatch = shoe.inventory.some(inv => inv.size.toLowerCase().includes(term));
+                        return nameMatch || atnoMatch || colorMatch || sizeMatch;
+                    });
                 });
             }
 
@@ -1216,7 +1220,7 @@
                 shoe.inventory.forEach(inv => {
                     const matchesQuery = !query || 
                         shoe.name.toLowerCase().includes(query) ||
-                        shoe.atno.toLowerCase().includes(query) ||
+                        (shoe.atno || '').toLowerCase().includes(query) ||
                         inv.color.toLowerCase().includes(query) ||
                         inv.size.toLowerCase().includes(query);
                     
@@ -1225,8 +1229,8 @@
                             ...inv,
                             shoeId: shoe.id,
                             shoeName: shoe.name,
-                            atno: shoe.atno,
-                            cost: shoe.cost
+                            atno: shoe.atno || 'N/A',
+                            cost: shoe.cost || 0
                         });
                     }
                 });
@@ -1245,11 +1249,11 @@
                         <strong>Color:</strong> ${variant.color}<br>
                         <strong>Size:</strong> ${variant.size}<br>
                         <strong>Available:</strong> ${variant.qty} pairs<br>
-                        <strong>Cost:</strong> KSh ${variant.cost.toFixed(2)}
+                        <strong>Cost:</strong> KSh ${(variant.cost || 0).toFixed(2)}
                     </div>
                     <div class="variant-actions">
                         <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="sale-qty-input">
-                        <input type="number" placeholder="Price" min="0" step="0.01" class="sale-price-input" value="${variant.cost * 2}">
+                        <input type="number" placeholder="Price" min="0" step="0.01" class="sale-price-input" value="${(variant.cost || 0) * 2}">
                         <button class="btn-success" onclick="addVariantToSale(this)">Add</button>
                     </div>
                 </div>
@@ -1404,6 +1408,7 @@
             const grandTotal = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
             document.getElementById('grandTotal').textContent = `KSh ${grandTotal.toFixed(2)}`;
             document.getElementById('completeSaleBtn').disabled = currentSaleItems.length === 0;
+            validatePayment();
         }
 
         function updateEditSaleTotal() {
@@ -1484,8 +1489,34 @@
             loadSales();
         });
 
+        // Backward compatible sales getter
         function getSales() {
-            return JSON.parse(localStorage.getItem('sales') || '[]');
+            const rawSales = JSON.parse(localStorage.getItem('sales') || '[]');
+            return rawSales.map(sale => {
+                // Backward compatibility: if old format (no items array), convert it
+                if (!sale.items && sale.shoeId) {
+                    return {
+                        id: sale.id,
+                        date: sale.date,
+                        customerName: sale.customerName || 'N/A',
+                        items: [{
+                            id: sale.id + '_item',
+                            shoeId: sale.shoeId,
+                            shoeName: sale.shoeName,
+                            atno: sale.atno || 'N/A',
+                            color: sale.color,
+                            size: sale.size,
+                            qty: sale.qty,
+                            pricePerPair: sale.pricePerPair,
+                            total: sale.total
+                        }],
+                        mpesa: sale.mpesa || 0,
+                        cash: sale.cash || 0,
+                        total: sale.total
+                    };
+                }
+                return sale;
+            });
         }
 
         function loadSales() {
@@ -1505,10 +1536,10 @@
                     </div>
                     <div class="sale-details">
                         <strong>Date:</strong> ${sale.date} | <strong>Customer:</strong> ${sale.customerName}<br>
-                        <strong>Items:</strong> ${sale.items.length} item(s)<br>
-                        ${sale.items.map(item => 
+                        <strong>Items:</strong> ${sale.items ? sale.items.length : 0} item(s)<br>
+                        ${sale.items ? sale.items.map(item => 
                             `${item.qty}x ${item.shoeName} (${item.color}, Size ${item.size}) @ KSh ${item.pricePerPair.toFixed(2)}`
-                        ).join('<br>')}
+                        ).join('<br>') : ''}
                         <br><strong>Payment:</strong> M-Pesa: KSh ${sale.mpesa.toFixed(2)} | Cash: KSh ${sale.cash.toFixed(2)}
                     </div>
                     <div class="card-actions" style="margin-top: 10px;">
@@ -1524,7 +1555,7 @@
             if (!sale) return;
 
             editingSaleId = saleId;
-            saleItemsForEdit = JSON.parse(JSON.stringify(sale.items)); // Deep copy
+            saleItemsForEdit = JSON.parse(JSON.stringify(sale.items || [])); // Deep copy
             
             document.getElementById('editSaleDate').value = sale.date;
             document.getElementById('editCustomerName').value = sale.customerName;
@@ -1645,7 +1676,7 @@
             
             shoes.forEach(shoe => {
                 shoe.inventory.forEach(inv => {
-                    csv += `"${shoe.id}","${shoe.date}","${shoe.name}","${shoe.atno}","${shoe.supplier}",${shoe.cost},"${inv.color}","${inv.size}",${inv.qty}\n`;
+                    csv += `"${shoe.id}","${shoe.date}","${shoe.name}","${shoe.atno}","${shoe.supplier}",${shoe.cost || 0},"${inv.color}","${inv.size}",${inv.qty}\n`;
                 });
             });
 
@@ -1720,7 +1751,7 @@
             let csv = 'Sale ID,Date,Customer Name,Total,M-Pesa,Cash,Item Count\n';
             
             sales.forEach(sale => {
-                csv += `"${sale.id}","${sale.date}","${sale.customerName}",${sale.total},${sale.mpesa},${sale.cash},${sale.items.length}\n`;
+                csv += `"${sale.id}","${sale.date}","${sale.customerName}",${sale.total},${sale.mpesa},${sale.cash},${sale.items ? sale.items.length : 0}\n`;
             });
 
             downloadCSV(csv, 'sales_' + new Date().toISOString().split('T')[0] + '.csv');
@@ -1746,12 +1777,11 @@
 
                         const [id, date, customerName, total, mpesa, cash, itemCount] = matches.map(m => m.replace(/^"|"$/g, '').trim());
 
-                        // For simplicity, we'll create placeholder items since CSV doesn't contain full item details
                         salesData.push({
                             id: id,
                             date: date,
                             customerName: customerName,
-                            items: [], // Would need more complex parsing for items
+                            items: [],
                             mpesa: parseFloat(mpesa) || 0,
                             cash: parseFloat(cash) || 0,
                             total: parseFloat(total) || 0
@@ -1854,88 +1884,107 @@
             document.body.removeChild(link);
         }
 
-        // TRANSFERS SEARCH
-        document.getElementById('transferShoeSearch').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            const results = document.getElementById('transferSearchResults');
-
-            if (query.length < 2) {
-                results.style.display = 'none';
-                return;
-            }
-
-            const shoes = getShoes().filter(s => s.name.toLowerCase().includes(query));
-            
-            if (shoes.length === 0) {
-                results.innerHTML = '<div class="search-result-item">No shoes found</div>';
-                results.style.display = 'block';
-                return;
-            }
-
-            results.innerHTML = shoes.map(shoe => `
-                <div class="search-result-item" onclick="selectTransferShoe('${shoe.id}')">
-                    <strong>${shoe.name}</strong> (${shoe.atno})<br>
-                    <small style="color: #a8a6a3;">${shoe.inventory.length} variants available</small>
-                </div>
-            `).join('');
-            results.style.display = 'block';
-        });
-
-        function selectTransferShoe(id) {
-            const shoe = getShoes().find(s => s.id === id);
-            if (!shoe) return;
-
-            transferSelectedShoeId = id;
-            document.getElementById('transferSelectedShoe').value = `${shoe.name} (${shoe.atno})`;
-            document.getElementById('transferShoeSearch').value = '';
-            document.getElementById('transferSearchResults').style.display = 'none';
-
-            const colors = [...new Set(shoe.inventory.map(inv => inv.color))];
-            const colorSelect = document.getElementById('transferColor');
-            colorSelect.innerHTML = '<option value="">Select color</option>' + 
-                colors.map(c => `<option value="${c}">${c}</option>`).join('');
-            
-            document.getElementById('transferSize').innerHTML = '<option value="">Select color first</option>';
+        // TRANSFER FUNCTIONALITY
+        function openTransferSelectionModal() {
+            document.getElementById('transferSelectionModal').classList.add('active');
+            document.getElementById('transferSelectionSearch').value = '';
+            displayTransferVariants();
         }
 
-        document.getElementById('transferColor').addEventListener('change', function(e) {
-            const color = e.target.value;
-            if (!transferSelectedShoeId || !color) return;
+        function closeTransferSelectionModal() {
+            document.getElementById('transferSelectionModal').classList.remove('active');
+        }
 
-            const shoe = getShoes().find(s => s.id === transferSelectedShoeId);
-            const sizes = shoe.inventory.filter(inv => inv.color === color);
+        function displayTransferVariants(query = '') {
+            const shoes = getShoes();
+            const container = document.getElementById('transferSelectionResults');
             
-            const sizeSelect = document.getElementById('transferSize');
-            sizeSelect.innerHTML = '<option value="">Select size</option>' +
-                sizes.map(s => `<option value="${s.size}">Size ${s.size} (${s.qty} available)</option>`).join('');
-        });
+            let filteredVariants = [];
+            shoes.forEach(shoe => {
+                shoe.inventory.forEach(inv => {
+                    const matchesQuery = !query || 
+                        shoe.name.toLowerCase().includes(query) ||
+                        (shoe.atno || '').toLowerCase().includes(query) ||
+                        inv.color.toLowerCase().includes(query) ||
+                        inv.size.toLowerCase().includes(query);
+                    
+                    if (matchesQuery) {
+                        filteredVariants.push({
+                            ...inv,
+                            shoeId: shoe.id,
+                            shoeName: shoe.name,
+                            atno: shoe.atno || 'N/A',
+                            cost: shoe.cost || 0
+                        });
+                    }
+                });
+            });
+
+            if (filteredVariants.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
+                return;
+            }
+
+            container.innerHTML = filteredVariants.map(variant => `
+                <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
+                    <div class="cart-item-header">${variant.shoeName}</div>
+                    <div class="variant-info">
+                        <strong>ATNO:</strong> ${variant.atno}<br>
+                        <strong>Color:</strong> ${variant.color}<br>
+                        <strong>Size:</strong> ${variant.size}<br>
+                        <strong>Available:</strong> ${variant.qty} pairs<br>
+                    </div>
+                    <div class="variant-actions">
+                        <button class="btn-success" style="width: 100%;" onclick="selectTransferVariant(this)">Select This Variant</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectTransferVariant(btn) {
+            const variantCard = btn.closest('.variant-card');
+            const variant = JSON.parse(variantCard.dataset.variant);
+            selectedTransferVariant = variant;
+            
+            document.getElementById('transferSelectedVariant').value = 
+                `${variant.shoeName} (${variant.atno}) - ${variant.color}, Size ${variant.size} (${variant.qty} available)`;
+            
+            document.getElementById('transferQty').max = variant.qty;
+            closeTransferSelectionModal();
+        }
 
         // TRANSFER FORM
         document.getElementById('transferForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            if (!transferSelectedShoeId) {
-                alert('Please select a shoe');
+            if (!selectedTransferVariant) {
+                alert('Please select a shoe variant');
                 return;
             }
 
             const transferDate = document.getElementById('transferDate').value;
-            const color = document.getElementById('transferColor').value;
-            const size = document.getElementById('transferSize').value;
             const qty = parseInt(document.getElementById('transferQty').value);
             const location = document.getElementById('transferLocation').value.trim();
 
-            // Check inventory
+            if (!qty || qty < 1) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            if (qty > selectedTransferVariant.qty) {
+                alert(`Only ${selectedTransferVariant.qty} pairs available`);
+                return;
+            }
+
+            // Update inventory
             const shoes = getShoes();
-            const shoe = shoes.find(s => s.id === transferSelectedShoeId);
-            const invItem = shoe.inventory.find(i => i.color === color && i.size === size);
+            const shoe = shoes.find(s => s.id === selectedTransferVariant.shoeId);
+            const invItem = shoe.inventory.find(i => i.color === selectedTransferVariant.color && i.size === selectedTransferVariant.size);
 
             if (!invItem || invItem.qty < qty) {
                 alert('Insufficient inventory');
                 return;
             }
 
-            // Update inventory
             invItem.qty -= qty;
             localStorage.setItem('shoes', JSON.stringify(shoes));
 
@@ -1943,10 +1992,10 @@
             const transfer = {
                 id: Date.now().toString(),
                 date: transferDate,
-                shoeId: transferSelectedShoeId,
-                shoeName: shoe.name,
-                color: color,
-                size: size,
+                shoeId: selectedTransferVariant.shoeId,
+                shoeName: selectedTransferVariant.shoeName,
+                color: selectedTransferVariant.color,
+                size: selectedTransferVariant.size,
                 qty: qty,
                 location: location
             };
@@ -1957,10 +2006,9 @@
 
             alert('Transfer recorded successfully!');
             this.reset();
-            transferSelectedShoeId = null;
             document.getElementById('transferDate').valueAsDate = new Date();
-            document.getElementById('transferColor').innerHTML = '<option value="">Select shoe first</option>';
-            document.getElementById('transferSize').innerHTML = '<option value="">Select color first</option>';
+            document.getElementById('transferSelectedVariant').value = '';
+            selectedTransferVariant = null;
             loadTransfers();
         });
 
@@ -2012,7 +2060,7 @@
             const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
             const totalMpesa = sales.reduce((sum, s) => sum + s.mpesa, 0);
             const totalCash = sales.reduce((sum, s) => sum + s.cash, 0);
-            const totalPairs = sales.reduce((sum, s) => sum + s.items.reduce((a, b) => a + b.qty, 0), 0);
+            const totalPairs = sales.reduce((sum, s) => sum + (s.items ? s.items.reduce((a, b) => a + b.qty, 0) : 0), 0);
             const totalTransferPairs = transfers.reduce((sum, t) => sum + t.qty, 0);
 
             // Sales by date
@@ -2024,7 +2072,7 @@
                 salesByDate[s.date].total += s.total;
                 salesByDate[s.date].mpesa += s.mpesa;
                 salesByDate[s.date].cash += s.cash;
-                salesByDate[s.date].pairs += s.items.reduce((a, b) => a + b.qty, 0);
+                salesByDate[s.date].pairs += s.items ? s.items.reduce((a, b) => a + b.qty, 0) : 0;
             });
 
             // Transfers by location
@@ -2119,9 +2167,11 @@
             csvContent += 'Date,Customer,Shoe Name,Color,Size,Quantity,Price per Pair,Total\n';
             
             sales.forEach(sale => {
-                sale.items.forEach(item => {
-                    csvContent += `${sale.date},${sale.customerName},${item.shoeName},${item.color},${item.size},${item.qty},${item.pricePerPair.toFixed(2)},${item.total.toFixed(2)}\n`;
-                });
+                if (sale.items) {
+                    sale.items.forEach(item => {
+                        csvContent += `${sale.date},${sale.customerName},${item.shoeName},${item.color},${item.size},${item.qty},${item.pricePerPair.toFixed(2)},${item.total.toFixed(2)}\n`;
+                    });
+                }
             });
 
             csvContent += '\n\nTRANSFERS REPORT\n\n';
