@@ -234,12 +234,6 @@
             align-items: end;
         }
 
-        .sales-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
         .payment-split {
             background: #1a1a1a;
             padding: 15px;
@@ -311,7 +305,6 @@
 
         .search-box {
             position: relative;
-            margin-bottom: 20px;
         }
 
         .search-results {
@@ -444,6 +437,103 @@
             font-size: 14px;
         }
 
+        /* NEW STYLES FOR ENHANCED SALES */
+        .sale-items-cart {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            min-height: 150px;
+        }
+
+        .cart-item {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .cart-item-header {
+            font-weight: 600;
+            color: #f5f3f0;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-detail {
+            font-size: 13px;
+            color: #c8c6c3;
+        }
+
+        .cart-item input {
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .cart-item .btn-danger {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .add-item-btn {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .shoe-selection-modal .modal-content {
+            max-width: 800px;
+        }
+
+        .shoe-variant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .variant-card {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #3a3a3a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .variant-card:hover {
+            border-color: #f5f3f0;
+            background: #3a3a3a;
+        }
+
+        .variant-card.selected {
+            border-color: #43a047;
+            background: #2d4a2d;
+        }
+
+        .variant-info {
+            font-size: 13px;
+            color: #c8c6c3;
+            margin-top: 8px;
+        }
+
+        .variant-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .variant-actions input {
+            flex: 1;
+        }
+
+        .variant-actions button {
+            padding: 8px;
+            font-size: 12px;
+        }
+
         @media (max-width: 768px) {
             .sales-form {
                 grid-template-columns: 1fr;
@@ -463,6 +553,10 @@
 
             .toolbar input[type="text"] {
                 width: 100%;
+            }
+
+            .cart-item {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -542,15 +636,6 @@
                                 <label>Sale Date</label>
                                 <input type="date" id="saleDate" required>
                             </div>
-                            <div class="form-group search-box">
-                                <label>Search Shoe</label>
-                                <input type="text" id="shoeSearch" placeholder="Type to search..." autocomplete="off">
-                                <div id="searchResults" class="search-results" style="display: none;"></div>
-                            </div>
-                            <div class="form-group">
-                                <label>Selected Shoe</label>
-                                <input type="text" id="selectedShoe" readonly>
-                            </div>
                             <div class="form-group">
                                 <label>Customer Name (Optional)</label>
                                 <input type="text" id="customerName" placeholder="Customer name">
@@ -558,25 +643,16 @@
                         </div>
                         <div>
                             <div class="form-group">
-                                <label>Available Colors</label>
-                                <select id="saleColor" required>
-                                    <option value="">Select shoe first</option>
-                                </select>
+                                <label>&nbsp;</label>
+                                <button type="button" class="add-item-btn btn-success" onclick="openShoeSelectionModal()">+ Add Item to Sale</button>
                             </div>
-                            <div class="form-group">
-                                <label>Available Sizes</label>
-                                <select id="saleSize" required>
-                                    <option value="">Select color first</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Quantity (Pairs)</label>
-                                <input type="number" id="saleQty" min="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Price per Pair</label>
-                                <input type="number" id="salePrice" min="0" step="0.01" required>
-                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sale Items</label>
+                        <div id="saleItemsCart" class="sale-items-cart">
+                            <p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Sale" to begin.</p>
                         </div>
                     </div>
 
@@ -584,18 +660,21 @@
                         <h3 style="margin-bottom: 15px;">Payment Method</h3>
                         <div class="form-group">
                             <label>M-Pesa Amount</label>
-                            <input type="number" id="mpesaAmount" min="0" step="0.01" value="0">
+                            <input type="number" id="mpesaAmount" min="0" step="0.01" value="0" required>
                         </div>
                         <div class="form-group">
                             <label>Cash Amount</label>
-                            <input type="number" id="cashAmount" min="0" step="0.01" value="0">
+                            <input type="number" id="cashAmount" min="0" step="0.01" value="0" required>
                         </div>
                         <div class="form-group">
-                            <label>Total: <span id="totalAmount">0.00</span></label>
+                            <label style="font-size: 1.2em;">Grand Total: <span id="grandTotal" style="color: #43a047; font-weight: 700;">KSh 0.00</span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Status: <span id="paymentStatus" style="color: #d32f2f;">UNBALANCED</span></label>
                         </div>
                     </div>
 
-                    <button type="submit" style="margin-top: 20px;">Record Sale</button>
+                    <button type="submit" style="margin-top: 20px; width: 100%;" id="completeSaleBtn" disabled>Complete Sale</button>
                 </form>
             </div>
 
@@ -696,7 +775,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Edit Inventory Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -739,10 +818,70 @@
         </div>
     </div>
 
+    <!-- Shoe Selection Modal for Sales -->
+    <div id="shoeSelectionModal" class="modal shoe-selection-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Shoe & Variant</h2>
+                <button class="close-btn" onclick="closeShoeSelectionModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <input type="text" id="shoeSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
+            </div>
+            <div id="shoeSelectionResults" class="shoe-variant-grid"></div>
+        </div>
+    </div>
+
+    <!-- Edit Sale Modal -->
+    <div id="editSaleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Sale</h2>
+                <button class="close-btn" onclick="closeEditSaleModal()">✕</button>
+            </div>
+            <form id="editSaleForm">
+                <div class="form-group">
+                    <label>Sale Date</label>
+                    <input type="date" id="editSaleDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="editCustomerName">
+                </div>
+                <div class="form-group">
+                    <label>Sale Items</label>
+                    <div id="editSaleItemsCart" class="sale-items-cart"></div>
+                    <button type="button" class="btn-secondary" style="width: 100%; margin-top: 10px;" onclick="openShoeSelectionModalForEdit()">+ Add Item to Sale</button>
+                </div>
+                <div class="payment-split">
+                    <h3 style="margin-bottom: 15px;">Payment Method</h3>
+                    <div class="form-group">
+                        <label>M-Pesa Amount</label>
+                        <input type="number" id="editMpesaAmount" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cash Amount</label>
+                        <input type="number" id="editCashAmount" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 1.2em;">Grand Total: <span id="editGrandTotal" style="color: #43a047; font-weight: 700;">KSh 0.00</span></label>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" style="flex: 1;">Update Sale</button>
+                    <button type="button" onclick="closeEditSaleModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let selectedShoeId = null;
         let transferSelectedShoeId = null;
         let editingShoeId = null;
+        let currentSaleItems = [];
+        let editingSaleId = null;
+        let saleItemsForEdit = [];
 
         // Initialize dates
         document.getElementById('invDate').valueAsDate = new Date();
@@ -756,6 +895,12 @@
         document.getElementById('inventorySearch').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             loadInventory(query);
+        });
+
+        // Shoe selection search
+        document.getElementById('shoeSelectionSearch').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            displayShoeVariants(query);
         });
 
         function switchTab(tabName) {
@@ -1046,6 +1191,448 @@
             }
         });
 
+        // SALES FUNCTIONALITY
+        function openShoeSelectionModal() {
+            document.getElementById('shoeSelectionModal').classList.add('active');
+            document.getElementById('shoeSelectionSearch').value = '';
+            displayShoeVariants();
+        }
+
+        function closeShoeSelectionModal() {
+            document.getElementById('shoeSelectionModal').classList.remove('active');
+        }
+
+        function openShoeSelectionModalForEdit() {
+            openShoeSelectionModal();
+            document.getElementById('shoeSelectionModal').dataset.mode = 'edit';
+        }
+
+        function displayShoeVariants(query = '') {
+            const shoes = getShoes();
+            const container = document.getElementById('shoeSelectionResults');
+            
+            let filteredVariants = [];
+            shoes.forEach(shoe => {
+                shoe.inventory.forEach(inv => {
+                    const matchesQuery = !query || 
+                        shoe.name.toLowerCase().includes(query) ||
+                        shoe.atno.toLowerCase().includes(query) ||
+                        inv.color.toLowerCase().includes(query) ||
+                        inv.size.toLowerCase().includes(query);
+                    
+                    if (matchesQuery) {
+                        filteredVariants.push({
+                            ...inv,
+                            shoeId: shoe.id,
+                            shoeName: shoe.name,
+                            atno: shoe.atno,
+                            cost: shoe.cost
+                        });
+                    }
+                });
+            });
+
+            if (filteredVariants.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
+                return;
+            }
+
+            container.innerHTML = filteredVariants.map(variant => `
+                <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
+                    <div class="cart-item-header">${variant.shoeName}</div>
+                    <div class="variant-info">
+                        <strong>ATNO:</strong> ${variant.atno}<br>
+                        <strong>Color:</strong> ${variant.color}<br>
+                        <strong>Size:</strong> ${variant.size}<br>
+                        <strong>Available:</strong> ${variant.qty} pairs<br>
+                        <strong>Cost:</strong> KSh ${variant.cost.toFixed(2)}
+                    </div>
+                    <div class="variant-actions">
+                        <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="sale-qty-input">
+                        <input type="number" placeholder="Price" min="0" step="0.01" class="sale-price-input" value="${variant.cost * 2}">
+                        <button class="btn-success" onclick="addVariantToSale(this)">Add</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addVariantToSale(btn) {
+            const variantCard = btn.closest('.variant-card');
+            const variant = JSON.parse(variantCard.dataset.variant);
+            const qty = parseInt(variantCard.querySelector('.sale-qty-input').value);
+            const price = parseFloat(variantCard.querySelector('.sale-price-input').value);
+
+            if (!qty || qty < 1) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            if (!price || price < 0) {
+                alert('Please enter a valid price');
+                return;
+            }
+            if (qty > variant.qty) {
+                alert(`Only ${variant.qty} pairs available`);
+                return;
+            }
+
+            const saleItem = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                shoeId: variant.shoeId,
+                shoeName: variant.shoeName,
+                atno: variant.atno,
+                color: variant.color,
+                size: variant.size,
+                qty: qty,
+                pricePerPair: price,
+                total: qty * price
+            };
+
+            if (document.getElementById('shoeSelectionModal').dataset.mode === 'edit') {
+                saleItemsForEdit.push(saleItem);
+                renderEditSaleItems();
+            } else {
+                currentSaleItems.push(saleItem);
+                renderSaleItems();
+            }
+
+            variantCard.querySelector('.sale-qty-input').value = '';
+            closeShoeSelectionModal();
+            delete document.getElementById('shoeSelectionModal').dataset.mode;
+        }
+
+        function removeSaleItem(itemId) {
+            currentSaleItems = currentSaleItems.filter(item => item.id !== itemId);
+            renderSaleItems();
+        }
+
+        function removeEditSaleItem(itemId) {
+            saleItemsForEdit = saleItemsForEdit.filter(item => item.id !== itemId);
+            renderEditSaleItems();
+        }
+
+        function renderSaleItems() {
+            const container = document.getElementById('saleItemsCart');
+            
+            if (currentSaleItems.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Sale" to begin.</p>';
+                updateSaleTotal();
+                return;
+            }
+
+            container.innerHTML = currentSaleItems.map(item => `
+                <div class="cart-item">
+                    <div>
+                        <div class="cart-item-header">${item.shoeName}</div>
+                        <div class="cart-item-detail">ATNO: ${item.atno} | ${item.color} - Size ${item.size}</div>
+                    </div>
+                    <div>
+                        <label>Qty</label>
+                        <input type="number" value="${item.qty}" min="1" readonly>
+                    </div>
+                    <div>
+                        <label>Price</label>
+                        <input type="number" value="${item.pricePerPair.toFixed(2)}" min="0" step="0.01" readonly>
+                    </div>
+                    <div>
+                        <label>Total</label>
+                        <input type="text" value="KSh ${item.total.toFixed(2)}" readonly>
+                    </div>
+                    <div>
+                        <button class="btn-danger" onclick="removeSaleItem('${item.id}')">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateSaleTotal();
+        }
+
+        function renderEditSaleItems() {
+            const container = document.getElementById('editSaleItemsCart');
+            
+            if (saleItemsForEdit.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3; padding: 30px;">No items in this sale.</p>';
+                updateEditSaleTotal();
+                return;
+            }
+
+            container.innerHTML = saleItemsForEdit.map(item => `
+                <div class="cart-item">
+                    <div>
+                        <div class="cart-item-header">${item.shoeName}</div>
+                        <div class="cart-item-detail">ATNO: ${item.atno} | ${item.color} - Size ${item.size}</div>
+                    </div>
+                    <div>
+                        <label>Qty</label>
+                        <input type="number" value="${item.qty}" min="1" onchange="updateEditItemQty('${item.id}', this.value)">
+                    </div>
+                    <div>
+                        <label>Price</label>
+                        <input type="number" value="${item.pricePerPair.toFixed(2)}" min="0" step="0.01" onchange="updateEditItemPrice('${item.id}', this.value)">
+                    </div>
+                    <div>
+                        <label>Total</label>
+                        <input type="text" value="KSh ${item.total.toFixed(2)}" readonly>
+                    </div>
+                    <div>
+                        <button class="btn-danger" onclick="removeEditSaleItem('${item.id}')">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateEditSaleTotal();
+        }
+
+        function updateEditItemQty(itemId, newQty) {
+            const item = saleItemsForEdit.find(i => i.id === itemId);
+            if (item) {
+                item.qty = parseInt(newQty);
+                item.total = item.qty * item.pricePerPair;
+                renderEditSaleItems();
+            }
+        }
+
+        function updateEditItemPrice(itemId, newPrice) {
+            const item = saleItemsForEdit.find(i => i.id === itemId);
+            if (item) {
+                item.pricePerPair = parseFloat(newPrice);
+                item.total = item.qty * item.pricePerPair;
+                renderEditSaleItems();
+            }
+        }
+
+        function updateSaleTotal() {
+            const grandTotal = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
+            document.getElementById('grandTotal').textContent = `KSh ${grandTotal.toFixed(2)}`;
+            document.getElementById('completeSaleBtn').disabled = currentSaleItems.length === 0;
+        }
+
+        function updateEditSaleTotal() {
+            const grandTotal = saleItemsForEdit.reduce((sum, item) => sum + item.total, 0);
+            document.getElementById('editGrandTotal').textContent = `KSh ${grandTotal.toFixed(2)}`;
+        }
+
+        // Payment calculation
+        document.getElementById('mpesaAmount').addEventListener('input', validatePayment);
+        document.getElementById('cashAmount').addEventListener('input', validatePayment);
+
+        function validatePayment() {
+            const mpesa = parseFloat(document.getElementById('mpesaAmount').value) || 0;
+            const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
+            const total = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
+            const paymentTotal = mpesa + cash;
+            
+            document.getElementById('paymentStatus').textContent = 
+                Math.abs(paymentTotal - total) < 0.01 ? 'BALANCED ✓' : `UNBALANCED (Diff: KSh ${(paymentTotal - total).toFixed(2)})`;
+            document.getElementById('paymentStatus').style.color = 
+                Math.abs(paymentTotal - total) < 0.01 ? '#43a047' : '#d32f2f';
+        }
+
+        // SALES FORM SUBMIT
+        document.getElementById('salesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (currentSaleItems.length === 0) {
+                alert('Please add at least one item to the sale');
+                return;
+            }
+
+            const saleDate = document.getElementById('saleDate').value;
+            const customerName = document.getElementById('customerName').value.trim();
+            const mpesa = parseFloat(document.getElementById('mpesaAmount').value) || 0;
+            const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
+            const grandTotal = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
+
+            if (Math.abs(mpesa + cash - grandTotal) > 0.01) {
+                alert(`Payment amounts (KSh ${(mpesa + cash).toFixed(2)}) don't match sale total (KSh ${grandTotal.toFixed(2)})`);
+                return;
+            }
+
+            // Check and update inventory
+            const shoes = getShoes();
+            for (let item of currentSaleItems) {
+                const shoe = shoes.find(s => s.id === item.shoeId);
+                const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                
+                if (!invItem || invItem.qty < item.qty) {
+                    alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
+                    return;
+                }
+                invItem.qty -= item.qty;
+            }
+            localStorage.setItem('shoes', JSON.stringify(shoes));
+
+            // Save sale
+            const sale = {
+                id: Date.now().toString(),
+                date: saleDate,
+                customerName: customerName || 'N/A',
+                items: [...currentSaleItems],
+                mpesa: mpesa,
+                cash: cash,
+                total: grandTotal
+            };
+
+            const sales = getSales();
+            sales.push(sale);
+            localStorage.setItem('sales', JSON.stringify(sales));
+
+            alert('Sale recorded successfully!');
+            this.reset();
+            document.getElementById('saleDate').valueAsDate = new Date();
+            currentSaleItems = [];
+            renderSaleItems();
+            loadSales();
+        });
+
+        function getSales() {
+            return JSON.parse(localStorage.getItem('sales') || '[]');
+        }
+
+        function loadSales() {
+            const sales = getSales().sort((a, b) => new Date(b.date) - new Date(a.date));
+            const container = document.getElementById('salesList');
+
+            if (sales.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No sales recorded yet</p>';
+                return;
+            }
+
+            container.innerHTML = sales.slice(0, 20).map(sale => `
+                <div class="sale-item">
+                    <div class="sale-header">
+                        <span>Sale #${sale.id.substring(sale.id.length - 6)}</span>
+                        <span>KSh ${sale.total.toFixed(2)}</span>
+                    </div>
+                    <div class="sale-details">
+                        <strong>Date:</strong> ${sale.date} | <strong>Customer:</strong> ${sale.customerName}<br>
+                        <strong>Items:</strong> ${sale.items.length} item(s)<br>
+                        ${sale.items.map(item => 
+                            `${item.qty}x ${item.shoeName} (${item.color}, Size ${item.size}) @ KSh ${item.pricePerPair.toFixed(2)}`
+                        ).join('<br>')}
+                        <br><strong>Payment:</strong> M-Pesa: KSh ${sale.mpesa.toFixed(2)} | Cash: KSh ${sale.cash.toFixed(2)}
+                    </div>
+                    <div class="card-actions" style="margin-top: 10px;">
+                        <button onclick="editSale('${sale.id}')" class="btn-secondary">Edit Sale</button>
+                        <button onclick="deleteSale('${sale.id}')" class="btn-danger">Delete Sale</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editSale(saleId) {
+            const sale = getSales().find(s => s.id === saleId);
+            if (!sale) return;
+
+            editingSaleId = saleId;
+            saleItemsForEdit = JSON.parse(JSON.stringify(sale.items)); // Deep copy
+            
+            document.getElementById('editSaleDate').value = sale.date;
+            document.getElementById('editCustomerName').value = sale.customerName;
+            document.getElementById('editMpesaAmount').value = sale.mpesa;
+            document.getElementById('editCashAmount').value = sale.cash;
+            
+            renderEditSaleItems();
+            document.getElementById('editSaleModal').classList.add('active');
+        }
+
+        function closeEditSaleModal() {
+            document.getElementById('editSaleModal').classList.remove('active');
+            editingSaleId = null;
+            saleItemsForEdit = [];
+        }
+
+        function deleteSale(saleId) {
+            if (!confirm('Are you sure you want to delete this sale? This will return the items to inventory.')) return;
+
+            const sales = getSales();
+            const saleIndex = sales.findIndex(s => s.id === saleId);
+            
+            if (saleIndex !== -1) {
+                // Return items to inventory
+                const shoes = getShoes();
+                sales[saleIndex].items.forEach(item => {
+                    const shoe = shoes.find(s => s.id === item.shoeId);
+                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                    if (invItem) {
+                        invItem.qty += item.qty;
+                    }
+                });
+                localStorage.setItem('shoes', JSON.stringify(shoes));
+
+                // Remove sale
+                sales.splice(saleIndex, 1);
+                localStorage.setItem('sales', JSON.stringify(sales));
+                
+                loadSales();
+                alert('Sale deleted successfully!');
+            }
+        }
+
+        // EDIT SALE FORM SUBMIT
+        document.getElementById('editSaleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (saleItemsForEdit.length === 0) {
+                alert('Please add at least one item to the sale');
+                return;
+            }
+
+            const saleDate = document.getElementById('editSaleDate').value;
+            const customerName = document.getElementById('editCustomerName').value.trim();
+            const mpesa = parseFloat(document.getElementById('editMpesaAmount').value) || 0;
+            const cash = parseFloat(document.getElementById('editCashAmount').value) || 0;
+            const grandTotal = saleItemsForEdit.reduce((sum, item) => sum + item.total, 0);
+
+            if (Math.abs(mpesa + cash - grandTotal) > 0.01) {
+                alert(`Payment amounts (KSh ${(mpesa + cash).toFixed(2)}) don't match sale total (KSh ${grandTotal.toFixed(2)})`);
+                return;
+            }
+
+            const sales = getSales();
+            const saleIndex = sales.findIndex(s => s.id === editingSaleId);
+            
+            if (saleIndex !== -1) {
+                // Return old items to inventory
+                const shoes = getShoes();
+                sales[saleIndex].items.forEach(item => {
+                    const shoe = shoes.find(s => s.id === item.shoeId);
+                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                    if (invItem) {
+                        invItem.qty += item.qty;
+                    }
+                });
+
+                // Deduct new items from inventory
+                for (let item of saleItemsForEdit) {
+                    const shoe = shoes.find(s => s.id === item.shoeId);
+                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                    
+                    if (!invItem || invItem.qty < item.qty) {
+                        alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
+                        return;
+                    }
+                    invItem.qty -= item.qty;
+                }
+                localStorage.setItem('shoes', JSON.stringify(shoes));
+
+                // Update sale
+                sales[saleIndex] = {
+                    id: editingSaleId,
+                    date: saleDate,
+                    customerName: customerName || 'N/A',
+                    items: [...saleItemsForEdit],
+                    mpesa: mpesa,
+                    cash: cash,
+                    total: grandTotal
+                };
+                localStorage.setItem('sales', JSON.stringify(sales));
+
+                closeEditSaleModal();
+                loadSales();
+                alert('Sale updated successfully!');
+            }
+        });
+
         // CSV DOWNLOAD AND UPLOAD FUNCTIONS
         function downloadInventoryCSV() {
             const shoes = getShoes();
@@ -1130,10 +1717,10 @@
                 return;
             }
 
-            let csv = 'ID,Date,Customer Name,Shoe ID,Shoe Name,Color,Size,Quantity,Price Per Pair,Total,M-Pesa,Cash\n';
+            let csv = 'Sale ID,Date,Customer Name,Total,M-Pesa,Cash,Item Count\n';
             
             sales.forEach(sale => {
-                csv += `"${sale.id}","${sale.date}","${sale.customerName}","${sale.shoeId}","${sale.shoeName}","${sale.color}","${sale.size}",${sale.qty},${sale.pricePerPair},${sale.total},${sale.mpesa},${sale.cash}\n`;
+                csv += `"${sale.id}","${sale.date}","${sale.customerName}",${sale.total},${sale.mpesa},${sale.cash},${sale.items.length}\n`;
             });
 
             downloadCSV(csv, 'sales_' + new Date().toISOString().split('T')[0] + '.csv');
@@ -1155,23 +1742,19 @@
                         if (!line) continue;
 
                         const matches = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g);
-                        if (!matches || matches.length < 12) continue;
+                        if (!matches || matches.length < 7) continue;
 
-                        const [id, date, customerName, shoeId, shoeName, color, size, qty, pricePerPair, total, mpesa, cash] = matches.map(m => m.replace(/^"|"$/g, '').trim());
+                        const [id, date, customerName, total, mpesa, cash, itemCount] = matches.map(m => m.replace(/^"|"$/g, '').trim());
 
+                        // For simplicity, we'll create placeholder items since CSV doesn't contain full item details
                         salesData.push({
                             id: id,
                             date: date,
                             customerName: customerName,
-                            shoeId: shoeId,
-                            shoeName: shoeName,
-                            color: color,
-                            size: size,
-                            qty: parseInt(qty) || 0,
-                            pricePerPair: parseFloat(pricePerPair) || 0,
-                            total: parseFloat(total) || 0,
+                            items: [], // Would need more complex parsing for items
                             mpesa: parseFloat(mpesa) || 0,
-                            cash: parseFloat(cash) || 0
+                            cash: parseFloat(cash) || 0,
+                            total: parseFloat(total) || 0
                         });
                     }
 
@@ -1269,172 +1852,6 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-
-        // SALES SEARCH
-        document.getElementById('shoeSearch').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            const results = document.getElementById('searchResults');
-
-            if (query.length < 2) {
-                results.style.display = 'none';
-                return;
-            }
-
-            const shoes = getShoes().filter(s => s.name.toLowerCase().includes(query));
-            
-            if (shoes.length === 0) {
-                results.innerHTML = '<div class="search-result-item">No shoes found</div>';
-                results.style.display = 'block';
-                return;
-            }
-
-            results.innerHTML = shoes.map(shoe => `
-                <div class="search-result-item" onclick="selectShoe('${shoe.id}')">
-                    <strong>${shoe.name}</strong> (${shoe.atno})<br>
-                    <small style="color: #a8a6a3;">${shoe.inventory.length} variants available</small>
-                </div>
-            `).join('');
-            results.style.display = 'block';
-        });
-
-        function selectShoe(id) {
-            const shoe = getShoes().find(s => s.id === id);
-            if (!shoe) return;
-
-            selectedShoeId = id;
-            document.getElementById('selectedShoe').value = `${shoe.name} (${shoe.atno})`;
-            document.getElementById('shoeSearch').value = '';
-            document.getElementById('searchResults').style.display = 'none';
-
-            const colors = [...new Set(shoe.inventory.map(inv => inv.color))];
-            const colorSelect = document.getElementById('saleColor');
-            colorSelect.innerHTML = '<option value="">Select color</option>' + 
-                colors.map(c => `<option value="${c}">${c}</option>`).join('');
-            
-            document.getElementById('saleSize').innerHTML = '<option value="">Select color first</option>';
-        }
-
-        document.getElementById('saleColor').addEventListener('change', function(e) {
-            const color = e.target.value;
-            if (!selectedShoeId || !color) return;
-
-            const shoe = getShoes().find(s => s.id === selectedShoeId);
-            const sizes = shoe.inventory.filter(inv => inv.color === color);
-            
-            const sizeSelect = document.getElementById('saleSize');
-            sizeSelect.innerHTML = '<option value="">Select size</option>' +
-                sizes.map(s => `<option value="${s.size}">Size ${s.size} (${s.qty} available)</option>`).join('');
-        });
-
-        // Payment calculation
-        document.getElementById('salePrice').addEventListener('input', calculateTotal);
-        document.getElementById('saleQty').addEventListener('input', calculateTotal);
-        document.getElementById('mpesaAmount').addEventListener('input', calculateTotal);
-        document.getElementById('cashAmount').addEventListener('input', calculateTotal);
-
-        function calculateTotal() {
-            const price = parseFloat(document.getElementById('salePrice').value) || 0;
-            const qty = parseInt(document.getElementById('saleQty').value) || 0;
-            const total = price * qty;
-            document.getElementById('totalAmount').textContent = total.toFixed(2);
-        }
-
-        // SALES FORM
-        document.getElementById('salesForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            if (!selectedShoeId) {
-                alert('Please select a shoe');
-                return;
-            }
-
-            const saleDate = document.getElementById('saleDate').value;
-            const color = document.getElementById('saleColor').value;
-            const size = document.getElementById('saleSize').value;
-            const qty = parseInt(document.getElementById('saleQty').value);
-            const price = parseFloat(document.getElementById('salePrice').value);
-            const mpesa = parseFloat(document.getElementById('mpesaAmount').value) || 0;
-            const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
-            const customerName = document.getElementById('customerName').value.trim();
-            const total = price * qty;
-
-            if (Math.abs(mpesa + cash - total) > 0.01) {
-                alert(`Payment amounts (${(mpesa + cash).toFixed(2)}) don't match total (${total.toFixed(2)})`);
-                return;
-            }
-
-            // Check inventory
-            const shoes = getShoes();
-            const shoe = shoes.find(s => s.id === selectedShoeId);
-            const invItem = shoe.inventory.find(i => i.color === color && i.size === size);
-
-            if (!invItem || invItem.qty < qty) {
-                alert('Insufficient inventory');
-                return;
-            }
-
-            // Update inventory
-            invItem.qty -= qty;
-            localStorage.setItem('shoes', JSON.stringify(shoes));
-
-            // Save sale
-            const sale = {
-                id: Date.now().toString(),
-                date: saleDate,
-                shoeId: selectedShoeId,
-                shoeName: shoe.name,
-                color: color,
-                size: size,
-                qty: qty,
-                pricePerPair: price,
-                total: total,
-                mpesa: mpesa,
-                cash: cash,
-                customerName: customerName || 'N/A'
-            };
-
-            const sales = getSales();
-            sales.push(sale);
-            localStorage.setItem('sales', JSON.stringify(sales));
-
-            alert('Sale recorded successfully!');
-            this.reset();
-            selectedShoeId = null;
-            document.getElementById('saleDate').valueAsDate = new Date();
-            document.getElementById('saleColor').innerHTML = '<option value="">Select shoe first</option>';
-            document.getElementById('saleSize').innerHTML = '<option value="">Select color first</option>';
-            document.getElementById('totalAmount').textContent = '0.00';
-            loadSales();
-        });
-
-        function getSales() {
-            return JSON.parse(localStorage.getItem('sales') || '[]');
-        }
-
-        function loadSales() {
-            const sales = getSales().sort((a, b) => new Date(b.date) - new Date(a.date));
-            const container = document.getElementById('salesList');
-
-            if (sales.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No sales recorded yet</p>';
-                return;
-            }
-
-            container.innerHTML = sales.slice(0, 20).map(sale => `
-                <div class="sale-item">
-                    <div class="sale-header">
-                        <span>${sale.shoeName}</span>
-                        <span>KSh ${sale.total.toFixed(2)}</span>
-                    </div>
-                    <div class="sale-details">
-                        <strong>Date:</strong> ${sale.date}<br>
-                        <strong>Customer:</strong> ${sale.customerName}<br>
-                        <strong>Details:</strong> ${sale.color} - Size ${sale.size} - ${sale.qty} pair(s) @ KSh ${sale.pricePerPair.toFixed(2)}<br>
-                        <strong>Payment:</strong> M-Pesa: KSh ${sale.mpesa.toFixed(2)} | Cash: KSh ${sale.cash.toFixed(2)}
-                    </div>
-                </div>
-            `).join('');
         }
 
         // TRANSFERS SEARCH
@@ -1595,7 +2012,7 @@
             const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
             const totalMpesa = sales.reduce((sum, s) => sum + s.mpesa, 0);
             const totalCash = sales.reduce((sum, s) => sum + s.cash, 0);
-            const totalPairs = sales.reduce((sum, s) => sum + s.qty, 0);
+            const totalPairs = sales.reduce((sum, s) => sum + s.items.reduce((a, b) => a + b.qty, 0), 0);
             const totalTransferPairs = transfers.reduce((sum, t) => sum + t.qty, 0);
 
             // Sales by date
@@ -1607,7 +2024,7 @@
                 salesByDate[s.date].total += s.total;
                 salesByDate[s.date].mpesa += s.mpesa;
                 salesByDate[s.date].cash += s.cash;
-                salesByDate[s.date].pairs += s.qty;
+                salesByDate[s.date].pairs += s.items.reduce((a, b) => a + b.qty, 0);
             });
 
             // Transfers by location
@@ -1699,10 +2116,12 @@
             }
 
             let csvContent = 'SALES REPORT\n\n';
-            csvContent += 'Date,Customer,Shoe Name,Color,Size,Quantity,Price per Pair,Total,M-Pesa,Cash\n';
+            csvContent += 'Date,Customer,Shoe Name,Color,Size,Quantity,Price per Pair,Total\n';
             
             sales.forEach(sale => {
-                csvContent += `${sale.date},${sale.customerName},${sale.shoeName},${sale.color},${sale.size},${sale.qty},${sale.pricePerPair.toFixed(2)},${sale.total.toFixed(2)},${sale.mpesa.toFixed(2)},${sale.cash.toFixed(2)}\n`;
+                sale.items.forEach(item => {
+                    csvContent += `${sale.date},${sale.customerName},${item.shoeName},${item.color},${item.size},${item.qty},${item.pricePerPair.toFixed(2)},${item.total.toFixed(2)}\n`;
+                });
             });
 
             csvContent += '\n\nTRANSFERS REPORT\n\n';
