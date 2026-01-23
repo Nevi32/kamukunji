@@ -666,90 +666,6 @@
             }
         }
     </style>
-    
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import Firebase functions
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            getDocs, 
-            updateDoc, 
-            deleteDoc, 
-            doc, 
-            query, 
-            where, 
-            orderBy, 
-            setDoc 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyBKqd_AGJcPaTbb8y-pMiNUoGkFkQqqXXU",
-            authDomain: "essential-truth-403610.firebaseapp.com",
-            projectId: "essential-truth-403610",
-            storageBucket: "essential-truth-403610.firebasestorage.app",
-            messagingSenderId: "931489894045",
-            appId: "1:931489894045:web:e3ef0eb7a1ee4ae9328e74",
-            measurementId: "G-83GL74BQG7"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Make Firebase functions available globally
-        window.firebaseApp = app;
-        window.db = db;
-        window.firebase = {
-            getFirestore,
-            collection,
-            addDoc,
-            getDocs,
-            updateDoc,
-            deleteDoc,
-            doc,
-            query,
-            where,
-            orderBy,
-            setDoc
-        };
-        
-        // Initialize storage mode
-        checkStorageMode();
-        
-        function checkStorageMode() {
-            // Check if localStorage has data
-            const hasLocalData = 
-                localStorage.getItem('shoes') && 
-                localStorage.getItem('shoes') !== '[]' &&
-                localStorage.getItem('shoes') !== 'null';
-                
-            const migrationDone = localStorage.getItem('migrationDone') === 'true';
-            
-            // If migration is done OR localStorage is empty, use Firebase
-            if (migrationDone || !hasLocalData) {
-                window.isUsingFirebase = true;
-                if (document.getElementById('storageInfo')) {
-                    document.getElementById('storageInfo').textContent = '• Storage: Firebase Cloud';
-                }
-                if (document.getElementById('migrationBanner')) {
-                    document.getElementById('migrationBanner').style.display = 'none';
-                }
-            } else {
-                window.isUsingFirebase = false;
-                if (document.getElementById('storageInfo')) {
-                    document.getElementById('storageInfo').textContent = '• Storage: Local Storage';
-                }
-                if (document.getElementById('migrationBanner')) {
-                    document.getElementById('migrationBanner').style.display = 'block';
-                }
-            }
-        }
-        
-        window.checkStorageMode = checkStorageMode;
-    </script>
 </head>
 <body>
     <div class="container">
@@ -758,7 +674,7 @@
         <!-- Migration Banner -->
         <div id="migrationBanner" class="migration-banner" style="display: none;">
             <h3>✨ Upgrade to Cloud Storage</h3>
-            <p>Migrate your local data to Firebase for secure cloud storage, backup, and multi-device access.</p>
+            <p>You have local data that can be migrated to Firebase for secure cloud storage.</p>
             <button onclick="migrateToFirebase()" class="btn-warning">🚀 Migrate to Cloud</button>
         </div>
 
@@ -807,9 +723,9 @@
 
             <div class="info-banner">
                 <p><strong>Data Management:</strong></p>
-                <p>• Download your inventory as CSV to backup or transfer to another browser</p>
+                <p>• Download your inventory as CSV for backup</p>
                 <p>• Upload a CSV file to add to your existing inventory data</p>
-                <p id="storageInfo">• Storage: Checking...</p>
+                <p id="storageInfo">• Storage: Firebase Cloud</p>
             </div>
 
             <!-- Advanced Search -->
@@ -1137,6 +1053,93 @@
         </div>
     </div>
 
+    <!-- Firebase CDN -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            updateDoc, 
+            deleteDoc, 
+            doc,
+            query,
+            where,
+            orderBy
+        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKqd_AGJcPaTbb8y-pMiNUoGkFkQqqXXU",
+            authDomain: "essential-truth-403610.firebaseapp.com",
+            databaseURL: "https://essential-truth-403610-default-rtdb.firebaseio.com",
+            projectId: "essential-truth-403610",
+            storageBucket: "essential-truth-403610.firebasestorage.app",
+            messagingSenderId: "931489894045",
+            appId: "1:931489894045:web:e3ef0eb7a1ee4ae9328e74",
+            measurementId: "G-83GL74BQG7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        
+        // Make Firebase functions available globally
+        window.firebaseApp = app;
+        window.db = db;
+        window.firebase = {
+            db,
+            collection,
+            addDoc,
+            getDocs,
+            updateDoc,
+            deleteDoc,
+            doc,
+            query,
+            where,
+            orderBy
+        };
+        
+        console.log("Firebase initialized successfully!");
+        
+        // Always use Firebase as primary storage
+        window.isUsingFirebase = true;
+        
+        // Initialize storage mode display
+        updateStorageDisplay();
+        
+        function updateStorageDisplay() {
+            // Check if user has local data that needs migration
+            const hasLocalData = 
+                localStorage.getItem('shoes') && 
+                localStorage.getItem('shoes') !== '[]' &&
+                localStorage.getItem('shoes') !== 'null';
+                
+            const migrationDone = localStorage.getItem('migrationDone') === 'true';
+            
+            if (document.getElementById('storageInfo')) {
+                document.getElementById('storageInfo').textContent = '• Storage: Firebase Cloud';
+            }
+            
+            // Show migration banner if user has local data but hasn't migrated
+            if (hasLocalData && !migrationDone) {
+                if (document.getElementById('migrationBanner')) {
+                    document.getElementById('migrationBanner').style.display = 'block';
+                }
+            } else {
+                if (document.getElementById('migrationBanner')) {
+                    document.getElementById('migrationBanner').style.display = 'none';
+                }
+            }
+        }
+        
+        window.updateStorageDisplay = updateStorageDisplay;
+    </script>
+
     <script>
         // Global state
         let selectedShoeId = null;
@@ -1147,7 +1150,7 @@
         let saleItemsForEdit = [];
         let currentTransferItems = [];
         let currentMultiSizeSelection = null;
-        let isUsingFirebase = false;
+        let isUsingFirebase = true; // Always use Firebase now
 
         // Firebase collections
         const COLLECTIONS = {
@@ -1164,46 +1167,17 @@
         // Add initial color group
         addColorGroup();
 
-        // Check storage mode on load
-        setTimeout(() => {
-            if (typeof checkStorageMode === 'function') {
-                checkStorageMode();
-            } else {
-                // Fallback if checkStorageMode is not loaded yet
-                updateStorageDisplay();
-            }
-        }, 100);
-
-        function updateStorageDisplay() {
-            const hasLocalData = 
-                localStorage.getItem('shoes') && 
-                localStorage.getItem('shoes') !== '[]' &&
-                localStorage.getItem('shoes') !== 'null';
-                
-            const migrationDone = localStorage.getItem('migrationDone') === 'true';
-            
-            if (migrationDone || !hasLocalData) {
-                isUsingFirebase = true;
-                document.getElementById('storageInfo').textContent = '• Storage: Firebase Cloud';
-                document.getElementById('migrationBanner').style.display = 'none';
-            } else {
-                isUsingFirebase = false;
-                document.getElementById('storageInfo').textContent = '• Storage: Local Storage';
-                document.getElementById('migrationBanner').style.display = 'block';
-            }
-        }
-
         // MIGRATION FUNCTION - FIXED VERSION
         async function migrateToFirebase() {
-            if (!confirm('Migrate all local data to Firebase? This will copy all your data to the cloud and clear local storage.')) {
+            if (!confirm('Migrate all local data to Firebase? This will copy all your data to the cloud.')) {
                 return;
             }
 
             try {
                 // Get all local data
-                const localShoes = getShoesLocal();
-                const localSales = getSalesLocal();
-                const localTransfers = getTransfersLocal();
+                const localShoes = JSON.parse(localStorage.getItem('shoes') || '[]');
+                const localSales = JSON.parse(localStorage.getItem('sales') || '[]');
+                const localTransfers = JSON.parse(localStorage.getItem('transfers') || '[]');
 
                 let migratedCount = 0;
                 
@@ -1235,13 +1209,12 @@
                     // Mark migration as done
                     localStorage.setItem('migrationDone', 'true');
                     
-                    // Clear local storage
-                    localStorage.removeItem('shoes');
-                    localStorage.removeItem('sales');
-                    localStorage.removeItem('transfers');
+                    // Clear local storage (optional - keep as backup)
+                    // localStorage.removeItem('shoes');
+                    // localStorage.removeItem('sales');
+                    // localStorage.removeItem('transfers');
 
                     // Update UI
-                    isUsingFirebase = true;
                     updateStorageDisplay();
                     
                     alert(`Migration successful! ${migratedCount} records moved to Firebase.`);
@@ -1261,260 +1234,184 @@
             }
         }
 
-        // DATA ACCESS FUNCTIONS (Firebase or Local)
+        // DATA ACCESS FUNCTIONS (Firebase only)
         async function getShoes() {
-            if (isUsingFirebase && window.firebase && window.firebase.getDocs) {
-                try {
-                    const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.SHOES));
-                    const shoes = [];
-                    querySnapshot.forEach((doc) => {
-                        shoes.push({ id: doc.id, ...doc.data() });
-                    });
-                    return shoes;
-                } catch (error) {
-                    console.error('Error getting shoes:', error);
-                    // Fallback to local storage if Firebase fails
-                    return getShoesLocal();
+            try {
+                if (!window.firebase || !window.firebase.getDocs) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                return getShoesLocal();
+                
+                const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.SHOES));
+                const shoes = [];
+                querySnapshot.forEach((doc) => {
+                    shoes.push({ id: doc.id, ...doc.data() });
+                });
+                return shoes;
+            } catch (error) {
+                console.error('Error getting shoes:', error);
+                alert('Error loading inventory from Firebase: ' + error.message);
+                return [];
             }
         }
 
         async function saveShoe(shoe) {
-            if (isUsingFirebase && window.firebase && window.firebase.addDoc) {
-                try {
-                    await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SHOES), shoe);
-                    return true;
-                } catch (error) {
-                    console.error('Error saving shoe:', error);
-                    // Fallback to local storage
-                    saveShoeLocal(shoe);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.addDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                saveShoeLocal(shoe);
+                
+                await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SHOES), shoe);
                 return true;
+            } catch (error) {
+                console.error('Error saving shoe:', error);
+                alert('Error saving to Firebase: ' + error.message);
+                return false;
             }
         }
 
         async function updateShoe(id, shoe) {
-            if (isUsingFirebase && window.firebase && window.firebase.updateDoc) {
-                try {
-                    const shoeRef = window.firebase.doc(window.db, COLLECTIONS.SHOES, id);
-                    await window.firebase.updateDoc(shoeRef, shoe);
-                    return true;
-                } catch (error) {
-                    console.error('Error updating shoe:', error);
-                    // Fallback to local storage
-                    updateShoeLocal(id, shoe);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.updateDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                updateShoeLocal(id, shoe);
+                
+                const shoeRef = window.firebase.doc(window.db, COLLECTIONS.SHOES, id);
+                await window.firebase.updateDoc(shoeRef, shoe);
                 return true;
+            } catch (error) {
+                console.error('Error updating shoe:', error);
+                alert('Error updating in Firebase: ' + error.message);
+                return false;
             }
         }
 
         async function deleteShoeFromStorage(id) {
-            if (isUsingFirebase && window.firebase && window.firebase.deleteDoc) {
-                try {
-                    await window.firebase.deleteDoc(window.firebase.doc(window.db, COLLECTIONS.SHOES, id));
-                    return true;
-                } catch (error) {
-                    console.error('Error deleting shoe:', error);
-                    // Fallback to local storage
-                    deleteShoeLocal(id);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.deleteDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                deleteShoeLocal(id);
+                
+                await window.firebase.deleteDoc(window.firebase.doc(window.db, COLLECTIONS.SHOES, id));
                 return true;
+            } catch (error) {
+                console.error('Error deleting shoe:', error);
+                alert('Error deleting from Firebase: ' + error.message);
+                return false;
             }
         }
 
         async function getSales() {
-            if (isUsingFirebase && window.firebase && window.firebase.getDocs) {
-                try {
-                    const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.SALES));
-                    const sales = [];
-                    querySnapshot.forEach((doc) => {
-                        sales.push({ id: doc.id, ...doc.data() });
-                    });
-                    return sales;
-                } catch (error) {
-                    console.error('Error getting sales:', error);
-                    return getSalesLocal();
+            try {
+                if (!window.firebase || !window.firebase.getDocs) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                return getSalesLocal();
+                
+                const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.SALES));
+                const sales = [];
+                querySnapshot.forEach((doc) => {
+                    const saleData = doc.data();
+                    // Ensure items array exists for backward compatibility
+                    if (!saleData.items && saleData.shoeId) {
+                        saleData.items = [{
+                            id: doc.id + '_item',
+                            shoeId: saleData.shoeId,
+                            shoeName: saleData.shoeName,
+                            atno: saleData.atno || 'N/A',
+                            color: saleData.color,
+                            size: saleData.size,
+                            qty: saleData.qty,
+                            pricePerPair: saleData.pricePerPair,
+                            total: saleData.total
+                        }];
+                    }
+                    sales.push({ id: doc.id, ...saleData });
+                });
+                return sales;
+            } catch (error) {
+                console.error('Error getting sales:', error);
+                alert('Error loading sales from Firebase: ' + error.message);
+                return [];
             }
         }
 
         async function saveSale(sale) {
-            if (isUsingFirebase && window.firebase && window.firebase.addDoc) {
-                try {
-                    await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SALES), sale);
-                    return true;
-                } catch (error) {
-                    console.error('Error saving sale:', error);
-                    saveSaleLocal(sale);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.addDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                saveSaleLocal(sale);
+                
+                await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SALES), sale);
                 return true;
+            } catch (error) {
+                console.error('Error saving sale:', error);
+                alert('Error saving sale to Firebase: ' + error.message);
+                return false;
             }
         }
 
         async function updateSale(id, sale) {
-            if (isUsingFirebase && window.firebase && window.firebase.updateDoc) {
-                try {
-                    const saleRef = window.firebase.doc(window.db, COLLECTIONS.SALES, id);
-                    await window.firebase.updateDoc(saleRef, sale);
-                    return true;
-                } catch (error) {
-                    console.error('Error updating sale:', error);
-                    updateSaleLocal(id, sale);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.updateDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                updateSaleLocal(id, sale);
+                
+                const saleRef = window.firebase.doc(window.db, COLLECTIONS.SALES, id);
+                await window.firebase.updateDoc(saleRef, sale);
                 return true;
+            } catch (error) {
+                console.error('Error updating sale:', error);
+                alert('Error updating sale in Firebase: ' + error.message);
+                return false;
             }
         }
 
         async function deleteSaleFromStorage(id) {
-            if (isUsingFirebase && window.firebase && window.firebase.deleteDoc) {
-                try {
-                    await window.firebase.deleteDoc(window.firebase.doc(window.db, COLLECTIONS.SALES, id));
-                    return true;
-                } catch (error) {
-                    console.error('Error deleting sale:', error);
-                    deleteSaleLocal(id);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.deleteDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                deleteSaleLocal(id);
+                
+                await window.firebase.deleteDoc(window.firebase.doc(window.db, COLLECTIONS.SALES, id));
                 return true;
+            } catch (error) {
+                console.error('Error deleting sale:', error);
+                alert('Error deleting sale from Firebase: ' + error.message);
+                return false;
             }
         }
 
         async function getTransfers() {
-            if (isUsingFirebase && window.firebase && window.firebase.getDocs) {
-                try {
-                    const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS));
-                    const transfers = [];
-                    querySnapshot.forEach((doc) => {
-                        transfers.push({ id: doc.id, ...doc.data() });
-                    });
-                    return transfers;
-                } catch (error) {
-                    console.error('Error getting transfers:', error);
-                    return getTransfersLocal();
+            try {
+                if (!window.firebase || !window.firebase.getDocs) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                return getTransfersLocal();
+                
+                const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS));
+                const transfers = [];
+                querySnapshot.forEach((doc) => {
+                    transfers.push({ id: doc.id, ...doc.data() });
+                });
+                return transfers;
+            } catch (error) {
+                console.error('Error getting transfers:', error);
+                alert('Error loading transfers from Firebase: ' + error.message);
+                return [];
             }
         }
 
         async function saveTransfer(transfer) {
-            if (isUsingFirebase && window.firebase && window.firebase.addDoc) {
-                try {
-                    await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS), transfer);
-                    return true;
-                } catch (error) {
-                    console.error('Error saving transfer:', error);
-                    saveTransferLocal(transfer);
-                    return true;
+            try {
+                if (!window.firebase || !window.firebase.addDoc) {
+                    throw new Error('Firebase not initialized');
                 }
-            } else {
-                saveTransferLocal(transfer);
+                
+                await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS), transfer);
                 return true;
+            } catch (error) {
+                console.error('Error saving transfer:', error);
+                alert('Error saving transfer to Firebase: ' + error.message);
+                return false;
             }
-        }
-
-        // LOCAL STORAGE FUNCTIONS (for backward compatibility)
-        function getShoesLocal() {
-            return JSON.parse(localStorage.getItem('shoes') || '[]');
-        }
-
-        function saveShoeLocal(shoe) {
-            const shoes = getShoesLocal();
-            shoes.push(shoe);
-            localStorage.setItem('shoes', JSON.stringify(shoes));
-        }
-
-        function updateShoeLocal(id, shoe) {
-            const shoes = getShoesLocal();
-            const index = shoes.findIndex(s => s.id === id);
-            if (index !== -1) {
-                shoes[index] = { id, ...shoe };
-                localStorage.setItem('shoes', JSON.stringify(shoes));
-            }
-        }
-
-        function deleteShoeLocal(id) {
-            const shoes = getShoesLocal().filter(s => s.id !== id);
-            localStorage.setItem('shoes', JSON.stringify(shoes));
-        }
-
-        function getSalesLocal() {
-            const rawSales = JSON.parse(localStorage.getItem('sales') || '[]');
-            return rawSales.map(sale => {
-                if (!sale.items && sale.shoeId) {
-                    return {
-                        id: sale.id,
-                        date: sale.date,
-                        customerName: sale.customerName || 'N/A',
-                        items: [{
-                            id: sale.id + '_item',
-                            shoeId: sale.shoeId,
-                            shoeName: sale.shoeName,
-                            atno: sale.atno || 'N/A',
-                            color: sale.color,
-                            size: sale.size,
-                            qty: sale.qty,
-                            pricePerPair: sale.pricePerPair,
-                            total: sale.total
-                        }],
-                        mpesa: sale.mpesa || 0,
-                        cash: sale.cash || 0,
-                        total: sale.total
-                    };
-                }
-                return sale;
-            });
-        }
-
-        function saveSaleLocal(sale) {
-            const sales = getSalesLocal();
-            sales.push(sale);
-            localStorage.setItem('sales', JSON.stringify(sales));
-        }
-
-        function updateSaleLocal(id, sale) {
-            const sales = getSalesLocal();
-            const index = sales.findIndex(s => s.id === id);
-            if (index !== -1) {
-                sales[index] = { id, ...sale };
-                localStorage.setItem('sales', JSON.stringify(sales));
-            }
-        }
-
-        function deleteSaleLocal(id) {
-            const sales = getSalesLocal().filter(s => s.id !== id);
-            localStorage.setItem('sales', JSON.stringify(sales));
-        }
-
-        function getTransfersLocal() {
-            return JSON.parse(localStorage.getItem('transfers') || '[]');
-        }
-
-        function saveTransferLocal(transfer) {
-            const transfers = getTransfersLocal();
-            transfers.push(transfer);
-            localStorage.setItem('transfers', JSON.stringify(transfers));
         }
 
         function switchTab(tabName) {
@@ -2730,10 +2627,9 @@
             `).join('');
         }
 
-        // Keep CSV functions as they were (they work with local storage)
-        // Note: These would need to be updated to work with Firebase if needed
-        function downloadInventoryCSV() {
-            const shoes = getShoesLocal();
+        // CSV Functions - These will download data from Firebase
+        async function downloadInventoryCSV() {
+            const shoes = await getShoes();
             if (shoes.length === 0) {
                 alert('No inventory data to download');
                 return;
@@ -2881,6 +2777,35 @@
 
         // Initialize
         loadInventory();
+        
+        // Remove CSV upload functions since they're not working with Firebase
+        function uploadInventoryCSV(event) {
+            alert('CSV upload is temporarily disabled for Firebase storage.');
+        }
+        
+        function uploadSalesCSV(event) {
+            alert('CSV upload is temporarily disabled for Firebase storage.');
+        }
+        
+        function uploadTransfersCSV(event) {
+            alert('CSV upload is temporarily disabled for Firebase storage.');
+        }
+        
+        function downloadSalesCSV() {
+            alert('Sales CSV download is temporarily disabled for Firebase storage.');
+        }
+        
+        function downloadTransfersCSV() {
+            alert('Transfers CSV download is temporarily disabled for Firebase storage.');
+        }
+        
+        function downloadReport() {
+            alert('Report download is temporarily disabled for Firebase storage.');
+        }
+        
+        function openShoeSelectionModalForEdit() {
+            alert('Adding items to existing sales is temporarily disabled for Firebase storage.');
+        }
     </script>
 </body>
 </html>
