@@ -156,6 +156,15 @@
             background: #2e7d32;
         }
 
+        .btn-cloud {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .btn-cloud:hover {
+            background: #0d62d9;
+        }
+
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -437,7 +446,25 @@
             font-size: 14px;
         }
 
-        /* NEW STYLES FOR ENHANCED SALES & TRANSFERS */
+        .migration-status {
+            background: #2d4a2d;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #43a047;
+            display: none;
+        }
+
+        .migration-status.active {
+            display: block;
+        }
+
+        .migration-status p {
+            margin: 5px 0;
+            color: #c8c6c3;
+            font-size: 14px;
+        }
+
         .sale-items-cart, .transfer-items-cart {
             background: #1a1a1a;
             padding: 20px;
@@ -534,7 +561,6 @@
             font-size: 12px;
         }
 
-        /* NEW: Select All button styles */
         .modal-actions {
             display: flex;
             gap: 10px;
@@ -543,6 +569,37 @@
 
         .modal-actions button {
             flex: 1;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .firebase-error {
+            background: #4a2d2d;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d32f2f;
+            color: #c8c6c3;
+            display: none;
+        }
+
+        .firebase-error.active {
+            display: block;
         }
 
         @media (max-width: 768px) {
@@ -587,6 +644,18 @@
             <div class="tab" onclick="switchTab('report')">Reports</div>
         </div>
 
+        <!-- Migration Status -->
+        <div id="migrationStatus" class="migration-status">
+            <p><strong>✓ Cloud Storage Active</strong></p>
+            <p>Your data is now stored securely in the cloud. All changes sync automatically.</p>
+        </div>
+
+        <!-- Firebase Error -->
+        <div id="firebaseError" class="firebase-error">
+            <p><strong>⚠️ Cloud Sync Error</strong></p>
+            <p id="firebaseErrorMessage">Unable to connect to cloud storage. Working offline.</p>
+        </div>
+
         <!-- INVENTORY TAB -->
         <div id="inventory" class="tab-content active">
             <div class="form-card">
@@ -621,6 +690,21 @@
                     </div>
                     <button type="submit">Add to Inventory</button>
                 </form>
+            </div>
+
+            <!-- Migration Button -->
+            <div id="migrationSection" class="form-card" style="display: none;">
+                <h2 style="margin-bottom: 20px;">Cloud Migration</h2>
+                <p style="margin-bottom: 15px; color: #c8c6c3;">
+                    Migrate your local data to Firebase cloud storage for automatic sync and backup.
+                </p>
+                <button id="migrateBtn" class="btn-cloud" onclick="migrateToFirebase()">
+                    Migrate to Cloud
+                </button>
+                <div id="migrationProgress" style="margin-top: 15px; color: #c8c6c3; display: none;">
+                    <span>Migrating data...</span>
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
 
             <div class="info-banner">
@@ -829,6 +913,10 @@
             <div class="form-group">
                 <input type="text" id="shoeSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
             </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-success" onclick="addAllSelectedVariantsToSale()">Add All Selected</button>
+                <button type="button" class="btn-secondary" onclick="closeShoeSelectionModal()">Cancel</button>
+            </div>
             <div id="shoeSelectionResults" class="shoe-variant-grid"></div>
         </div>
     </div>
@@ -843,7 +931,6 @@
             <div class="form-group">
                 <input type="text" id="transferSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
             </div>
-            <!-- NEW: Select All button -->
             <div class="modal-actions">
                 <button type="button" class="btn-success" onclick="addAllVariantsToTransfer()">Select All Shown Variants</button>
                 <button type="button" class="btn-secondary" onclick="closeTransferSelectionModal()">Cancel</button>
@@ -895,6 +982,58 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            updateDoc, 
+            deleteDoc, 
+            doc, 
+            query, 
+            orderBy,
+            writeBatch,
+            Timestamp
+        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKqd_AGJcPaTbb8y-pMiNUoGkFkQqqXXU",
+            authDomain: "essential-truth-403610.firebaseapp.com",
+            databaseURL: "https://essential-truth-403610-default-rtdb.firebaseio.com",
+            projectId: "essential-truth-403610",
+            storageBucket: "essential-truth-403610.firebasestorage.app",
+            messagingSenderId: "931489894045",
+            appId: "1:931489894045:web:e3ef0eb7a1ee4ae9328e74",
+            measurementId: "G-83GL74BQG7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make db available globally
+        window.firebaseDB = db;
+        window.firebaseExports = {
+            collection, 
+            addDoc, 
+            getDocs, 
+            updateDoc, 
+            deleteDoc, 
+            doc, 
+            query, 
+            orderBy,
+            writeBatch,
+            Timestamp
+        };
+
+        // Initialize app after Firebase loads
+        window.dispatchEvent(new Event('firebaseLoaded'));
+    </script>
+
     <script>
         let selectedShoeId = null;
         let transferSelectedShoeId = null;
@@ -903,6 +1042,115 @@
         let editingSaleId = null;
         let saleItemsForEdit = [];
         let currentTransferItems = [];
+        let selectedVariantsForSale = [];
+
+        // Firebase state
+        let isMigrated = localStorage.getItem('isMigrated') === 'true';
+        let db = null;
+        let fb = null;
+
+        // Wait for Firebase to load
+        window.addEventListener('firebaseLoaded', () => {
+            db = window.firebaseDB;
+            fb = window.firebaseExports;
+            checkMigrationStatus();
+        });
+
+        // Check migration status
+        async function checkMigrationStatus() {
+            if (isMigrated) {
+                document.getElementById('migrationStatus').classList.add('active');
+                document.getElementById('migrationSection').style.display = 'none';
+                // Test Firebase connection
+                try {
+                    await getShoes();
+                    console.log('Firebase connection successful');
+                } catch (error) {
+                    showFirebaseError('Cloud storage connected but cannot sync. Check internet connection.');
+                }
+            } else {
+                document.getElementById('migrationSection').style.display = 'block';
+                // Check if there's any data to migrate
+                const hasData = localStorage.getItem('shoes') || localStorage.getItem('sales') || localStorage.getItem('transfers');
+                if (!hasData) {
+                    document.getElementById('migrationBtn').textContent = 'Start Fresh in Cloud';
+                }
+            }
+        }
+
+        // Show Firebase error
+        function showFirebaseError(message) {
+            document.getElementById('firebaseErrorMessage').textContent = message;
+            document.getElementById('firebaseError').classList.add('active');
+        }
+
+        // Migrate data to Firebase
+        async function migrateToFirebase() {
+            const migrateBtn = document.getElementById('migrateBtn');
+            const progressDiv = document.getElementById('migrationProgress');
+            
+            migrateBtn.disabled = true;
+            progressDiv.style.display = 'block';
+
+            try {
+                // Migrate shoes
+                const shoes = JSON.parse(localStorage.getItem('shoes') || '[]');
+                if (shoes.length > 0) {
+                    for (const shoe of shoes) {
+                        await addDoc(collection(db, 'shoes'), {
+                            ...shoe,
+                            migratedAt: Timestamp.now()
+                        });
+                    }
+                }
+
+                // Migrate sales
+                const sales = JSON.parse(localStorage.getItem('sales') || '[]');
+                if (sales.length > 0) {
+                    for (const sale of sales) {
+                        await addDoc(collection(db, 'sales'), {
+                            ...sale,
+                            migratedAt: Timestamp.now()
+                        });
+                    }
+                }
+
+                // Migrate transfers
+                const transfers = JSON.parse(localStorage.getItem('transfers') || '[]');
+                if (transfers.length > 0) {
+                    for (const transfer of transfers) {
+                        await addDoc(collection(db, 'transfers'), {
+                            ...transfer,
+                            migratedAt: Timestamp.now()
+                        });
+                    }
+                }
+
+                // Clear localStorage
+                localStorage.removeItem('shoes');
+                localStorage.removeItem('sales');
+                localStorage.removeItem('transfers');
+                localStorage.setItem('isMigrated', 'true');
+                
+                isMigrated = true;
+                
+                // Update UI
+                document.getElementById('migrationStatus').classList.add('active');
+                document.getElementById('migrationSection').style.display = 'none';
+                
+                alert('Migration successful! All data is now stored in the cloud.');
+                
+                // Reload data
+                await loadInventory();
+                
+            } catch (error) {
+                console.error('Migration failed:', error);
+                alert('Migration failed: ' + error.message);
+                migrateBtn.disabled = false;
+            } finally {
+                progressDiv.style.display = 'none';
+            }
+        }
 
         // Initialize dates
         document.getElementById('invDate').valueAsDate = new Date();
@@ -912,7 +1160,7 @@
         // Add initial color group
         addColorGroup();
 
-        // Inventory search functionality (supports comma-separated terms)
+        // Inventory search functionality
         document.getElementById('inventorySearch').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             loadInventory(query);
@@ -1002,7 +1250,7 @@
         }
 
         // INVENTORY FORM
-        document.getElementById('inventoryForm').addEventListener('submit', function(e) {
+        document.getElementById('inventoryForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const invDate = document.getElementById('invDate').value;
@@ -1034,7 +1282,6 @@
             }
 
             const shoe = {
-                id: Date.now().toString(),
                 date: invDate,
                 name: shoeName,
                 atno: atno,
@@ -1043,34 +1290,50 @@
                 inventory: inventory
             };
 
-            saveShoe(shoe);
-            this.reset();
-            document.getElementById('invDate').valueAsDate = new Date();
-            document.getElementById('atno').value = 'N/A';
-            document.getElementById('colorGroups').innerHTML = '';
-            addColorGroup();
-            loadInventory();
-            alert('Inventory added successfully!');
+            try {
+                await saveShoe(shoe);
+                this.reset();
+                document.getElementById('invDate').valueAsDate = new Date();
+                document.getElementById('atno').value = 'N/A';
+                document.getElementById('colorGroups').innerHTML = '';
+                addColorGroup();
+                await loadInventory();
+                alert('Inventory added successfully!');
+            } catch (error) {
+                alert('Error adding inventory: ' + error.message);
+            }
         });
 
-        function saveShoe(shoe) {
-            const shoes = getShoes();
-            shoes.push(shoe);
-            localStorage.setItem('shoes', JSON.stringify(shoes));
+        async function saveShoe(shoe) {
+            if (isMigrated && db) {
+                await addDoc(collection(db, 'shoes'), {
+                    ...shoe,
+                    createdAt: Timestamp.now()
+                });
+            } else {
+                const shoes = getShoes();
+                shoes.push({ id: Date.now().toString(), ...shoe });
+                localStorage.setItem('shoes', JSON.stringify(shoes));
+            }
         }
 
-        function getShoes() {
-            return JSON.parse(localStorage.getItem('shoes') || '[]');
+        async function getShoes() {
+            if (isMigrated && db) {
+                const q = query(collection(db, 'shoes'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } else {
+                return JSON.parse(localStorage.getItem('shoes') || '[]');
+            }
         }
 
-        function loadInventory(searchQuery = '') {
-            const shoes = getShoes();
+        async function loadInventory(searchQuery = '') {
             const container = document.getElementById('inventoryList');
             
-            let filteredShoes = shoes;
+            let filteredShoes = await getShoes();
             if (searchQuery) {
                 const terms = searchQuery.toLowerCase().split(',').map(t => t.trim()).filter(t => t);
-                filteredShoes = shoes.filter(shoe => {
+                filteredShoes = filteredShoes.filter(shoe => {
                     return terms.some(term => {
                         const nameMatch = shoe.name.toLowerCase().includes(term);
                         const atnoMatch = shoe.atno.toLowerCase().includes(term);
@@ -1115,16 +1378,25 @@
             }).join('');
         }
 
-        function deleteShoe(id) {
+        async function deleteShoe(id) {
             if (!confirm('Are you sure you want to delete this item?')) return;
             
-            const shoes = getShoes().filter(s => s.id !== id);
-            localStorage.setItem('shoes', JSON.stringify(shoes));
-            loadInventory();
+            try {
+                if (isMigrated && db) {
+                    await deleteDoc(doc(db, 'shoes', id));
+                } else {
+                    const shoes = JSON.parse(localStorage.getItem('shoes') || '[]');
+                    const filteredShoes = shoes.filter(s => s.id !== id);
+                    localStorage.setItem('shoes', JSON.stringify(filteredShoes));
+                }
+                await loadInventory();
+            } catch (error) {
+                alert('Error deleting item: ' + error.message);
+            }
         }
 
-        function editShoe(id) {
-            const shoe = getShoes().find(s => s.id === id);
+        async function editShoe(id) {
+            const shoe = (await getShoes()).find(s => s.id === id);
             if (!shoe) return;
 
             editingShoeId = id;
@@ -1170,7 +1442,7 @@
         }
 
         // EDIT FORM SUBMIT
-        document.getElementById('editForm').addEventListener('submit', function(e) {
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const invDate = document.getElementById('editInvDate').value;
@@ -1201,23 +1473,37 @@
                 return;
             }
 
-            const shoes = getShoes();
-            const shoeIndex = shoes.findIndex(s => s.id === editingShoeId);
-            
-            if (shoeIndex !== -1) {
-                shoes[shoeIndex] = {
-                    id: editingShoeId,
-                    date: invDate,
-                    name: shoeName,
-                    atno: atno,
-                    supplier: supplierName,
-                    cost: costPerPair,
-                    inventory: inventory
-                };
-                localStorage.setItem('shoes', JSON.stringify(shoes));
+            try {
+                if (isMigrated && db) {
+                    await updateDoc(doc(db, 'shoes', editingShoeId), {
+                        date: invDate,
+                        name: shoeName,
+                        atno: atno,
+                        supplier: supplierName,
+                        cost: costPerPair,
+                        inventory: inventory
+                    });
+                } else {
+                    const shoes = JSON.parse(localStorage.getItem('shoes') || '[]');
+                    const shoeIndex = shoes.findIndex(s => s.id === editingShoeId);
+                    if (shoeIndex !== -1) {
+                        shoes[shoeIndex] = {
+                            id: editingShoeId,
+                            date: invDate,
+                            name: shoeName,
+                            atno: atno,
+                            supplier: supplierName,
+                            cost: costPerPair,
+                            inventory: inventory
+                        };
+                        localStorage.setItem('shoes', JSON.stringify(shoes));
+                    }
+                }
                 closeEditModal();
-                loadInventory();
+                await loadInventory();
                 alert('Inventory updated successfully!');
+            } catch (error) {
+                alert('Error updating inventory: ' + error.message);
             }
         });
 
@@ -1225,11 +1511,13 @@
         function openShoeSelectionModal() {
             document.getElementById('shoeSelectionModal').classList.add('active');
             document.getElementById('shoeSelectionSearch').value = '';
+            selectedVariantsForSale = [];
             displayShoeVariants();
         }
 
         function closeShoeSelectionModal() {
             document.getElementById('shoeSelectionModal').classList.remove('active');
+            selectedVariantsForSale = [];
         }
 
         function openShoeSelectionModalForEdit() {
@@ -1238,55 +1526,56 @@
         }
 
         function displayShoeVariants(query = '') {
-            const shoes = getShoes();
-            const container = document.getElementById('shoeSelectionResults');
-            
-            let filteredVariants = [];
-            shoes.forEach(shoe => {
-                shoe.inventory.forEach(inv => {
-                    const matchesQuery = !query || 
-                        shoe.name.toLowerCase().includes(query) ||
-                        (shoe.atno || '').toLowerCase().includes(query) ||
-                        inv.color.toLowerCase().includes(query) ||
-                        inv.size.toLowerCase().includes(query);
-                    
-                    if (matchesQuery) {
-                        filteredVariants.push({
-                            ...inv,
-                            shoeId: shoe.id,
-                            shoeName: shoe.name,
-                            atno: shoe.atno || 'N/A',
-                            cost: shoe.cost || 0
-                        });
-                    }
+            getShoes().then(shoes => {
+                const container = document.getElementById('shoeSelectionResults');
+                
+                let filteredVariants = [];
+                shoes.forEach(shoe => {
+                    shoe.inventory.forEach(inv => {
+                        const matchesQuery = !query || 
+                            shoe.name.toLowerCase().includes(query) ||
+                            (shoe.atno || '').toLowerCase().includes(query) ||
+                            inv.color.toLowerCase().includes(query) ||
+                            inv.size.toLowerCase().includes(query);
+                        
+                        if (matchesQuery) {
+                            filteredVariants.push({
+                                ...inv,
+                                shoeId: shoe.id,
+                                shoeName: shoe.name,
+                                atno: shoe.atno || 'N/A',
+                                cost: shoe.cost || 0
+                            });
+                        }
+                    });
                 });
+
+                if (filteredVariants.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
+                    return;
+                }
+
+                container.innerHTML = filteredVariants.map((variant, index) => `
+                    <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
+                        <div class="cart-item-header">${variant.shoeName}</div>
+                        <div class="variant-info">
+                            <strong>ATNO:</strong> ${variant.atno}<br>
+                            <strong>Color:</strong> ${variant.color}<br>
+                            <strong>Size:</strong> ${variant.size}<br>
+                            <strong>Available:</strong> ${variant.qty} pairs<br>
+                            <strong>Cost:</strong> KSh ${(variant.cost || 0).toFixed(2)}
+                        </div>
+                        <div class="variant-actions">
+                            <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="sale-qty-input">
+                            <input type="number" placeholder="Price" min="0" step="0.01" class="sale-price-input" value="${(variant.cost || 0) * 2}">
+                            <button class="btn-success" onclick="addVariantToSaleList(this)">Add</button>
+                        </div>
+                    </div>
+                `).join('');
             });
-
-            if (filteredVariants.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
-                return;
-            }
-
-            container.innerHTML = filteredVariants.map(variant => `
-                <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
-                    <div class="cart-item-header">${variant.shoeName}</div>
-                    <div class="variant-info">
-                        <strong>ATNO:</strong> ${variant.atno}<br>
-                        <strong>Color:</strong> ${variant.color}<br>
-                        <strong>Size:</strong> ${variant.size}<br>
-                        <strong>Available:</strong> ${variant.qty} pairs<br>
-                        <strong>Cost:</strong> KSh ${(variant.cost || 0).toFixed(2)}
-                    </div>
-                    <div class="variant-actions">
-                        <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="sale-qty-input">
-                        <input type="number" placeholder="Price" min="0" step="0.01" class="sale-price-input" value="${(variant.cost || 0) * 2}">
-                        <button class="btn-success" onclick="addVariantToSale(this)">Add</button>
-                    </div>
-                </div>
-            `).join('');
         }
 
-        function addVariantToSale(btn) {
+        function addVariantToSaleList(btn) {
             const variantCard = btn.closest('.variant-card');
             const variant = JSON.parse(variantCard.dataset.variant);
             const qty = parseInt(variantCard.querySelector('.sale-qty-input').value);
@@ -1326,8 +1615,6 @@
             }
 
             variantCard.querySelector('.sale-qty-input').value = '';
-            closeShoeSelectionModal();
-            delete document.getElementById('shoeSelectionModal').dataset.mode;
         }
 
         function removeSaleItem(itemId) {
@@ -1459,7 +1746,7 @@
         }
 
         // SALES FORM SUBMIT
-        document.getElementById('salesForm').addEventListener('submit', function(e) {
+        document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             if (currentSaleItems.length === 0) {
@@ -1479,7 +1766,7 @@
             }
 
             // Check and update inventory
-            const shoes = getShoes();
+            const shoes = await getShoes();
             for (let item of currentSaleItems) {
                 const shoe = shoes.find(s => s.id === item.shoeId);
                 const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
@@ -1488,65 +1775,120 @@
                     alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
                     return;
                 }
-                invItem.qty -= item.qty;
             }
-            localStorage.setItem('shoes', JSON.stringify(shoes));
 
-            // Save sale
-            const sale = {
-                id: Date.now().toString(),
-                date: saleDate,
-                customerName: customerName || 'N/A',
-                items: [...currentSaleItems],
-                mpesa: mpesa,
-                cash: cash,
-                total: grandTotal
-            };
+            try {
+                // Update inventory
+                for (let item of currentSaleItems) {
+                    const shoeIndex = shoes.findIndex(s => s.id === item.shoeId);
+                    const invItemIndex = shoes[shoeIndex].inventory.findIndex(i => i.color === item.color && i.size === item.size);
+                    shoes[shoeIndex].inventory[invItemIndex].qty -= item.qty;
+                    
+                    if (isMigrated && db) {
+                        await updateDoc(doc(db, 'shoes', item.shoeId), {
+                            inventory: shoes[shoeIndex].inventory
+                        });
+                    }
+                }
+                
+                if (!isMigrated) {
+                    localStorage.setItem('shoes', JSON.stringify(shoes));
+                }
 
-            const sales = getSales();
-            sales.push(sale);
-            localStorage.setItem('sales', JSON.stringify(sales));
+                // Save sale
+                const sale = {
+                    date: saleDate,
+                    customerName: customerName || 'N/A',
+                    items: [...currentSaleItems],
+                    mpesa: mpesa,
+                    cash: cash,
+                    total: grandTotal,
+                    createdAt: new Date().toISOString()
+                };
 
-            alert('Sale recorded successfully!');
-            this.reset();
-            document.getElementById('saleDate').valueAsDate = new Date();
-            currentSaleItems = [];
-            renderSaleItems();
-            loadSales();
+                if (isMigrated && db) {
+                    await addDoc(collection(db, 'sales'), {
+                        ...sale,
+                        createdAt: Timestamp.now()
+                    });
+                } else {
+                    const sales = getSales();
+                    sales.push({ id: Date.now().toString(), ...sale });
+                    localStorage.setItem('sales', JSON.stringify(sales));
+                }
+
+                alert('Sale recorded successfully!');
+                this.reset();
+                document.getElementById('saleDate').valueAsDate = new Date();
+                currentSaleItems = [];
+                renderSaleItems();
+                await loadSales();
+            } catch (error) {
+                alert('Error recording sale: ' + error.message);
+            }
         });
 
-        // Backward compatible sales getter
-        function getSales() {
-            const rawSales = JSON.parse(localStorage.getItem('sales') || '[]');
-            return rawSales.map(sale => {
-                // Backward compatibility: if old format (no items array), convert it
-                if (!sale.items && sale.shoeId) {
-                    return {
-                        id: sale.id,
-                        date: sale.date,
-                        customerName: sale.customerName || 'N/A',
-                        items: [{
-                            id: sale.id + '_item',
-                            shoeId: sale.shoeId,
-                            shoeName: sale.shoeName,
-                            atno: sale.atno || 'N/A',
-                            color: sale.color,
-                            size: sale.size,
-                            qty: sale.qty,
-                            pricePerPair: sale.pricePerPair,
+        async function getSales() {
+            if (isMigrated && db) {
+                const q = query(collection(db, 'sales'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+                const sales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Backward compatibility
+                return sales.map(sale => {
+                    if (!sale.items && sale.shoeId) {
+                        return {
+                            id: sale.id,
+                            date: sale.date,
+                            customerName: sale.customerName || 'N/A',
+                            items: [{
+                                id: sale.id + '_item',
+                                shoeId: sale.shoeId,
+                                shoeName: sale.shoeName,
+                                atno: sale.atno || 'N/A',
+                                color: sale.color,
+                                size: sale.size,
+                                qty: sale.qty,
+                                pricePerPair: sale.pricePerPair,
+                                total: sale.total
+                            }],
+                            mpesa: sale.mpesa || 0,
+                            cash: sale.cash || 0,
                             total: sale.total
-                        }],
-                        mpesa: sale.mpesa || 0,
-                        cash: sale.cash || 0,
-                        total: sale.total
-                    };
-                }
-                return sale;
-            });
+                        };
+                    }
+                    return sale;
+                });
+            } else {
+                const rawSales = JSON.parse(localStorage.getItem('sales') || '[]');
+                return rawSales.map(sale => {
+                    if (!sale.items && sale.shoeId) {
+                        return {
+                            id: sale.id,
+                            date: sale.date,
+                            customerName: sale.customerName || 'N/A',
+                            items: [{
+                                id: sale.id + '_item',
+                                shoeId: sale.shoeId,
+                                shoeName: sale.shoeName,
+                                atno: sale.atno || 'N/A',
+                                color: sale.color,
+                                size: sale.size,
+                                qty: sale.qty,
+                                pricePerPair: sale.pricePerPair,
+                                total: sale.total
+                            }],
+                            mpesa: sale.mpesa || 0,
+                            cash: sale.cash || 0,
+                            total: sale.total
+                        };
+                    }
+                    return sale;
+                });
+            }
         }
 
-        function loadSales() {
-            const sales = getSales().sort((a, b) => new Date(b.date) - new Date(a.date));
+        async function loadSales() {
+            const sales = (await getSales()).sort((a, b) => new Date(b.date) - new Date(a.date));
             const container = document.getElementById('salesList');
 
             if (sales.length === 0) {
@@ -1576,8 +1918,8 @@
             `).join('');
         }
 
-        function editSale(saleId) {
-            const sale = getSales().find(s => s.id === saleId);
+        async function editSale(saleId) {
+            const sale = (await getSales()).find(s => s.id === saleId);
             if (!sale) return;
 
             editingSaleId = saleId;
@@ -1598,35 +1940,54 @@
             saleItemsForEdit = [];
         }
 
-        function deleteSale(saleId) {
+        async function deleteSale(saleId) {
             if (!confirm('Are you sure you want to delete this sale? This will return the items to inventory.')) return;
 
-            const sales = getSales();
-            const saleIndex = sales.findIndex(s => s.id === saleId);
-            
-            if (saleIndex !== -1) {
-                // Return items to inventory
-                const shoes = getShoes();
-                sales[saleIndex].items.forEach(item => {
-                    const shoe = shoes.find(s => s.id === item.shoeId);
-                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                    if (invItem) {
-                        invItem.qty += item.qty;
-                    }
-                });
-                localStorage.setItem('shoes', JSON.stringify(shoes));
-
-                // Remove sale
-                sales.splice(saleIndex, 1);
-                localStorage.setItem('sales', JSON.stringify(sales));
+            try {
+                const sales = await getSales();
+                const saleIndex = sales.findIndex(s => s.id === saleId);
                 
-                loadSales();
-                alert('Sale deleted successfully!');
+                if (saleIndex !== -1) {
+                    // Return items to inventory
+                    const shoes = await getShoes();
+                    for (const item of sales[saleIndex].items) {
+                        const shoe = shoes.find(s => s.id === item.shoeId);
+                        const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                        if (invItem) {
+                            invItem.qty += item.qty;
+                        }
+                    }
+
+                    // Update inventory
+                    for (const shoe of shoes) {
+                        if (isMigrated && db) {
+                            await updateDoc(doc(db, 'shoes', shoe.id), {
+                                inventory: shoe.inventory
+                            });
+                        }
+                    }
+                    if (!isMigrated) {
+                        localStorage.setItem('shoes', JSON.stringify(shoes));
+                    }
+
+                    // Remove sale
+                    if (isMigrated && db) {
+                        await deleteDoc(doc(db, 'sales', saleId));
+                    } else {
+                        sales.splice(saleIndex, 1);
+                        localStorage.setItem('sales', JSON.stringify(sales));
+                    }
+                    
+                    await loadSales();
+                    alert('Sale deleted successfully!');
+                }
+            } catch (error) {
+                alert('Error deleting sale: ' + error.message);
             }
         }
 
         // EDIT SALE FORM SUBMIT
-        document.getElementById('editSaleForm').addEventListener('submit', function(e) {
+        document.getElementById('editSaleForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             if (saleItemsForEdit.length === 0) {
@@ -1645,54 +2006,74 @@
                 return;
             }
 
-            const sales = getSales();
-            const saleIndex = sales.findIndex(s => s.id === editingSaleId);
-            
-            if (saleIndex !== -1) {
-                // Return old items to inventory
-                const shoes = getShoes();
-                sales[saleIndex].items.forEach(item => {
-                    const shoe = shoes.find(s => s.id === item.shoeId);
-                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                    if (invItem) {
-                        invItem.qty += item.qty;
+            try {
+                const sales = await getSales();
+                const saleIndex = sales.findIndex(s => s.id === editingSaleId);
+                
+                if (saleIndex !== -1) {
+                    // Return old items to inventory
+                    const shoes = await getShoes();
+                    for (const item of sales[saleIndex].items) {
+                        const shoe = shoes.find(s => s.id === item.shoeId);
+                        const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                        if (invItem) {
+                            invItem.qty += item.qty;
+                        }
                     }
-                });
 
-                // Deduct new items from inventory
-                for (let item of saleItemsForEdit) {
-                    const shoe = shoes.find(s => s.id === item.shoeId);
-                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                    
-                    if (!invItem || invItem.qty < item.qty) {
-                        alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
-                        return;
+                    // Deduct new items from inventory
+                    for (let item of saleItemsForEdit) {
+                        const shoe = shoes.find(s => s.id === item.shoeId);
+                        const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                        
+                        if (!invItem || invItem.qty < item.qty) {
+                            alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
+                            return;
+                        }
+                        invItem.qty -= item.qty;
                     }
-                    invItem.qty -= item.qty;
+
+                    // Update inventory in db
+                    for (const shoe of shoes) {
+                        if (isMigrated && db) {
+                            await updateDoc(doc(db, 'shoes', shoe.id), {
+                                inventory: shoe.inventory
+                            });
+                        }
+                    }
+                    if (!isMigrated) {
+                        localStorage.setItem('shoes', JSON.stringify(shoes));
+                    }
+
+                    // Update sale
+                    sales[saleIndex] = {
+                        id: editingSaleId,
+                        date: saleDate,
+                        customerName: customerName || 'N/A',
+                        items: [...saleItemsForEdit],
+                        mpesa: mpesa,
+                        cash: cash,
+                        total: grandTotal
+                    };
+
+                    if (isMigrated && db) {
+                        await updateDoc(doc(db, 'sales', editingSaleId), sales[saleIndex]);
+                    } else {
+                        localStorage.setItem('sales', JSON.stringify(sales));
+                    }
+
+                    closeEditSaleModal();
+                    await loadSales();
+                    alert('Sale updated successfully!');
                 }
-                localStorage.setItem('shoes', JSON.stringify(shoes));
-
-                // Update sale
-                sales[saleIndex] = {
-                    id: editingSaleId,
-                    date: saleDate,
-                    customerName: customerName || 'N/A',
-                    items: [...saleItemsForEdit],
-                    mpesa: mpesa,
-                    cash: cash,
-                    total: grandTotal
-                };
-                localStorage.setItem('sales', JSON.stringify(sales));
-
-                closeEditSaleModal();
-                loadSales();
-                alert('Sale updated successfully!');
+            } catch (error) {
+                alert('Error updating sale: ' + error.message);
             }
         });
 
         // CSV DOWNLOAD AND UPLOAD FUNCTIONS
-        function downloadInventoryCSV() {
-            const shoes = getShoes();
+        async function downloadInventoryCSV() {
+            const shoes = await getShoes();
             if (shoes.length === 0) {
                 alert('No inventory data to download');
                 return;
@@ -1754,10 +2135,8 @@
                         return;
                     }
 
-                    if (confirm(`Found ${newShoes.length} shoe(s) in the file. This will add to your existing inventory. Continue?`)) {
-                        const existingShoes = getShoes();
-                        const combinedShoes = [...existingShoes, ...newShoes];
-                        localStorage.setItem('shoes', JSON.stringify(combinedShoes));
+                    if (confirm(`Found ${newShoes.length} shoe(s) in the file. This will add to your existing inventory data. Continue?`)) {
+                        newShoes.forEach(shoe => saveShoe(shoe));
                         loadInventory();
                         alert('Inventory data imported successfully!');
                     }
@@ -1769,8 +2148,8 @@
             reader.readAsText(file);
         }
 
-        function downloadSalesCSV() {
-            const sales = getSales();
+        async function downloadSalesCSV() {
+            const sales = await getSales();
             if (sales.length === 0) {
                 alert('No sales data to download');
                 return;
@@ -1822,9 +2201,7 @@
                     }
 
                     if (confirm(`Found ${salesData.length} sale(s) in the file. This will add to your existing sales records. Continue?`)) {
-                        const existingSales = getSales();
-                        const combinedSales = [...existingSales, ...salesData];
-                        localStorage.setItem('sales', JSON.stringify(combinedSales));
+                        salesData.forEach(sale => saveSale(sale));
                         loadSales();
                         alert('Sales data imported successfully!');
                     }
@@ -1836,8 +2213,21 @@
             reader.readAsText(file);
         }
 
-        function downloadTransfersCSV() {
-            const transfers = getTransfers();
+        async function saveSale(sale) {
+            if (isMigrated && db) {
+                await addDoc(collection(db, 'sales'), {
+                    ...sale,
+                    createdAt: Timestamp.now()
+                });
+            } else {
+                const sales = JSON.parse(localStorage.getItem('sales') || '[]');
+                sales.push({ id: Date.now().toString(), ...sale });
+                localStorage.setItem('sales', JSON.stringify(sales));
+            }
+        }
+
+        async function downloadTransfersCSV() {
+            const transfers = await getTransfers();
             if (transfers.length === 0) {
                 alert('No transfer data to download');
                 return;
@@ -1890,9 +2280,7 @@
                     }
 
                     if (confirm(`Found ${transfersData.length} transfer(s) in the file. This will add to your existing transfer records. Continue?`)) {
-                        const existingTransfers = getTransfers();
-                        const combinedTransfers = [...existingTransfers, ...transfersData];
-                        localStorage.setItem('transfers', JSON.stringify(combinedTransfers));
+                        transfersData.forEach(transfer => saveTransfer(transfer));
                         loadTransfers();
                         alert('Transfer data imported successfully!');
                     }
@@ -1928,52 +2316,52 @@
         }
 
         function displayTransferVariants(query = '') {
-            const shoes = getShoes();
-            const container = document.getElementById('transferSelectionResults');
-            
-            let filteredVariants = [];
-            shoes.forEach(shoe => {
-                shoe.inventory.forEach(inv => {
-                    const matchesQuery = !query || 
-                        shoe.name.toLowerCase().includes(query) ||
-                        (shoe.atno || '').toLowerCase().includes(query) ||
-                        inv.color.toLowerCase().includes(query) ||
-                        inv.size.toLowerCase().includes(query);
-                    
-                    if (matchesQuery) {
-                        filteredVariants.push({
-                            ...inv,
-                            shoeId: shoe.id,
-                            shoeName: shoe.name,
-                            atno: shoe.atno || 'N/A'
-                        });
-                    }
+            getShoes().then(shoes => {
+                const container = document.getElementById('transferSelectionResults');
+                
+                let filteredVariants = [];
+                shoes.forEach(shoe => {
+                    shoe.inventory.forEach(inv => {
+                        const matchesQuery = !query || 
+                            shoe.name.toLowerCase().includes(query) ||
+                            (shoe.atno || '').toLowerCase().includes(query) ||
+                            inv.color.toLowerCase().includes(query) ||
+                            inv.size.toLowerCase().includes(query);
+                        
+                        if (matchesQuery) {
+                            filteredVariants.push({
+                                ...inv,
+                                shoeId: shoe.id,
+                                shoeName: shoe.name,
+                                atno: shoe.atno || 'N/A'
+                            });
+                        }
+                    });
                 });
+
+                if (filteredVariants.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
+                    return;
+                }
+
+                container.innerHTML = filteredVariants.map(variant => `
+                    <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
+                        <div class="cart-item-header">${variant.shoeName}</div>
+                        <div class="variant-info">
+                            <strong>ATNO:</strong> ${variant.atno}<br>
+                            <strong>Color:</strong> ${variant.color}<br>
+                            <strong>Size:</strong> ${variant.size}<br>
+                            <strong>Available:</strong> ${variant.qty} pairs<br>
+                        </div>
+                        <div class="variant-actions">
+                            <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="transfer-qty-input">
+                            <button class="btn-success" onclick="addVariantToTransfer(this)">Add</button>
+                        </div>
+                    </div>
+                `).join('');
             });
-
-            if (filteredVariants.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
-                return;
-            }
-
-            container.innerHTML = filteredVariants.map(variant => `
-                <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
-                    <div class="cart-item-header">${variant.shoeName}</div>
-                    <div class="variant-info">
-                        <strong>ATNO:</strong> ${variant.atno}<br>
-                        <strong>Color:</strong> ${variant.color}<br>
-                        <strong>Size:</strong> ${variant.size}<br>
-                        <strong>Available:</strong> ${variant.qty} pairs<br>
-                    </div>
-                    <div class="variant-actions">
-                        <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="transfer-qty-input">
-                        <button class="btn-success" onclick="addVariantToTransfer(this)">Add</button>
-                    </div>
-                </div>
-            `).join('');
         }
 
-        // NEW: Add all variants to transfer at once
         function addAllVariantsToTransfer() {
             const variantCards = document.querySelectorAll('#transferSelectionResults .variant-card');
             let addedCount = 0;
@@ -1982,14 +2370,13 @@
             variantCards.forEach(variantCard => {
                 const variant = JSON.parse(variantCard.dataset.variant);
                 const qtyInput = variantCard.querySelector('.transfer-qty-input');
-                const qty = qtyInput ? parseInt(qtyInput.value) : 1; // Default to 1 if no qty entered
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
 
                 if (!qty || qty < 1) {
                     // Skip if no valid quantity
                     return;
                 }
                 if (qty > variant.qty) {
-                    // Skip if insufficient stock
                     errorCount++;
                     return;
                 }
@@ -2007,7 +2394,6 @@
                 currentTransferItems.push(transferItem);
                 addedCount++;
 
-                // Clear the quantity input
                 if (qtyInput) qtyInput.value = '';
             });
 
@@ -2081,7 +2467,6 @@
                         <input type="number" value="${item.qty}" min="1" readonly>
                     </div>
                     <div>
-                        <label>&nbsp;</label>
                         <button class="btn-danger" onclick="removeTransferItem('${item.id}')">Remove</button>
                     </div>
                 </div>
@@ -2091,7 +2476,7 @@
         }
 
         // TRANSFER FORM SUBMIT
-        document.getElementById('transferForm').addEventListener('submit', function(e) {
+        document.getElementById('transferForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             if (currentTransferItems.length === 0) {
@@ -2107,51 +2492,79 @@
                 return;
             }
 
-            // Check and update inventory
-            const shoes = getShoes();
-            for (let item of currentTransferItems) {
-                const shoe = shoes.find(s => s.id === item.shoeId);
-                const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                
-                if (!invItem || invItem.qty < item.qty) {
-                    alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
-                    return;
+            try {
+                // Check and update inventory
+                const shoes = await getShoes();
+                for (let item of currentTransferItems) {
+                    const shoe = shoes.find(s => s.id === item.shoeId);
+                    const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                    
+                    if (!invItem || invItem.qty < item.qty) {
+                        alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
+                        return;
+                    }
+                    invItem.qty -= item.qty;
+                    
+                    if (isMigrated && db) {
+                        await updateDoc(doc(db, 'shoes', item.shoeId), {
+                            inventory: shoe.inventory
+                        });
+                    }
                 }
-                invItem.qty -= item.qty;
+                
+                if (!isMigrated) {
+                    localStorage.setItem('shoes', JSON.stringify(shoes));
+                }
+
+                // Save transfers
+                for (const item of currentTransferItems) {
+                    const transfer = {
+                        id: item.id,
+                        date: transferDate,
+                        location: location,
+                        shoeId: item.shoeId,
+                        shoeName: item.shoeName,
+                        color: item.color,
+                        size: item.size,
+                        qty: item.qty,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    if (isMigrated && db) {
+                        await addDoc(collection(db, 'transfers'), {
+                            ...transfer,
+                            createdAt: Timestamp.now()
+                        });
+                    } else {
+                        const transfers = getTransfers();
+                        transfers.push(transfer);
+                        localStorage.setItem('transfers', JSON.stringify(transfers));
+                    }
+                }
+
+                alert('Transfer recorded successfully!');
+                this.reset();
+                document.getElementById('transferDate').valueAsDate = new Date();
+                currentTransferItems = [];
+                renderTransferItems();
+                await loadTransfers();
+            } catch (error) {
+                alert('Error recording transfer: ' + error.message);
             }
-            localStorage.setItem('shoes', JSON.stringify(shoes));
-
-            // Save transfer
-            const transfers = getTransfers();
-            currentTransferItems.forEach(item => {
-                const transfer = {
-                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                    date: transferDate,
-                    location: location,
-                    shoeId: item.shoeId,
-                    shoeName: item.shoeName,
-                    color: item.color,
-                    size: item.size,
-                    qty: item.qty
-                };
-                transfers.push(transfer);
-            });
-            localStorage.setItem('transfers', JSON.stringify(transfers));
-
-            alert('Transfer recorded successfully!');
-            this.reset();
-            document.getElementById('transferDate').valueAsDate = new Date();
-            currentTransferItems = [];
-            renderTransferItems();
-            loadTransfers();
         });
 
-        function getTransfers() {
-            return JSON.parse(localStorage.getItem('transfers') || '[]');
+        async function getTransfers() {
+            if (isMigrated && db) {
+                const q = query(collection(db, 'transfers'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+                return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } else {
+                return JSON.parse(localStorage.getItem('transfers') || '[]');
+            }
         }
 
-        function loadTransfers() {
-            const transfers = getTransfers().sort((a, b) => new Date(b.date) - new Date(a.date));
+        async function loadTransfers() {
+            const transfers = (await getTransfers()).sort((a, b) => new Date(b.date) - new Date(a.date));
             const container = document.getElementById('transfersList');
 
             if (transfers.length === 0) {
@@ -2190,13 +2603,26 @@
             `).join('');
         }
 
+        async function saveTransfer(transfer) {
+            if (isMigrated && db) {
+                await addDoc(collection(db, 'transfers'), {
+                    ...transfer,
+                    createdAt: Timestamp.now()
+                });
+            } else {
+                const transfers = JSON.parse(localStorage.getItem('transfers') || '[]');
+                transfers.push(transfer);
+                localStorage.setItem('transfers', JSON.stringify(transfers));
+            }
+        }
+
         // REPORTS
-        function generateReport() {
+        async function generateReport() {
             const fromDate = document.getElementById('reportFromDate').value;
             const toDate = document.getElementById('reportToDate').value;
 
-            let sales = getSales();
-            let transfers = getTransfers();
+            let sales = await getSales();
+            let transfers = await getTransfers();
 
             if (fromDate) {
                 sales = sales.filter(s => s.date >= fromDate);
@@ -2306,12 +2732,12 @@
             `;
         }
 
-        function downloadReport() {
+        async function downloadReport() {
             const fromDate = document.getElementById('reportFromDate').value;
             const toDate = document.getElementById('reportToDate').value;
 
-            let sales = getSales();
-            let transfers = getTransfers();
+            let sales = await getSales();
+            let transfers = await getTransfers();
 
             if (fromDate) {
                 sales = sales.filter(s => s.date >= fromDate);
@@ -2359,6 +2785,70 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        }
+
+        // Add all selected variants to sale (new multi-select feature)
+        function addAllSelectedVariantsToSale() {
+            const variantCards = document.querySelectorAll('#shoeSelectionResults .variant-card');
+            let addedCount = 0;
+            let errorCount = 0;
+
+            variantCards.forEach(variantCard => {
+                const variant = JSON.parse(variantCard.dataset.variant);
+                const qty = parseInt(variantCard.querySelector('.sale-qty-input').value);
+                const price = parseFloat(variantCard.querySelector('.sale-price-input').value);
+
+                if (!qty || qty < 1) {
+                    return; // Skip if no quantity
+                }
+                if (!price || price < 0) {
+                    errorCount++;
+                    return; // Skip if no price
+                }
+                if (qty > variant.qty) {
+                    errorCount++;
+                    return; // Skip if insufficient stock
+                }
+
+                const saleItem = {
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + addedCount,
+                    shoeId: variant.shoeId,
+                    shoeName: variant.shoeName,
+                    atno: variant.atno,
+                    color: variant.color,
+                    size: variant.size,
+                    qty: qty,
+                    pricePerPair: price,
+                    total: qty * price
+                };
+
+                if (document.getElementById('shoeSelectionModal').dataset.mode === 'edit') {
+                    saleItemsForEdit.push(saleItem);
+                    renderEditSaleItems();
+                } else {
+                    currentSaleItems.push(saleItem);
+                }
+                addedCount++;
+
+                // Clear inputs
+                variantCard.querySelector('.sale-qty-input').value = '';
+            });
+
+            if (addedCount > 0) {
+                if (!document.getElementById('shoeSelectionModal').dataset.mode) {
+                    renderSaleItems();
+                }
+                alert(`Added ${addedCount} items to sale.`);
+                if (errorCount > 0) {
+                    alert(`${errorCount} items skipped due to missing price or insufficient quantity.`);
+                }
+                closeShoeSelectionModal();
+                delete document.getElementById('shoeSelectionModal').dataset.mode;
+            } else if (errorCount > 0) {
+                alert('No items added. Some have insufficient quantity or missing price.');
+            } else {
+                alert('Please enter quantities for the items you want to add.');
+            }
         }
 
         // Initialize
