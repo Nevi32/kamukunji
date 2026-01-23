@@ -437,8 +437,8 @@
             font-size: 14px;
         }
 
-        /* NEW STYLES FOR ENHANCED SALES */
-        .sale-items-cart {
+        /* NEW STYLES FOR ENHANCED SALES & TRANSFERS */
+        .sale-items-cart, .transfer-items-cart {
             background: #1a1a1a;
             padding: 20px;
             border-radius: 12px;
@@ -693,27 +693,33 @@
             <div class="form-card">
                 <h2 style="margin-bottom: 20px;">Record Transfer</h2>
                 <form id="transferForm">
-                    <div class="form-group">
-                        <label>Transfer Date</label>
-                        <input type="date" id="transferDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Transfer To (Location)</label>
-                        <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Shoe & Variant</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="transferSelectedVariant" placeholder="Select shoe, color & size..." readonly style="flex: 1;">
-                            <button type="button" class="btn-secondary" onclick="openTransferSelectionModal()">Select</button>
+                    <div class="sales-form">
+                        <div>
+                            <div class="form-group">
+                                <label>Transfer Date</label>
+                                <input type="date" id="transferDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Transfer To (Location)</label>
+                                <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button type="button" class="add-item-btn btn-success" onclick="openTransferSelectionModal()">+ Add Item to Transfer</button>
+                            </div>
                         </div>
                     </div>
+
                     <div class="form-group">
-                        <label>Quantity (Pairs)</label>
-                        <input type="number" id="transferQty" min="1" required>
+                        <label>Transfer Items</label>
+                        <div id="transferItemsCart" class="transfer-items-cart">
+                            <p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Transfer" to begin.</p>
+                        </div>
                     </div>
 
-                    <button type="submit" style="margin-top: 20px; width: 100%;">Record Transfer</button>
+                    <button type="submit" style="margin-top: 20px; width: 100%;" id="completeTransferBtn" disabled>Complete Transfer</button>
                 </form>
             </div>
 
@@ -876,7 +882,7 @@
         let currentSaleItems = [];
         let editingSaleId = null;
         let saleItemsForEdit = [];
-        let selectedTransferVariant = null;
+        let currentTransferItems = [];
 
         // Initialize dates
         document.getElementById('invDate').valueAsDate = new Date();
@@ -1126,7 +1132,7 @@
                 lastGroup.querySelector('.color-input').value = color;
                 
                 lastGroup.querySelector('.sizes-container').innerHTML = '';
-                colorMap[inv.color].forEach(sizeInfo => {
+                colorMap[color].forEach(sizeInfo => {
                     addEditSizeToGroup(lastGroup.querySelector('button'));
                     const sizeRows = lastGroup.querySelectorAll('.size-row');
                     const lastRow = sizeRows[sizeRows.length - 1];
@@ -1817,10 +1823,10 @@
                 return;
             }
 
-            let csv = 'ID,Date,Shoe ID,Shoe Name,Color,Size,Quantity,Location\n';
+            let csv = 'ID,Date,Location,Shoe ID,Shoe Name,Color,Size,Quantity\n';
             
             transfers.forEach(transfer => {
-                csv += `"${transfer.id}","${transfer.date}","${transfer.shoeId}","${transfer.shoeName}","${transfer.color}","${transfer.size}",${transfer.qty},"${transfer.location}"\n`;
+                csv += `"${transfer.id}","${transfer.date}","${transfer.location}","${transfer.shoeId}","${transfer.shoeName}","${transfer.color}","${transfer.size}",${transfer.qty}\n`;
             });
 
             downloadCSV(csv, 'transfers_' + new Date().toISOString().split('T')[0] + '.csv');
@@ -1844,17 +1850,17 @@
                         const matches = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g);
                         if (!matches || matches.length < 8) continue;
 
-                        const [id, date, shoeId, shoeName, color, size, qty, location] = matches.map(m => m.replace(/^"|"$/g, '').trim());
+                        const [id, date, location, shoeId, shoeName, color, size, qty] = matches.map(m => m.replace(/^"|"$/g, '').trim());
 
                         transfersData.push({
                             id: id,
                             date: date,
+                            location: location,
                             shoeId: shoeId,
                             shoeName: shoeName,
                             color: color,
                             size: size,
-                            qty: parseInt(qty) || 0,
-                            location: location
+                            qty: parseInt(qty) || 0
                         });
                     }
 
@@ -1919,8 +1925,7 @@
                             ...inv,
                             shoeId: shoe.id,
                             shoeName: shoe.name,
-                            atno: shoe.atno || 'N/A',
-                            cost: shoe.cost || 0
+                            atno: shoe.atno || 'N/A'
                         });
                     }
                 });
@@ -1941,80 +1946,131 @@
                         <strong>Available:</strong> ${variant.qty} pairs<br>
                     </div>
                     <div class="variant-actions">
-                        <button class="btn-success" style="width: 100%;" onclick="selectTransferVariant(this)">Select This Variant</button>
+                        <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="transfer-qty-input">
+                        <button class="btn-success" onclick="addVariantToTransfer(this)">Add</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function selectTransferVariant(btn) {
+        function addVariantToTransfer(btn) {
             const variantCard = btn.closest('.variant-card');
             const variant = JSON.parse(variantCard.dataset.variant);
-            selectedTransferVariant = variant;
-            
-            document.getElementById('transferSelectedVariant').value = 
-                `${variant.shoeName} (${variant.atno}) - ${variant.color}, Size ${variant.size} (${variant.qty} available)`;
-            
-            document.getElementById('transferQty').max = variant.qty;
-            closeTransferSelectionModal();
-        }
-
-        // TRANSFER FORM
-        document.getElementById('transferForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            if (!selectedTransferVariant) {
-                alert('Please select a shoe variant');
-                return;
-            }
-
-            const transferDate = document.getElementById('transferDate').value;
-            const qty = parseInt(document.getElementById('transferQty').value);
-            const location = document.getElementById('transferLocation').value.trim();
+            const qty = parseInt(variantCard.querySelector('.transfer-qty-input').value);
 
             if (!qty || qty < 1) {
                 alert('Please enter a valid quantity');
                 return;
             }
-            if (qty > selectedTransferVariant.qty) {
-                alert(`Only ${selectedTransferVariant.qty} pairs available`);
+            if (qty > variant.qty) {
+                alert(`Only ${variant.qty} pairs available`);
                 return;
             }
 
-            // Update inventory
+            const transferItem = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                shoeId: variant.shoeId,
+                shoeName: variant.shoeName,
+                atno: variant.atno,
+                color: variant.color,
+                size: variant.size,
+                qty: qty
+            };
+
+            currentTransferItems.push(transferItem);
+            renderTransferItems();
+
+            variantCard.querySelector('.transfer-qty-input').value = '';
+            closeTransferSelectionModal();
+        }
+
+        function removeTransferItem(itemId) {
+            currentTransferItems = currentTransferItems.filter(item => item.id !== itemId);
+            renderTransferItems();
+        }
+
+        function renderTransferItems() {
+            const container = document.getElementById('transferItemsCart');
+            
+            if (currentTransferItems.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Transfer" to begin.</p>';
+                document.getElementById('completeTransferBtn').disabled = true;
+                return;
+            }
+
+            container.innerHTML = currentTransferItems.map(item => `
+                <div class="cart-item">
+                    <div>
+                        <div class="cart-item-header">${item.shoeName}</div>
+                        <div class="cart-item-detail">ATNO: ${item.atno} | ${item.color} - Size ${item.size}</div>
+                    </div>
+                    <div>
+                        <label>Qty</label>
+                        <input type="number" value="${item.qty}" min="1" readonly>
+                    </div>
+                    <div>
+                        <label>&nbsp;</label>
+                        <button class="btn-danger" onclick="removeTransferItem('${item.id}')">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('completeTransferBtn').disabled = false;
+        }
+
+        // TRANSFER FORM SUBMIT
+        document.getElementById('transferForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (currentTransferItems.length === 0) {
+                alert('Please add at least one item to the transfer');
+                return;
+            }
+
+            const transferDate = document.getElementById('transferDate').value;
+            const location = document.getElementById('transferLocation').value.trim();
+
+            if (!location) {
+                alert('Please enter a transfer location');
+                return;
+            }
+
+            // Check and update inventory
             const shoes = getShoes();
-            const shoe = shoes.find(s => s.id === selectedTransferVariant.shoeId);
-            const invItem = shoe.inventory.find(i => i.color === selectedTransferVariant.color && i.size === selectedTransferVariant.size);
-
-            if (!invItem || invItem.qty < qty) {
-                alert('Insufficient inventory');
-                return;
+            for (let item of currentTransferItems) {
+                const shoe = shoes.find(s => s.id === item.shoeId);
+                const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                
+                if (!invItem || invItem.qty < item.qty) {
+                    alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
+                    return;
+                }
+                invItem.qty -= item.qty;
             }
-
-            invItem.qty -= qty;
             localStorage.setItem('shoes', JSON.stringify(shoes));
 
             // Save transfer
-            const transfer = {
-                id: Date.now().toString(),
-                date: transferDate,
-                shoeId: selectedTransferVariant.shoeId,
-                shoeName: selectedTransferVariant.shoeName,
-                color: selectedTransferVariant.color,
-                size: selectedTransferVariant.size,
-                qty: qty,
-                location: location
-            };
-
             const transfers = getTransfers();
-            transfers.push(transfer);
+            currentTransferItems.forEach(item => {
+                const transfer = {
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    date: transferDate,
+                    location: location,
+                    shoeId: item.shoeId,
+                    shoeName: item.shoeName,
+                    color: item.color,
+                    size: item.size,
+                    qty: item.qty
+                };
+                transfers.push(transfer);
+            });
             localStorage.setItem('transfers', JSON.stringify(transfers));
 
             alert('Transfer recorded successfully!');
             this.reset();
             document.getElementById('transferDate').valueAsDate = new Date();
-            document.getElementById('transferSelectedVariant').value = '';
-            selectedTransferVariant = null;
+            currentTransferItems = [];
+            renderTransferItems();
             loadTransfers();
         });
 
@@ -2031,16 +2087,32 @@
                 return;
             }
 
-            container.innerHTML = transfers.slice(0, 20).map(transfer => `
+            // Group transfers by ID (multiple items per transfer)
+            const transfersById = {};
+            transfers.forEach(transfer => {
+                if (!transfersById[transfer.id]) {
+                    transfersById[transfer.id] = {
+                        id: transfer.id,
+                        date: transfer.date,
+                        location: transfer.location,
+                        items: []
+                    };
+                }
+                transfersById[transfer.id].items.push(transfer);
+            });
+
+            container.innerHTML = Object.values(transfersById).slice(0, 20).map(transferGroup => `
                 <div class="sale-item">
                     <div class="sale-header">
-                        <span>${transfer.shoeName}</span>
-                        <span>${transfer.qty} pair(s)</span>
+                        <span>Transfer #${transferGroup.id.substring(transferGroup.id.length - 6)}</span>
+                        <span>${transferGroup.location}</span>
                     </div>
                     <div class="sale-details">
-                        <strong>Date:</strong> ${transfer.date}<br>
-                        <strong>Location:</strong> ${transfer.location}<br>
-                        <strong>Details:</strong> ${transfer.color} - Size ${transfer.size} - ${transfer.qty} pair(s)
+                        <strong>Date:</strong> ${transferGroup.date}<br>
+                        <strong>Items:</strong> ${transferGroup.items.length} item(s)<br>
+                        ${transferGroup.items.map(item => 
+                            `${item.qty}x ${item.shoeName} (${item.color}, Size ${item.size})`
+                        ).join('<br>')}
                     </div>
                 </div>
             `).join('');
@@ -2067,6 +2139,15 @@
             const totalMpesa = sales.reduce((sum, s) => sum + s.mpesa, 0);
             const totalCash = sales.reduce((sum, s) => sum + s.cash, 0);
             const totalPairs = sales.reduce((sum, s) => sum + (s.items ? s.items.reduce((a, b) => a + b.qty, 0) : 0), 0);
+            
+            // Group transfers by ID for counting
+            const transferGroups = {};
+            transfers.forEach(t => {
+                if (!transferGroups[t.id]) {
+                    transferGroups[t.id] = { date: t.date, location: t.location, items: [] };
+                }
+                transferGroups[t.id].items.push(t);
+            });
             const totalTransferPairs = transfers.reduce((sum, t) => sum + t.qty, 0);
 
             // Sales by date
@@ -2083,12 +2164,12 @@
 
             // Transfers by location
             const transfersByLocation = {};
-            transfers.forEach(t => {
-                if (!transfersByLocation[t.location]) {
-                    transfersByLocation[t.location] = { pairs: 0, count: 0 };
+            Object.values(transferGroups).forEach(group => {
+                if (!transfersByLocation[group.location]) {
+                    transfersByLocation[group.location] = { pairs: 0, count: 0 };
                 }
-                transfersByLocation[t.location].pairs += t.qty;
-                transfersByLocation[t.location].count++;
+                transfersByLocation[group.location].pairs += group.items.reduce((sum, item) => sum + item.qty, 0);
+                transfersByLocation[group.location].count++;
             });
 
             const container = document.getElementById('reportContent');
@@ -2125,7 +2206,7 @@
                     </div>
                     <div class="report-stat">
                         <span class="stat-label">Total Transfers</span>
-                        <span class="stat-value">${transfers.length}</span>
+                        <span class="stat-value">${Object.keys(transferGroups).length}</span>
                     </div>
                     ${Object.keys(transfersByLocation).length > 0 ? `
                         <h3 style="margin-top: 20px; margin-bottom: 10px; color: #f5f3f0;">By Location</h3>
@@ -2181,10 +2262,20 @@
             });
 
             csvContent += '\n\nTRANSFERS REPORT\n\n';
-            csvContent += 'Date,Shoe Name,Color,Size,Quantity,Location\n';
+            csvContent += 'Date,Location,Shoe Name,Color,Size,Quantity\n';
             
-            transfers.forEach(transfer => {
-                csvContent += `${transfer.date},${transfer.shoeName},${transfer.color},${transfer.size},${transfer.qty},${transfer.location}\n`;
+            const transferGroups = {};
+            transfers.forEach(t => {
+                if (!transferGroups[t.id]) {
+                    transferGroups[t.id] = { date: t.date, location: t.location, items: [] };
+                }
+                transferGroups[t.id].items.push(t);
+            });
+            
+            Object.values(transferGroups).forEach(group => {
+                group.items.forEach(item => {
+                    csvContent += `${group.date},${group.location},${item.shoeName},${item.color},${item.size},${item.qty}\n`;
+                });
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv' });
