@@ -534,25 +534,15 @@
             font-size: 12px;
         }
 
-        /* Add All Variants Button */
-        .add-all-variants-btn {
-            width: 100%;
-            margin-top: 10px;
-            background: #3a3a3a;
-            color: #e8e6e3;
-        }
-
-        .add-all-variants-btn:hover {
-            background: #4a4a4a;
-        }
-
-        /* Transfer Filter Toolbar */
-        .filter-toolbar {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto auto;
+        /* NEW: Select All button styles */
+        .modal-actions {
+            display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            align-items: end;
+        }
+
+        .modal-actions button {
+            flex: 1;
         }
 
         @media (max-width: 768px) {
@@ -580,8 +570,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .filter-toolbar {
-                grid-template-columns: 1fr;
+            .modal-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -748,15 +738,6 @@
                 </form>
             </div>
 
-            <!-- Transfer Filter Toolbar -->
-            <div class="filter-toolbar">
-                <input type="text" id="transferSearch" placeholder="Search transfers by shoe name, ATNO, color, or size...">
-                <input type="date" id="transferFromDate" placeholder="From Date">
-                <input type="date" id="transferToDate" placeholder="To Date">
-                <button onclick="loadTransfers()" class="btn-secondary">Filter</button>
-                <button onclick="clearTransferFilters()" class="btn-secondary">Clear</button>
-            </div>
-
             <div class="toolbar" style="justify-content: flex-end;">
                 <button onclick="downloadTransfersCSV()" class="btn-secondary">📥 Download Transfers</button>
                 <label for="transfersUpload" class="file-upload-label">📤 Upload Transfers</label>
@@ -862,6 +843,11 @@
             <div class="form-group">
                 <input type="text" id="transferSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
             </div>
+            <!-- NEW: Select All button -->
+            <div class="modal-actions">
+                <button type="button" class="btn-success" onclick="addAllVariantsToTransfer()">Select All Shown Variants</button>
+                <button type="button" class="btn-secondary" onclick="closeTransferSelectionModal()">Cancel</button>
+            </div>
             <div id="transferSelectionResults" class="shoe-variant-grid"></div>
         </div>
     </div>
@@ -942,11 +928,6 @@
         document.getElementById('transferSelectionSearch').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             displayTransferVariants(query);
-        });
-
-        // Transfer filter search
-        document.getElementById('transferSearch').addEventListener('input', function(e) {
-            loadTransfers();
         });
 
         function switchTab(tabName) {
@@ -1988,11 +1969,60 @@
                         <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="transfer-qty-input">
                         <button class="btn-success" onclick="addVariantToTransfer(this)">Add</button>
                     </div>
-                    <button class="add-all-variants-btn" onclick="addAllVariantsToTransfer('${variant.shoeId}')">
-                        Add All Variants for This Shoe
-                    </button>
                 </div>
             `).join('');
+        }
+
+        // NEW: Add all variants to transfer at once
+        function addAllVariantsToTransfer() {
+            const variantCards = document.querySelectorAll('#transferSelectionResults .variant-card');
+            let addedCount = 0;
+            let errorCount = 0;
+
+            variantCards.forEach(variantCard => {
+                const variant = JSON.parse(variantCard.dataset.variant);
+                const qtyInput = variantCard.querySelector('.transfer-qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1; // Default to 1 if no qty entered
+
+                if (!qty || qty < 1) {
+                    // Skip if no valid quantity
+                    return;
+                }
+                if (qty > variant.qty) {
+                    // Skip if insufficient stock
+                    errorCount++;
+                    return;
+                }
+
+                const transferItem = {
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + addedCount,
+                    shoeId: variant.shoeId,
+                    shoeName: variant.shoeName,
+                    atno: variant.atno,
+                    color: variant.color,
+                    size: variant.size,
+                    qty: qty
+                };
+
+                currentTransferItems.push(transferItem);
+                addedCount++;
+
+                // Clear the quantity input
+                if (qtyInput) qtyInput.value = '';
+            });
+
+            if (addedCount > 0) {
+                renderTransferItems();
+                alert(`Added ${addedCount} items to transfer.`);
+                if (errorCount > 0) {
+                    alert(`${errorCount} items skipped due to insufficient quantity.`);
+                }
+                closeTransferSelectionModal();
+            } else if (errorCount > 0) {
+                alert('No items added. Some have insufficient quantity.');
+            } else {
+                alert('Please enter quantities for the items you want to transfer.');
+            }
         }
 
         function addVariantToTransfer(btn) {
@@ -2024,41 +2054,6 @@
 
             variantCard.querySelector('.transfer-qty-input').value = '';
             closeTransferSelectionModal();
-        }
-
-        function addAllVariantsToTransfer(shoeId) {
-            const shoe = getShoes().find(s => s.id === shoeId);
-            if (!shoe) return;
-
-            let addedCount = 0;
-            shoe.inventory.forEach(inv => {
-                // Check if this variant already exists in currentTransferItems
-                const exists = currentTransferItems.some(item => 
-                    item.shoeId === shoeId && item.color === inv.color && item.size === inv.size
-                );
-                
-                if (!exists) {
-                    const transferItem = {
-                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                        shoeId: shoeId,
-                        shoeName: shoe.name,
-                        atno: shoe.atno || 'N/A',
-                        color: inv.color,
-                        size: inv.size,
-                        qty: inv.qty // Add all available quantity
-                    };
-                    currentTransferItems.push(transferItem);
-                    addedCount++;
-                }
-            });
-
-            if (addedCount > 0) {
-                alert(`Added ${addedCount} variants of ${shoe.name} to transfer`);
-                renderTransferItems();
-                closeTransferSelectionModal();
-            } else {
-                alert('All variants of this shoe are already in the transfer list');
-            }
         }
 
         function removeTransferItem(itemId) {
@@ -2156,38 +2151,11 @@
         }
 
         function loadTransfers() {
-            const searchQuery = document.getElementById('transferSearch').value.toLowerCase();
-            const fromDate = document.getElementById('transferFromDate').value;
-            const toDate = document.getElementById('transferToDate').value;
-
-            let transfers = getTransfers();
-
-            // Apply filters
-            if (searchQuery) {
-                const terms = searchQuery.split(',').map(t => t.trim()).filter(t => t);
-                transfers = transfers.filter(transfer => {
-                    return terms.some(term => {
-                        const nameMatch = transfer.shoeName.toLowerCase().includes(term.toLowerCase());
-                        const atnoMatch = (transfer.atno || '').toLowerCase().includes(term.toLowerCase());
-                        const colorMatch = transfer.color.toLowerCase().includes(term.toLowerCase());
-                        const sizeMatch = transfer.size.toLowerCase().includes(term.toLowerCase());
-                        const locationMatch = transfer.location.toLowerCase().includes(term.toLowerCase());
-                        return nameMatch || atnoMatch || colorMatch || sizeMatch || locationMatch;
-                    });
-                });
-            }
-
-            if (fromDate) {
-                transfers = transfers.filter(t => t.date >= fromDate);
-            }
-            if (toDate) {
-                transfers = transfers.filter(t => t.date <= toDate);
-            }
-
+            const transfers = getTransfers().sort((a, b) => new Date(b.date) - new Date(a.date));
             const container = document.getElementById('transfersList');
 
             if (transfers.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No transfers found</p>';
+                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No transfers recorded yet</p>';
                 return;
             }
 
@@ -2205,7 +2173,7 @@
                 transfersById[transfer.id].items.push(transfer);
             });
 
-            container.innerHTML = Object.values(transfersById).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 20).map(transferGroup => `
+            container.innerHTML = Object.values(transfersById).slice(0, 20).map(transferGroup => `
                 <div class="sale-item">
                     <div class="sale-header">
                         <span>Transfer #${transferGroup.id.substring(transferGroup.id.length - 6)}</span>
@@ -2220,13 +2188,6 @@
                     </div>
                 </div>
             `).join('');
-        }
-
-        function clearTransferFilters() {
-            document.getElementById('transferSearch').value = '';
-            document.getElementById('transferFromDate').value = '';
-            document.getElementById('transferToDate').value = '';
-            loadTransfers();
         }
 
         // REPORTS
@@ -2402,7 +2363,6 @@
 
         // Initialize
         loadInventory();
-        loadTransfers(); // Load transfers on page load
     </script>
 </body>
 </html>
