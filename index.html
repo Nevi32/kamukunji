@@ -2,347 +2,401 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Shoe Inventory System</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary-bg: #0f0f0f;
+            --secondary-bg: #1a1a1a;
+            --card-bg: #252525;
+            --border-color: #333;
+            --accent-color: #fff;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a3a3a3;
+            --text-muted: #737373;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --radius: 12px;
+            --radius-sm: 8px;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: #e8e6e3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            padding-bottom: 80px;
+            font-size: 16px;
+            line-height: 1.5;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 0 16px;
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 30px;
-            color: #f5f3f0;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 20px 0;
+            color: var(--accent-color);
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
         }
 
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding: 4px;
+            position: sticky;
+            top: 0;
+            background: var(--primary-bg);
+            z-index: 100;
+            padding-top: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab {
-            padding: 12px 30px;
-            background: #2a2a2a;
-            border: 2px solid #3a3a3a;
-            border-radius: 25px;
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 16px;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.3s ease;
-            color: #c8c6c3;
-            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            user-select: none;
         }
 
         .tab:hover {
-            background: #3a3a3a;
-            border-color: #4a4a4a;
+            background: var(--card-bg);
+            color: var(--text-primary);
         }
 
         .tab.active {
-            background: #f5f3f0;
-            color: #1a1a1a;
-            border-color: #f5f3f0;
+            background: var(--accent-color);
+            color: #000;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
 
         .tab-content {
             display: none;
+            animation: fadeIn 0.3s ease-in;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        .form-card {
-            background: #252525;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            margin-bottom: 30px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-card, .search-card, .info-banner {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-banner {
+            background: var(--secondary-bg);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .info-banner p {
+            margin: 4px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #d8d6d3;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         input, select, textarea {
             width: 100%;
             padding: 12px;
-            background: #1a1a1a;
-            border: 2px solid #3a3a3a;
-            border-radius: 12px;
-            color: #e8e6e3;
-            font-size: 14px;
-            transition: all 0.3s ease;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #f5f3f0;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            font-family: inherit;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
         }
 
         button {
-            padding: 12px 30px;
-            background: #f5f3f0;
-            color: #1a1a1a;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-color);
+            color: #000;
             border: none;
-            border-radius: 25px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 14px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            margin-top: 8px;
+            touch-action: manipulation;
         }
 
-        button:hover {
-            background: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(245,243,240,0.3);
+        button:active {
+            transform: scale(0.98);
         }
 
         .btn-secondary {
-            background: #3a3a3a;
-            color: #e8e6e3;
+            background: var(--border-color);
+            color: var(--text-primary);
         }
 
         .btn-secondary:hover {
-            background: #4a3a4a;
+            background: #444;
         }
 
         .btn-danger {
-            background: #d32f2f;
+            background: var(--danger-color);
             color: white;
-        }
-
-        .btn-danger:hover {
-            background: #b71c1c;
         }
 
         .btn-success {
-            background: #43a047;
+            background: var(--success-color);
             color: white;
-        }
-
-        .btn-success:hover {
-            background: #2e7d32;
         }
 
         .btn-warning {
-            background: #f57c00;
-            color: white;
+            background: var(--warning-color);
+            color: #000;
         }
 
-        .btn-warning:hover {
-            background: #e65100;
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            margin-top: 0;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .search-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .search-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .search-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr;
+            gap: 16px;
             margin-top: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .inventory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .inventory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         .shoe-card {
-            background: #252525;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s;
         }
 
         .shoe-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            transform: translateY(-2px);
+            border-color: #444;
         }
 
         .shoe-card h3 {
-            color: #f5f3f0;
-            margin-bottom: 15px;
-            font-size: 1.3em;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
         }
 
         .shoe-detail {
-            margin: 8px 0;
-            color: #c8c6c3;
-            font-size: 14px;
+            margin: 4px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
         .shoe-detail strong {
-            color: #e8e6e3;
+            color: var(--text-primary);
         }
 
         .card-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
         }
 
-        .card-actions button {
-            flex: 1;
-            padding: 8px;
-            font-size: 13px;
-        }
-
-        .bulk-entry {
-            background: #1a1a1a;
-            padding: 15px;
+        .color-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--secondary-bg);
             border-radius: 12px;
-            margin-top: 10px;
+            margin: 2px 4px 2px 0;
+            font-size: 0.75rem;
+            border: 1px solid var(--border-color);
         }
 
-        .color-group {
-            background: #252525;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 2px solid #3a3a3a;
+        .cart-container {
+            background: var(--secondary-bg);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            min-height: 100px;
+            border: 1px solid var(--border-color);
         }
 
-        .color-header {
+        .cart-item {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+            display: grid;
+            gap: 8px;
+        }
+
+        .cart-item-header {
+            font-weight: 600;
+            color: var(--accent-color);
+            font-size: 1rem;
+        }
+
+        .cart-item-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .cart-item-actions {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
             align-items: center;
         }
 
-        .size-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: end;
-        }
-
-        .payment-split {
-            background: #1a1a1a;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-        }
-
-        .report-card {
-            background: #252525;
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-
-        .report-stat {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #3a3a3a;
-        }
-
-        .report-stat:last-child {
-            border-bottom: none;
-        }
-
-        .stat-label {
-            color: #c8c6c3;
-        }
-
-        .stat-value {
-            color: #f5f3f0;
-            font-weight: 600;
-            font-size: 1.1em;
+        .cart-item input {
+            width: 80px;
+            padding: 6px;
+            text-align: center;
         }
 
         .sales-list {
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .sale-item {
-            background: #252525;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
         }
 
         .sale-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            color: #f5f3f0;
-            font-weight: 600;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sale-header strong {
+            color: var(--accent-color);
+            font-size: 1.1rem;
         }
 
         .sale-details {
-            color: #c8c6c3;
-            font-size: 14px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
 
-        .color-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #3a3a3a;
-            border-radius: 12px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            font-size: 12px;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #252525;
-            border-radius: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 10;
-            margin-top: 5px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        }
-
-        .search-result-item {
-            padding: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #3a3a3a;
-            transition: all 0.2s ease;
-        }
-
-        .search-result-item:hover {
-            background: #2a2a2a;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
+        .sale-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
         }
 
         .modal {
@@ -352,26 +406,29 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             z-index: 1000;
             overflow-y: auto;
-            padding: 20px;
         }
 
         .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: block;
         }
 
         .modal-content {
-            background: #252525;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
+            background: var(--card-bg);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .modal-content {
+                min-height: auto;
+                max-width: 600px;
+                margin: 40px auto;
+                border-radius: var(--radius);
+                border: 1px solid var(--border-color);
+            }
         }
 
         .modal-header {
@@ -379,206 +436,88 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 10;
         }
 
         .close-btn {
-            background: #d32f2f;
-            width: 35px;
-            height: 35px;
+            background: var(--danger-color);
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            font-size: 1.2rem;
             padding: 0;
+            margin: 0;
         }
 
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .toolbar input[type="text"] {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .toolbar button {
-            white-space: nowrap;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-upload-label {
-            padding: 12px 30px;
-            background: #43a047;
-            color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            display: inline-block;
-        }
-
-        .file-upload-label:hover {
-            background: #2e7d32;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(67,160,71,0.3);
-        }
-
-        .info-banner {
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border-left: 4px solid #f5f3f0;
-        }
-
-        .info-banner p {
-            margin: 5px 0;
-            color: #c8c6c3;
-            font-size: 14px;
-        }
-
-        /* NEW STYLES FOR ENHANCED SALES & TRANSFERS */
-        .sale-items-cart, .transfer-items-cart {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            min-height: 150px;
-        }
-
-        .cart-item {
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
+        .variant-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-            gap: 10px;
-            align-items: center;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 16px;
         }
 
-        .cart-item-header {
-            font-weight: 600;
-            color: #f5f3f0;
-            margin-bottom: 5px;
-        }
-
-        .cart-item-detail {
-            font-size: 13px;
-            color: #c8c6c3;
-        }
-
-        .cart-item input {
-            padding: 8px;
-            font-size: 13px;
-        }
-
-        .cart-item .btn-danger {
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-
-        .add-item-btn {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .shoe-selection-modal .modal-content {
-            max-width: 800px;
-        }
-
-        .shoe-variant-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+        @media (min-width: 480px) {
+            .variant-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         .variant-card {
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #3a3a3a;
+            background: var(--secondary-bg);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
 
         .variant-card:hover {
-            border-color: #f5f3f0;
-            background: #3a3a3a;
+            border-color: var(--accent-color);
+            background: #2a2a2a;
         }
 
-        .variant-card.selected {
-            border-color: #43a047;
-            background: #2d4a2d;
+        .variant-title {
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 4px;
         }
 
         .variant-info {
-            font-size: 13px;
-            color: #c8c6c3;
-            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
         }
 
-        .variant-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 5px;
-        }
-
-        .variant-actions input {
-            flex: 1;
-        }
-
-        .variant-actions button {
-            padding: 8px;
-            font-size: 12px;
-        }
-
-        /* NEW: Enhanced multi-size selection */
-        .multi-size-selector {
+        .size-selector {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 8px;
-            margin-top: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 10px;
-            background: #1a1a1a;
-            border-radius: 8px;
+            margin: 16px 0;
         }
 
         .size-option {
             display: flex;
             align-items: center;
-            gap: 5px;
-            padding: 8px;
-            background: #252525;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .size-option:hover {
-            background: #3a3a3a;
-        }
-
-        .size-option.selected {
-            background: #43a047;
-            color: white;
+            gap: 8px;
+            padding: 12px;
+            background: var(--secondary-bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
         }
 
         .size-option input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
         }
 
         .size-option label {
@@ -587,81 +526,120 @@
             flex: 1;
         }
 
-        .multi-size-summary {
-            margin-top: 10px;
-            padding: 10px;
-            background: #1a1a1a;
-            border-radius: 8px;
-            font-size: 13px;
+        .size-option input[type="number"] {
+            width: 60px;
+            padding: 4px;
         }
 
-        /* NEW: Advanced search panel */
-        .advanced-search {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
-        .search-fields {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .search-actions {
+        .toolbar {
             display: flex;
-            gap: 10px;
-            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        /* NEW: Migration banner */
+        .toolbar button {
+            flex: 1;
+            min-width: 140px;
+            margin: 0;
+        }
+
+        @media (min-width: 640px) {
+            .toolbar {
+                flex-wrap: nowrap;
+            }
+        }
+
         .migration-banner {
-            background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            color: #000;
+            padding: 16px;
+            border-radius: var(--radius);
             margin-bottom: 20px;
             text-align: center;
-            box-shadow: 0 4px 16px rgba(245, 124, 0, 0.3);
         }
 
         .migration-banner h3 {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .migration-banner p {
-            margin-bottom: 15px;
-            opacity: 0.9;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
         }
 
-        @media (max-width: 768px) {
-            .sales-form {
-                grid-template-columns: 1fr;
-            }
+        .text-center {
+            text-align: center;
+        }
 
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .mb-2 {
+            margin-bottom: 8px;
+        }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .color-group {
+            background: var(--secondary-bg);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .size-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: end;
+        }
+
+        @media (max-width: 480px) {
             .size-row {
-                grid-template-columns: 1fr;
-            }
-
-            .inventory-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .toolbar {
-                flex-direction: column;
-            }
-
-            .toolbar input[type="text"] {
-                width: 100%;
-            }
-
-            .cart-item {
-                grid-template-columns: 1fr;
-            }
-
-            .search-fields {
                 grid-template-columns: 1fr;
             }
         }
@@ -669,29 +647,27 @@
 </head>
 <body>
     <div class="container">
-        <h1>Shoe Inventory System</h1>
+        <h1>👟 Shoe Inventory</h1>
         
-        <!-- Migration Banner -->
         <div id="migrationBanner" class="migration-banner" style="display: none;">
-            <h3>✨ Upgrade to Cloud Storage</h3>
-            <p>You have local data that can be migrated to Firebase for secure cloud storage.</p>
-            <button onclick="migrateToFirebase()" class="btn-warning">🚀 Migrate to Cloud</button>
+            <h3>☁️ Upgrade to Cloud Storage</h3>
+            <p>Your local data can be migrated to Firebase for secure cloud access.</p>
+            <button onclick="migrateToFirebase()" class="btn-warning" style="max-width: 200px; margin: 0 auto;">Migrate Now</button>
         </div>
 
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('inventory')">Inventory</div>
-            <div class="tab" onclick="switchTab('sales')">Sales</div>
-            <div class="tab" onclick="switchTab('transfers')">Transfers</div>
-            <div class="tab" onclick="switchTab('report')">Reports</div>
+            <div class="tab active" onclick="switchTab('inventory')">📦 Inventory</div>
+            <div class="tab" onclick="switchTab('sales')">💰 Sales</div>
+            <div class="tab" onclick="switchTab('transfers')">🚚 Transfers</div>
+            <div class="tab" onclick="switchTab('report')">📊 Reports</div>
         </div>
 
-        <!-- INVENTORY TAB -->
         <div id="inventory" class="tab-content active">
             <div class="form-card">
-                <h2 style="margin-bottom: 20px;">Add Inventory</h2>
+                <h2>Add New Item</h2>
                 <form id="inventoryForm">
                     <div class="form-group">
-                        <label>Inventory Date</label>
+                        <label>Date</label>
                         <input type="date" id="invDate" required>
                     </div>
                     <div class="form-group">
@@ -700,204 +676,172 @@
                     </div>
                     <div class="form-group">
                         <label>ATNO (Article Number)</label>
-                        <input type="text" id="atno" placeholder="N/A" value="N/A">
-                    </div>
-                    <div class="form-group">
-                        <label>Supplier Name</label>
-                        <input type="text" id="supplierName" placeholder="Supplier name">
-                    </div>
-                    <div class="form-group">
-                        <label>Cost per Pair</label>
-                        <input type="number" id="costPerPair" placeholder="0.00" min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label>Inventory Entry (by Color)</label>
-                        <div class="bulk-entry">
-                            <div id="colorGroups"></div>
-                            <button type="button" onclick="addColorGroup()" class="btn-secondary">+ Add Color</button>
-                        </div>
-                    </div>
-                    <button type="submit">Add to Inventory</button>
-                </form>
-            </div>
-
-            <div class="info-banner">
-                <p><strong>Data Management:</strong></p>
-                <p>• Download your inventory as CSV for backup</p>
-                <p>• Upload a CSV file to add to your existing inventory data</p>
-                <p id="storageInfo">• Storage: Firebase Cloud</p>
-            </div>
-
-            <!-- Advanced Search -->
-            <div class="advanced-search">
-                <h3 style="margin-bottom: 15px;">Advanced Search</h3>
-                <div class="search-fields">
-                    <div class="form-group">
-                        <label>Shoe Name</label>
-                        <input type="text" id="searchName" placeholder="Search by name">
-                    </div>
-                    <div class="form-group">
-                        <label>ATNO</label>
-                        <input type="text" id="searchAtno" placeholder="Search by ATNO">
-                    </div>
-                    <div class="form-group">
-                        <label>Color</label>
-                        <input type="text" id="searchColor" placeholder="Search by color">
-                    </div>
-                    <div class="form-group">
-                        <label>Size</label>
-                        <input type="text" id="searchSize" placeholder="Search by size">
+                        <input type="text" id="atno" value="N/A">
                     </div>
                     <div class="form-group">
                         <label>Supplier</label>
-                        <input type="text" id="searchSupplier" placeholder="Search by supplier">
+                        <input type="text" id="supplierName" placeholder="Supplier name">
                     </div>
+                    <div class="form-group">
+                        <label>Cost per Pair (KSh)</label>
+                        <input type="number" id="costPerPair" placeholder="0.00" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Colors & Sizes</label>
+                        <div id="colorGroups"></div>
+                        <button type="button" onclick="addColorGroup()" class="btn-secondary">+ Add Color</button>
+                    </div>
+                    <button type="submit">Save to Inventory</button>
+                </form>
+            </div>
+
+            <div class="search-card">
+                <h3>🔍 Search Inventory</h3>
+                <div class="search-grid">
+                    <input type="text" id="searchName" placeholder="Shoe name">
+                    <input type="text" id="searchAtno" placeholder="ATNO">
+                    <input type="text" id="searchColor" placeholder="Color">
+                    <input type="text" id="searchSize" placeholder="Size">
                 </div>
                 <div class="search-actions">
-                    <button onclick="clearSearch()" class="btn-secondary">Clear Search</button>
+                    <button onclick="clearSearch()" class="btn-secondary">Clear</button>
                     <button onclick="performAdvancedSearch()" class="btn-success">Search</button>
                 </div>
             </div>
 
-            <div class="toolbar">
-                <button onclick="downloadInventoryCSV()" class="btn-secondary">📥 Download Inventory</button>
-                <label for="inventoryUpload" class="file-upload-label">📤 Upload Inventory</label>
-                <input type="file" id="inventoryUpload" accept=".csv" onchange="uploadInventoryCSV(event)">
+            <div class="info-banner">
+                <p><strong>Storage:</strong> <span id="storageInfo">Firebase Cloud</span></p>
+                <p>Backup your data regularly using the download button below.</p>
             </div>
 
-            <h2 style="margin-bottom: 15px;">Current Inventory</h2>
+            <div class="toolbar">
+                <button onclick="downloadInventoryCSV()" class="btn-secondary">📥 Download CSV</button>
+            </div>
+
+            <h2>Current Stock</h2>
             <div id="inventoryList" class="inventory-grid"></div>
         </div>
 
-        <!-- SALES TAB -->
         <div id="sales" class="tab-content">
+            <div class="search-card">
+                <h3>🔍 Search Sales</h3>
+                <div class="search-grid">
+                    <input type="text" id="searchSaleCustomer" placeholder="Customer name">
+                    <input type="text" id="searchSaleShoe" placeholder="Shoe name">
+                    <input type="date" id="searchSaleFromDate" placeholder="From date">
+                    <input type="date" id="searchSaleToDate" placeholder="To date">
+                </div>
+                <div class="search-actions">
+                    <button onclick="clearSaleSearch()" class="btn-secondary">Clear</button>
+                    <button onclick="performSaleSearch()" class="btn-success">Search</button>
+                </div>
+            </div>
+
             <div class="form-card">
-                <h2 style="margin-bottom: 20px;">Record Sale</h2>
+                <h2>New Sale</h2>
                 <form id="salesForm">
-                    <div class="sales-form">
-                        <div>
-                            <div class="form-group">
-                                <label>Sale Date</label>
-                                <input type="date" id="saleDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Customer Name (Optional)</label>
-                                <input type="text" id="customerName" placeholder="Customer name">
-                            </div>
-                        </div>
-                        <div>
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <button type="button" class="add-item-btn btn-success" onclick="openShoeSelectionModal()">+ Add Item to Sale</button>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Sale Date</label>
+                        <input type="date" id="saleDate" required>
                     </div>
+                    <div class="form-group">
+                        <label>Customer (Optional)</label>
+                        <input type="text" id="customerName" placeholder="Walk-in Customer">
+                    </div>
+                    
+                    <button type="button" class="btn-success" onclick="openShoeSelectionModal()" style="margin-bottom: 16px;">
+                        + Add Items to Sale
+                    </button>
 
                     <div class="form-group">
-                        <label>Sale Items</label>
-                        <div id="saleItemsCart" class="sale-items-cart">
-                            <p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Sale" to begin.</p>
+                        <label>Items in Cart</label>
+                        <div id="saleItemsCart" class="cart-container">
+                            <p class="text-center text-muted" style="padding: 20px;">Cart is empty</p>
                         </div>
                     </div>
 
-                    <div class="payment-split">
-                        <h3 style="margin-bottom: 15px;">Payment Method</h3>
+                    <div style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px;">
                         <div class="form-group">
-                            <label>M-Pesa Amount</label>
-                            <input type="number" id="mpesaAmount" min="0" step="0.01" value="0" required>
+                            <label>M-Pesa Amount (KSh)</label>
+                            <input type="number" id="mpesaAmount" min="0" step="0.01" value="0">
                         </div>
                         <div class="form-group">
-                            <label>Cash Amount</label>
-                            <input type="number" id="cashAmount" min="0" step="0.01" value="0" required>
+                            <label>Cash Amount (KSh)</label>
+                            <input type="number" id="cashAmount" min="0" step="0.01" value="0">
                         </div>
-                        <div class="form-group">
-                            <label style="font-size: 1.2em;">Grand Total: <span id="grandTotal" style="color: #43a047; font-weight: 700;">KSh 0.00</span></label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                            <span style="font-size: 1.1rem; font-weight: 600;">Total:</span>
+                            <span id="grandTotal" style="font-size: 1.3rem; font-weight: 700; color: var(--success-color);">KSh 0.00</span>
                         </div>
-                        <div class="form-group">
-                            <label>Payment Status: <span id="paymentStatus" style="color: #d32f2f;">UNBALANCED</span></label>
+                        <div style="text-align: center; margin-top: 8px;">
+                            <span id="paymentStatus" style="color: var(--danger-color); font-weight: 600; font-size: 0.9rem;">UNBALANCED</span>
                         </div>
                     </div>
 
-                    <button type="submit" style="margin-top: 20px; width: 100%;" id="completeSaleBtn" disabled>Complete Sale</button>
+                    <button type="submit" id="completeSaleBtn" disabled>Complete Sale</button>
                 </form>
             </div>
 
-            <div class="toolbar" style="justify-content: flex-end;">
+            <div class="toolbar">
                 <button onclick="downloadSalesCSV()" class="btn-secondary">📥 Download Sales</button>
-                <label for="salesUpload" class="file-upload-label">📤 Upload Sales</label>
-                <input type="file" id="salesUpload" accept=".csv" onchange="uploadSalesCSV(event)">
             </div>
 
-            <h2 style="margin-bottom: 15px;">Recent Sales</h2>
+            <h2>Recent Sales</h2>
             <div id="salesList" class="sales-list"></div>
         </div>
 
-        <!-- TRANSFERS TAB -->
         <div id="transfers" class="tab-content">
             <div class="form-card">
-                <h2 style="margin-bottom: 20px;">Record Transfer</h2>
+                <h2>New Transfer</h2>
                 <form id="transferForm">
-                    <div class="sales-form">
-                        <div>
-                            <div class="form-group">
-                                <label>Transfer Date</label>
-                                <input type="date" id="transferDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Transfer To (Location)</label>
-                                <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <button type="button" class="add-item-btn btn-success" onclick="openTransferSelectionModal()">+ Add Item to Transfer</button>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Transfer Date</label>
+                        <input type="date" id="transferDate" required>
                     </div>
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
+                    </div>
+                    
+                    <button type="button" class="btn-success" onclick="openTransferSelectionModal()" style="margin-bottom: 16px;">
+                        + Add Items to Transfer
+                    </button>
 
                     <div class="form-group">
-                        <label>Transfer Items</label>
-                        <div id="transferItemsCart" class="transfer-items-cart">
-                            <p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Transfer" to begin.</p>
+                        <label>Items to Transfer</label>
+                        <div id="transferItemsCart" class="cart-container">
+                            <p class="text-center text-muted" style="padding: 20px;">No items added</p>
                         </div>
                     </div>
 
-                    <button type="submit" style="margin-top: 20px; width: 100%;" id="completeTransferBtn" disabled>Complete Transfer</button>
+                    <button type="submit" id="completeTransferBtn" disabled>Complete Transfer</button>
                 </form>
             </div>
 
-            <div class="toolbar" style="justify-content: flex-end;">
+            <div class="toolbar">
                 <button onclick="downloadTransfersCSV()" class="btn-secondary">📥 Download Transfers</button>
-                <label for="transfersUpload" class="file-upload-label">📤 Upload Transfers</label>
-                <input type="file" id="transfersUpload" accept=".csv" onchange="uploadTransfersCSV(event)">
             </div>
 
-            <h2 style="margin-bottom: 15px;">Transfer History</h2>
+            <h2>Transfer History</h2>
             <div id="transfersList" class="sales-list"></div>
         </div>
 
-        <!-- REPORT TAB -->
         <div id="report" class="tab-content">
             <div class="form-card">
-                <h2 style="margin-bottom: 20px;">Filter Reports</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px;">
-                    <div class="form-group">
+                <h2>Generate Report</h2>
+                <div class="search-grid">
+                    <div class="form-group" style="margin-bottom: 0;">
                         <label>From Date</label>
                         <input type="date" id="reportFromDate">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 0;">
                         <label>To Date</label>
                         <input type="date" id="reportToDate">
                     </div>
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button onclick="generateReport()">Generate Report</button>
-                    </div>
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button onclick="downloadReport()" class="btn-secondary">Download Report</button>
-                    </div>
+                </div>
+                <div class="toolbar" style="margin-top: 16px; margin-bottom: 0;">
+                    <button onclick="generateReport()">Generate</button>
+                    <button onclick="downloadReport()" class="btn-secondary">Download</button>
                 </div>
             </div>
 
@@ -905,16 +849,15 @@
         </div>
     </div>
 
-    <!-- Edit Inventory Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Edit Inventory Item</h2>
+                <h2>Edit Item</h2>
                 <button class="close-btn" onclick="closeEditModal()">✕</button>
             </div>
             <form id="editForm">
                 <div class="form-group">
-                    <label>Inventory Date</label>
+                    <label>Date</label>
                     <input type="date" id="editInvDate" required>
                 </div>
                 <div class="form-group">
@@ -926,7 +869,7 @@
                     <input type="text" id="editAtno">
                 </div>
                 <div class="form-group">
-                    <label>Supplier Name</label>
+                    <label>Supplier</label>
                     <input type="text" id="editSupplierName">
                 </div>
                 <div class="form-group">
@@ -934,83 +877,60 @@
                     <input type="number" id="editCostPerPair" min="0" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label>Inventory (by Color)</label>
-                    <div class="bulk-entry">
-                        <div id="editColorGroups"></div>
-                        <button type="button" onclick="addEditColorGroup()" class="btn-secondary">+ Add Color</button>
-                    </div>
+                    <label>Inventory</label>
+                    <div id="editColorGroups"></div>
+                    <button type="button" onclick="addEditColorGroup()" class="btn-secondary">+ Add Color</button>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" style="flex: 1;">Update Item</button>
-                    <button type="button" onclick="closeEditModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
-                </div>
+                <button type="submit">Update Item</button>
             </form>
         </div>
     </div>
 
-    <!-- Enhanced Shoe Selection Modal for Sales with Multi-Size -->
-    <div id="shoeSelectionModal" class="modal shoe-selection-modal">
+    <div id="shoeSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Select Shoe & Sizes</h2>
+                <h2>Select Shoe</h2>
                 <button class="close-btn" onclick="closeShoeSelectionModal()">✕</button>
             </div>
-            <div class="form-group">
-                <input type="text" id="shoeSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
-            </div>
-            <div id="shoeSelectionResults" class="shoe-variant-grid"></div>
+            <input type="text" id="shoeSelectionSearch" placeholder="Search shoes..." style="margin-bottom: 16px;">
+            <div id="shoeSelectionResults" class="variant-grid"></div>
         </div>
     </div>
 
-    <!-- Multi-Size Selection Modal -->
     <div id="multiSizeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Select Sizes for <span id="selectedShoeName"></span></h2>
+                <h2>Select Sizes - <span id="selectedShoeName"></span></h2>
                 <button class="close-btn" onclick="closeMultiSizeModal()">✕</button>
             </div>
+            <p style="margin-bottom: 16px; color: var(--text-secondary);">Color: <strong id="selectedColor" style="color: var(--accent-color);"></strong></p>
+            
+            <div id="sizeSelectionContainer" class="size-selector"></div>
+            
+            <div style="margin: 16px 0; padding: 12px; background: var(--secondary-bg); border-radius: var(--radius-sm);">
+                <p id="sizeSummary" style="margin: 0; font-size: 0.9rem;">No sizes selected</p>
+            </div>
+
             <div class="form-group">
-                <label>Color: <strong id="selectedColor"></strong></label>
+                <label>Selling Price per Pair (KSh)</label>
+                <input type="number" id="multiSizePrice" placeholder="Enter price" min="0" step="0.01">
             </div>
-            <div class="form-group">
-                <label>Select Sizes and Quantities:</label>
-                <div id="sizeSelectionContainer" class="multi-size-selector">
-                    <!-- Size options will be populated here -->
-                </div>
-            </div>
-            <div class="multi-size-summary" id="sizeSummary">
-                No sizes selected
-            </div>
-            <div class="form-group">
-                <label>Selling Price per Pair</label>
-                <input type="number" id="multiSizePrice" placeholder="Enter price" min="0" step="0.01" value="0">
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="button" class="btn-success" style="flex: 1;" onclick="addMultiSizeToSale()">Add to Sale</button>
-                <button type="button" onclick="closeMultiSizeModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
-            </div>
+
+            <button onclick="addMultiSizeToSale()" class="btn-success">Add to Sale</button>
         </div>
     </div>
 
-    <!-- Variant Selection Modal for Transfers -->
     <div id="transferSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Select Shoe & Variant for Transfer</h2>
+                <h2>Select for Transfer</h2>
                 <button class="close-btn" onclick="closeTransferSelectionModal()">✕</button>
             </div>
-            <div class="form-group">
-                <input type="text" id="transferSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn-success" onclick="addAllVariantsToTransfer()">Select All Shown Variants</button>
-                <button type="button" class="btn-secondary" onclick="closeTransferSelectionModal()">Cancel</button>
-            </div>
-            <div id="transferSelectionResults" class="shoe-variant-grid"></div>
+            <input type="text" id="transferSelectionSearch" placeholder="Search shoes..." style="margin-bottom: 16px;">
+            <div id="transferSelectionResults" class="variant-grid"></div>
         </div>
     </div>
 
-    <!-- Edit Sale Modal -->
     <div id="editSaleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1023,39 +943,32 @@
                     <input type="date" id="editSaleDate" required>
                 </div>
                 <div class="form-group">
-                    <label>Customer Name</label>
+                    <label>Customer</label>
                     <input type="text" id="editCustomerName">
                 </div>
                 <div class="form-group">
-                    <label>Sale Items</label>
-                    <div id="editSaleItemsCart" class="sale-items-cart"></div>
-                    <button type="button" class="btn-secondary" style="width: 100%; margin-top: 10px;" onclick="openShoeSelectionModalForEdit()">+ Add Item to Sale</button>
+                    <label>Items</label>
+                    <div id="editSaleItemsCart" class="cart-container"></div>
                 </div>
-                <div class="payment-split">
-                    <h3 style="margin-bottom: 15px;">Payment Method</h3>
+                <div style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px;">
                     <div class="form-group">
-                        <label>M-Pesa Amount</label>
-                        <input type="number" id="editMpesaAmount" min="0" step="0.01" required>
+                        <label>M-Pesa</label>
+                        <input type="number" id="editMpesaAmount" min="0" step="0.01">
                     </div>
                     <div class="form-group">
-                        <label>Cash Amount</label>
-                        <input type="number" id="editCashAmount" min="0" step="0.01" required>
+                        <label>Cash</label>
+                        <input type="number" id="editCashAmount" min="0" step="0.01">
                     </div>
-                    <div class="form-group">
-                        <label style="font-size: 1.2em;">Grand Total: <span id="editGrandTotal" style="color: #43a047; font-weight: 700;">KSh 0.00</span></label>
+                    <div style="text-align: right; margin-top: 8px;">
+                        <strong>Total: <span id="editGrandTotal" style="color: var(--success-color);">KSh 0.00</span></strong>
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" style="flex: 1;">Update Sale</button>
-                    <button type="button" onclick="closeEditSaleModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
-                </div>
+                <button type="submit">Update Sale</button>
             </form>
         </div>
     </div>
 
-    <!-- Firebase CDN -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
         import { 
@@ -1071,11 +984,9 @@
             orderBy
         } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBKqd_AGJcPaTbb8y-pMiNUoGkFkQqqXXU",
             authDomain: "essential-truth-403610.firebaseapp.com",
-            databaseURL: "https://essential-truth-403610-default-rtdb.firebaseio.com",
             projectId: "essential-truth-403610",
             storageBucket: "essential-truth-403610.firebasestorage.app",
             messagingSenderId: "931489894045",
@@ -1083,344 +994,164 @@
             measurementId: "G-83GL74BQG7"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
         
-        // Make Firebase functions available globally
-        window.firebaseApp = app;
         window.db = db;
-        window.firebase = {
-            db,
-            collection,
-            addDoc,
-            getDocs,
-            updateDoc,
-            deleteDoc,
-            doc,
-            query,
-            where,
-            orderBy
-        };
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+        window.query = query;
+        window.where = where;
+        window.orderBy = orderBy;
+        window.firebaseReady = true;
         
-        console.log("Firebase initialized successfully!");
-        
-        // Always use Firebase as primary storage
-        window.isUsingFirebase = true;
-        
-        // Initialize storage mode display
-        updateStorageDisplay();
-        
-        function updateStorageDisplay() {
-            // Check if user has local data that needs migration
-            const hasLocalData = 
-                localStorage.getItem('shoes') && 
-                localStorage.getItem('shoes') !== '[]' &&
-                localStorage.getItem('shoes') !== 'null';
-                
-            const migrationDone = localStorage.getItem('migrationDone') === 'true';
-            
-            if (document.getElementById('storageInfo')) {
-                document.getElementById('storageInfo').textContent = '• Storage: Firebase Cloud';
-            }
-            
-            // Show migration banner if user has local data but hasn't migrated
-            if (hasLocalData && !migrationDone) {
-                if (document.getElementById('migrationBanner')) {
-                    document.getElementById('migrationBanner').style.display = 'block';
-                }
-            } else {
-                if (document.getElementById('migrationBanner')) {
-                    document.getElementById('migrationBanner').style.display = 'none';
-                }
-            }
+        if (typeof initializeAppData === 'function') {
+            initializeAppData();
         }
-        
-        window.updateStorageDisplay = updateStorageDisplay;
     </script>
 
     <script>
-        // Global state
-        let selectedShoeId = null;
-        let transferSelectedShoeId = null;
         let editingShoeId = null;
         let currentSaleItems = [];
         let editingSaleId = null;
         let saleItemsForEdit = [];
         let currentTransferItems = [];
         let currentMultiSizeSelection = null;
-        let isUsingFirebase = true; // Always use Firebase now
+        let allSalesData = [];
+        
+        let cachedShoesForSelection = [];
+        let cachedVariantsForTransfer = [];
 
-        // Firebase collections
-        const COLLECTIONS = {
-            SHOES: 'shoes',
-            SALES: 'sales',
-            TRANSFERS: 'transfers'
-        };
+        const COLLECTIONS = { SHOES: 'shoes', SALES: 'sales', TRANSFERS: 'transfers' };
 
-        // Initialize dates
-        document.getElementById('invDate').valueAsDate = new Date();
-        document.getElementById('saleDate').valueAsDate = new Date();
-        document.getElementById('transferDate').valueAsDate = new Date();
-
-        // Add initial color group
-        addColorGroup();
-
-        // MIGRATION FUNCTION - FIXED VERSION
-        async function migrateToFirebase() {
-            if (!confirm('Migrate all local data to Firebase? This will copy all your data to the cloud.')) {
-                return;
-            }
-
-            try {
-                // Get all local data
-                const localShoes = JSON.parse(localStorage.getItem('shoes') || '[]');
-                const localSales = JSON.parse(localStorage.getItem('sales') || '[]');
-                const localTransfers = JSON.parse(localStorage.getItem('transfers') || '[]');
-
-                let migratedCount = 0;
-                
-                // Migrate shoes
-                for (const shoe of localShoes) {
-                    if (window.firebase && window.firebase.addDoc) {
-                        await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SHOES), shoe);
-                        migratedCount++;
-                    }
-                }
-
-                // Migrate sales
-                for (const sale of localSales) {
-                    if (window.firebase && window.firebase.addDoc) {
-                        await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SALES), sale);
-                        migratedCount++;
-                    }
-                }
-
-                // Migrate transfers
-                for (const transfer of localTransfers) {
-                    if (window.firebase && window.firebase.addDoc) {
-                        await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS), transfer);
-                        migratedCount++;
-                    }
-                }
-
-                if (migratedCount > 0) {
-                    // Mark migration as done
-                    localStorage.setItem('migrationDone', 'true');
-                    
-                    // Clear local storage (optional - keep as backup)
-                    // localStorage.removeItem('shoes');
-                    // localStorage.removeItem('sales');
-                    // localStorage.removeItem('transfers');
-
-                    // Update UI
-                    updateStorageDisplay();
-                    
-                    alert(`Migration successful! ${migratedCount} records moved to Firebase.`);
-                    
-                    // Reload current tab
-                    const activeTab = document.querySelector('.tab.active');
-                    if (activeTab) {
-                        const tabName = activeTab.getAttribute('onclick').match(/'([^']+)'/)[1];
-                        switchTab(tabName);
-                    }
-                } else {
-                    throw new Error('No data migrated. Firebase might not be initialized.');
-                }
-            } catch (error) {
-                console.error('Migration failed:', error);
-                alert('Migration failed: ' + error.message);
-            }
+        function initializeAppData() {
+            document.getElementById('invDate').valueAsDate = new Date();
+            document.getElementById('saleDate').valueAsDate = new Date();
+            document.getElementById('transferDate').valueAsDate = new Date();
+            addColorGroup();
+            updateStorageDisplay();
+            loadInventory();
+            loadSales();
+            
+            setupModalSearchListeners();
         }
 
-        // DATA ACCESS FUNCTIONS (Firebase only)
-        async function getShoes() {
-            try {
-                if (!window.firebase || !window.firebase.getDocs) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.SHOES));
-                const shoes = [];
-                querySnapshot.forEach((doc) => {
-                    shoes.push({ id: doc.id, ...doc.data() });
-                });
-                return shoes;
-            } catch (error) {
-                console.error('Error getting shoes:', error);
-                alert('Error loading inventory from Firebase: ' + error.message);
-                return [];
-            }
+        if (window.firebaseReady) initializeAppData();
+
+        function setupModalSearchListeners() {
+            const shoeSearch = document.getElementById('shoeSelectionSearch');
+            shoeSearch.addEventListener('input', (e) => {
+                filterShoeSelection(e.target.value);
+            });
+            
+            const transferSearch = document.getElementById('transferSelectionSearch');
+            transferSearch.addEventListener('input', (e) => {
+                filterTransferSelection(e.target.value);
+            });
         }
+
+       async function getShoes() {
+          try {
+              const snapshot = await getDocs(collection(db, COLLECTIONS.SHOES));
+              const shoes = [];
+              snapshot.forEach(doc => {
+                  const data = doc.data();
+                  // Remove any internal id field to prevent overwriting Firestore's doc.id
+                  delete data.id;
+                  shoes.push({ id: doc.id, ...data });
+              });
+              return shoes;
+          } catch (e) {
+              alert('Error loading inventory: ' + e.message);
+              return [];
+          }
+      }
 
         async function saveShoe(shoe) {
-            try {
-                if (!window.firebase || !window.firebase.addDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SHOES), shoe);
-                return true;
-            } catch (error) {
-                console.error('Error saving shoe:', error);
-                alert('Error saving to Firebase: ' + error.message);
-                return false;
-            }
+            try { await addDoc(collection(db, COLLECTIONS.SHOES), shoe); return true; }
+            catch (e) { alert('Error saving: ' + e.message); return false; }
         }
 
-        async function updateShoe(id, shoe) {
-            try {
-                if (!window.firebase || !window.firebase.updateDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                const shoeRef = window.firebase.doc(window.db, COLLECTIONS.SHOES, id);
-                await window.firebase.updateDoc(shoeRef, shoe);
-                return true;
-            } catch (error) {
-                console.error('Error updating shoe:', error);
-                alert('Error updating in Firebase: ' + error.message);
-                return false;
-            }
+        async function updateShoe(id, data) {
+            try { await updateDoc(doc(db, COLLECTIONS.SHOES, id), data); return true; }
+            catch (e) { alert('Error updating: ' + e.message); return false; }
         }
 
         async function deleteShoeFromStorage(id) {
-            try {
-                if (!window.firebase || !window.firebase.deleteDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                await window.firebase.deleteDoc(window.firebase.doc(window.db, COLLECTIONS.SHOES, id));
-                return true;
-            } catch (error) {
-                console.error('Error deleting shoe:', error);
-                alert('Error deleting from Firebase: ' + error.message);
-                return false;
-            }
+            try { await deleteDoc(doc(db, COLLECTIONS.SHOES, id)); return true; }
+            catch (e) { alert('Error deleting: ' + e.message); return false; }
         }
 
         async function getSales() {
             try {
-                if (!window.firebase || !window.firebase.getDocs) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.SALES));
+                const snapshot = await getDocs(collection(db, COLLECTIONS.SALES));
                 const sales = [];
-                querySnapshot.forEach((doc) => {
-                    const saleData = doc.data();
-                    // Ensure items array exists for backward compatibility
-                    if (!saleData.items && saleData.shoeId) {
-                        saleData.items = [{
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!data.items && data.shoeId) {
+                        data.items = [{
                             id: doc.id + '_item',
-                            shoeId: saleData.shoeId,
-                            shoeName: saleData.shoeName,
-                            atno: saleData.atno || 'N/A',
-                            color: saleData.color,
-                            size: saleData.size,
-                            qty: saleData.qty,
-                            pricePerPair: saleData.pricePerPair,
-                            total: saleData.total
+                            shoeId: data.shoeId,
+                            shoeName: data.shoeName,
+                            atno: data.atno || 'N/A',
+                            color: data.color,
+                            size: data.size,
+                            qty: data.qty,
+                            pricePerPair: data.pricePerPair,
+                            total: data.total
                         }];
                     }
-                    sales.push({ id: doc.id, ...saleData });
+                    sales.push({ id: doc.id, ...data });
                 });
                 return sales;
-            } catch (error) {
-                console.error('Error getting sales:', error);
-                alert('Error loading sales from Firebase: ' + error.message);
+            } catch (e) {
+                alert('Error loading sales: ' + e.message);
                 return [];
             }
         }
 
         async function saveSale(sale) {
-            try {
-                if (!window.firebase || !window.firebase.addDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.SALES), sale);
-                return true;
-            } catch (error) {
-                console.error('Error saving sale:', error);
-                alert('Error saving sale to Firebase: ' + error.message);
-                return false;
-            }
+            try { await addDoc(collection(db, COLLECTIONS.SALES), sale); return true; }
+            catch (e) { alert('Error saving sale: ' + e.message); return false; }
         }
 
-        async function updateSale(id, sale) {
-            try {
-                if (!window.firebase || !window.firebase.updateDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                const saleRef = window.firebase.doc(window.db, COLLECTIONS.SALES, id);
-                await window.firebase.updateDoc(saleRef, sale);
-                return true;
-            } catch (error) {
-                console.error('Error updating sale:', error);
-                alert('Error updating sale in Firebase: ' + error.message);
-                return false;
-            }
+        async function updateSale(id, data) {
+            try { await updateDoc(doc(db, COLLECTIONS.SALES, id), data); return true; }
+            catch (e) { alert('Error updating sale: ' + e.message); return false; }
         }
 
         async function deleteSaleFromStorage(id) {
-            try {
-                if (!window.firebase || !window.firebase.deleteDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                await window.firebase.deleteDoc(window.firebase.doc(window.db, COLLECTIONS.SALES, id));
-                return true;
-            } catch (error) {
-                console.error('Error deleting sale:', error);
-                alert('Error deleting sale from Firebase: ' + error.message);
-                return false;
-            }
+            try { await deleteDoc(doc(db, COLLECTIONS.SALES, id)); return true; }
+            catch (e) { alert('Error deleting sale: ' + e.message); return false; }
         }
 
         async function getTransfers() {
             try {
-                if (!window.firebase || !window.firebase.getDocs) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                const querySnapshot = await window.firebase.getDocs(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS));
+                const snapshot = await getDocs(collection(db, COLLECTIONS.TRANSFERS));
                 const transfers = [];
-                querySnapshot.forEach((doc) => {
-                    transfers.push({ id: doc.id, ...doc.data() });
-                });
+                snapshot.forEach(doc => transfers.push({ id: doc.id, ...doc.data() }));
                 return transfers;
-            } catch (error) {
-                console.error('Error getting transfers:', error);
-                alert('Error loading transfers from Firebase: ' + error.message);
+            } catch (e) {
+                alert('Error loading transfers: ' + e.message);
                 return [];
             }
         }
 
         async function saveTransfer(transfer) {
-            try {
-                if (!window.firebase || !window.firebase.addDoc) {
-                    throw new Error('Firebase not initialized');
-                }
-                
-                await window.firebase.addDoc(window.firebase.collection(window.db, COLLECTIONS.TRANSFERS), transfer);
-                return true;
-            } catch (error) {
-                console.error('Error saving transfer:', error);
-                alert('Error saving transfer to Firebase: ' + error.message);
-                return false;
-            }
+            try { await addDoc(collection(db, COLLECTIONS.TRANSFERS), transfer); return true; }
+            catch (e) { alert('Error saving transfer: ' + e.message); return false; }
         }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
             event.target.classList.add('active');
             document.getElementById(tabName).classList.add('active');
-
             if (tabName === 'inventory') loadInventory();
             if (tabName === 'sales') loadSales();
             if (tabName === 'transfers') loadTransfers();
@@ -1429,201 +1160,151 @@
 
         function addColorGroup() {
             const container = document.getElementById('colorGroups');
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'color-group';
-            groupDiv.innerHTML = `
-                <div class="color-header">
-                    <input type="text" placeholder="Color name" class="color-input" style="flex: 1;">
-                    <button type="button" onclick="this.closest('.color-group').remove()" class="btn-danger">Remove Color</button>
+            const div = document.createElement('div');
+            div.className = 'color-group';
+            div.innerHTML = `
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" placeholder="Color" class="color-input" style="flex: 1;">
+                    <button type="button" onclick="this.closest('.color-group').remove()" class="btn-danger btn-small">Remove</button>
                 </div>
                 <div class="sizes-container"></div>
-                <button type="button" onclick="addSizeToGroup(this)" class="btn-secondary" style="width: 100%; margin-top: 10px;">+ Add Size</button>
+                <button type="button" onclick="addSizeToGroup(this)" class="btn-secondary btn-small">+ Size</button>
             `;
-            container.appendChild(groupDiv);
-            addSizeToGroup(groupDiv.querySelector('button'));
+            container.appendChild(div);
+            addSizeToGroup(div.querySelector('button'));
         }
 
         function addSizeToGroup(btn) {
-            const group = btn.closest('.color-group');
-            const container = group.querySelector('.sizes-container');
-            const sizeRow = document.createElement('div');
-            sizeRow.className = 'size-row';
-            sizeRow.innerHTML = `
+            const container = btn.previousElementSibling;
+            const row = document.createElement('div');
+            row.className = 'size-row';
+            row.innerHTML = `
                 <input type="text" placeholder="Size" class="size-input">
-                <input type="number" placeholder="Quantity" min="1" class="qty-input">
-                <button type="button" onclick="this.parentElement.remove()" class="btn-danger">Remove</button>
+                <input type="number" placeholder="Qty" min="1" class="qty-input">
+                <button type="button" onclick="this.parentElement.remove()" class="btn-danger btn-small">Remove</button>
             `;
-            container.appendChild(sizeRow);
+            container.appendChild(row);
         }
 
         function addEditColorGroup() {
             const container = document.getElementById('editColorGroups');
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'color-group';
-            groupDiv.innerHTML = `
-                <div class="color-header">
-                    <input type="text" placeholder="Color name" class="color-input" style="flex: 1;">
-                    <button type="button" onclick="this.closest('.color-group').remove()" class="btn-danger">Remove Color</button>
+            const div = document.createElement('div');
+            div.className = 'color-group';
+            div.innerHTML = `
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" placeholder="Color" class="color-input" style="flex: 1;">
+                    <button type="button" onclick="this.closest('.color-group').remove()" class="btn-danger btn-small">Remove</button>
                 </div>
                 <div class="sizes-container"></div>
-                <button type="button" onclick="addEditSizeToGroup(this)" class="btn-secondary" style="width: 100%; margin-top: 10px;">+ Add Size</button>
+                <button type="button" onclick="addEditSizeToGroup(this)" class="btn-secondary btn-small">+ Size</button>
             `;
-            container.appendChild(groupDiv);
-            addEditSizeToGroup(groupDiv.querySelector('button'));
+            container.appendChild(div);
         }
 
         function addEditSizeToGroup(btn) {
-            const group = btn.closest('.color-group');
-            const container = group.querySelector('.sizes-container');
-            const sizeRow = document.createElement('div');
-            sizeRow.className = 'size-row';
-            sizeRow.innerHTML = `
+            const container = btn.previousElementSibling;
+            const row = document.createElement('div');
+            row.className = 'size-row';
+            row.innerHTML = `
                 <input type="text" placeholder="Size" class="size-input">
-                <input type="number" placeholder="Quantity" min="1" class="qty-input">
-                <button type="button" onclick="this.parentElement.remove()" class="btn-danger">Remove</button>
+                <input type="number" placeholder="Qty" min="1" class="qty-input">
+                <button type="button" onclick="this.parentElement.remove()" class="btn-danger btn-small">Remove</button>
             `;
-            container.appendChild(sizeRow);
+            container.appendChild(row);
         }
 
-        // INVENTORY FORM
-        document.getElementById('inventoryForm').addEventListener('submit', async function(e) {
+        document.getElementById('inventoryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const invDate = document.getElementById('invDate').value;
-            const shoeName = document.getElementById('shoeName').value;
-            const atno = document.getElementById('atno').value || 'N/A';
-            const supplierName = document.getElementById('supplierName').value || 'N/A';
-            const costPerPair = parseFloat(document.getElementById('costPerPair').value) || 0;
-
-            const colorGroups = document.querySelectorAll('#colorGroups .color-group');
-            const inventory = [];
-
-            colorGroups.forEach(group => {
-                const color = group.querySelector('.color-input').value.trim();
-                if (!color) return;
-
-                const sizeRows = group.querySelectorAll('.size-row');
-                sizeRows.forEach(row => {
-                    const size = row.querySelector('.size-input').value.trim();
-                    const qty = parseInt(row.querySelector('.qty-input').value);
-                    if (size && qty) {
-                        inventory.push({ color, size, qty });
-                    }
-                });
-            });
-
-            if (inventory.length === 0) {
-                alert('Please add at least one color with size and quantity');
-                return;
-            }
-
             const shoe = {
-                date: invDate,
-                name: shoeName,
-                atno: atno,
-                supplier: supplierName,
-                cost: costPerPair,
-                inventory: inventory,
+                date: document.getElementById('invDate').value,
+                name: document.getElementById('shoeName').value,
+                atno: document.getElementById('atno').value || 'N/A',
+                supplier: document.getElementById('supplierName').value || 'N/A',
+                cost: parseFloat(document.getElementById('costPerPair').value) || 0,
+                inventory: [],
                 createdAt: new Date().toISOString()
             };
 
-            const success = await saveShoe(shoe);
-            if (success) {
-                this.reset();
+            document.querySelectorAll('#colorGroups .color-group').forEach(group => {
+                const color = group.querySelector('.color-input').value.trim();
+                if (!color) return;
+                group.querySelectorAll('.size-row').forEach(row => {
+                    const size = row.querySelector('.size-input').value.trim();
+                    const qty = parseInt(row.querySelector('.qty-input').value);
+                    if (size && qty) shoe.inventory.push({ color, size, qty });
+                });
+            });
+
+            if (shoe.inventory.length === 0) {
+                alert('Add at least one color/size');
+                return;
+            }
+
+            if (await saveShoe(shoe)) {
+                e.target.reset();
                 document.getElementById('invDate').valueAsDate = new Date();
                 document.getElementById('atno').value = 'N/A';
                 document.getElementById('colorGroups').innerHTML = '';
                 addColorGroup();
                 loadInventory();
-                alert('Inventory added successfully!');
-            } else {
-                alert('Failed to add inventory. Please try again.');
+                alert('✅ Saved successfully');
             }
         });
 
         async function loadInventory(searchParams = null) {
             let shoes = await getShoes();
             const container = document.getElementById('inventoryList');
-            
-            // Apply advanced search if provided
+
             if (searchParams) {
                 shoes = shoes.filter(shoe => {
-                    let matches = true;
-                    
-                    if (searchParams.name && !shoe.name.toLowerCase().includes(searchParams.name.toLowerCase())) {
-                        matches = false;
-                    }
-                    if (searchParams.atno && !shoe.atno.toLowerCase().includes(searchParams.atno.toLowerCase())) {
-                        matches = false;
-                    }
-                    if (searchParams.supplier && !shoe.supplier.toLowerCase().includes(searchParams.supplier.toLowerCase())) {
-                        matches = false;
-                    }
-                    
-                    // Check color and size in inventory
+                    if (searchParams.name && !shoe.name.toLowerCase().includes(searchParams.name.toLowerCase())) return false;
+                    if (searchParams.atno && !shoe.atno.toLowerCase().includes(searchParams.atno.toLowerCase())) return false;
+                    if (searchParams.supplier && !shoe.supplier.toLowerCase().includes(searchParams.supplier.toLowerCase())) return false;
                     if (searchParams.color || searchParams.size) {
-                        const hasMatchingInventory = shoe.inventory.some(inv => {
-                            let invMatches = true;
-                            if (searchParams.color && !inv.color.toLowerCase().includes(searchParams.color.toLowerCase())) {
-                                invMatches = false;
-                            }
-                            if (searchParams.size && !inv.size.toLowerCase().includes(searchParams.size.toLowerCase())) {
-                                invMatches = false;
-                            }
-                            return invMatches;
+                        const hasMatch = shoe.inventory.some(inv => {
+                            if (searchParams.color && !inv.color.toLowerCase().includes(searchParams.color.toLowerCase())) return false;
+                            if (searchParams.size && !inv.size.toLowerCase().includes(searchParams.size.toLowerCase())) return false;
+                            return true;
                         });
-                        if (!hasMatchingInventory) {
-                            matches = false;
-                        }
+                        if (!hasMatch) return false;
                     }
-                    
-                    return matches;
+                    return true;
                 });
             }
 
             if (shoes.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No inventory items found</p>';
+                container.innerHTML = '<p class="empty-state">No items found</p>';
                 return;
             }
 
             container.innerHTML = shoes.map(shoe => {
-                const totalPairs = shoe.inventory.reduce((sum, inv) => sum + inv.qty, 0);
-                const colors = [...new Set(shoe.inventory.map(inv => inv.color))];
-                
+                const total = shoe.inventory.reduce((sum, inv) => sum + inv.qty, 0);
+                const colors = [...new Set(shoe.inventory.map(i => i.color))];
                 return `
                     <div class="shoe-card">
                         <h3>${shoe.name}</h3>
                         <div class="shoe-detail"><strong>ATNO:</strong> ${shoe.atno}</div>
-                        <div class="shoe-detail"><strong>Date Added:</strong> ${shoe.date}</div>
-                        <div class="shoe-detail"><strong>Supplier:</strong> ${shoe.supplier || 'N/A'}</div>
+                        <div class="shoe-detail"><strong>Date:</strong> ${shoe.date}</div>
+                        <div class="shoe-detail"><strong>Supplier:</strong> ${shoe.supplier}</div>
                         <div class="shoe-detail"><strong>Cost:</strong> KSh ${(shoe.cost || 0).toFixed(2)}</div>
-                        <div class="shoe-detail"><strong>Total Pairs:</strong> ${totalPairs}</div>
-                        <div class="shoe-detail">
-                            <strong>Colors:</strong><br>
+                        <div class="shoe-detail"><strong>Stock:</strong> ${total} pairs</div>
+                        <div style="margin: 8px 0;">
                             ${colors.map(c => `<span class="color-badge">${c}</span>`).join('')}
                         </div>
-                        <div class="shoe-detail">
-                            <strong>Inventory:</strong><br>
-                            ${shoe.inventory.map(inv => `${inv.color} - Size ${inv.size}: ${inv.qty} pairs`).join('<br>')}
-                        </div>
                         <div class="card-actions">
-                            <button onclick="editShoe('${shoe.id}')" class="btn-secondary">Edit</button>
-                            <button onclick="deleteShoeHandler('${shoe.id}')" class="btn-danger">Delete</button>
+                            <button onclick="editShoe('${shoe.id}')" class="btn-secondary btn-small">Edit</button>
+                            <button onclick="deleteShoe('${shoe.id}')" class="btn-danger btn-small">Delete</button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        async function deleteShoeHandler(id) {
-            if (!confirm('Are you sure you want to delete this item?')) return;
-            
-            const success = await deleteShoeFromStorage(id);
-            if (success) {
+        async function deleteShoe(id) {
+            if (!confirm('Delete this item?')) return;
+            if (await deleteShoeFromStorage(id)) {
                 loadInventory();
-                alert('Item deleted successfully!');
-            } else {
-                alert('Failed to delete item. Please try again.');
+                alert('✅ Deleted');
             }
         }
 
@@ -1633,36 +1314,34 @@
             if (!shoe) return;
 
             editingShoeId = id;
-            
             document.getElementById('editInvDate').value = shoe.date;
             document.getElementById('editShoeName').value = shoe.name;
             document.getElementById('editAtno').value = shoe.atno;
             document.getElementById('editSupplierName').value = shoe.supplier || '';
             document.getElementById('editCostPerPair').value = shoe.cost || 0;
 
-            document.getElementById('editColorGroups').innerHTML = '';
+            const container = document.getElementById('editColorGroups');
+            container.innerHTML = '';
             
             const colorMap = {};
             shoe.inventory.forEach(inv => {
-                if (!colorMap[inv.color]) {
-                    colorMap[inv.color] = [];
-                }
-                colorMap[inv.color].push({ size: inv.size, qty: inv.qty });
+                if (!colorMap[inv.color]) colorMap[inv.color] = [];
+                colorMap[inv.color].push(inv);
             });
 
-            Object.keys(colorMap).forEach(color => {
+            Object.entries(colorMap).forEach(([color, items]) => {
                 addEditColorGroup();
-                const colorGroups = document.querySelectorAll('#editColorGroups .color-group');
-                const lastGroup = colorGroups[colorGroups.length - 1];
+                const groups = container.querySelectorAll('.color-group');
+                const lastGroup = groups[groups.length - 1];
                 lastGroup.querySelector('.color-input').value = color;
-                
                 lastGroup.querySelector('.sizes-container').innerHTML = '';
-                colorMap[color].forEach(sizeInfo => {
-                    addEditSizeToGroup(lastGroup.querySelector('button'));
-                    const sizeRows = lastGroup.querySelectorAll('.size-row');
-                    const lastRow = sizeRows[sizeRows.length - 1];
-                    lastRow.querySelector('.size-input').value = sizeInfo.size;
-                    lastRow.querySelector('.qty-input').value = sizeInfo.qty;
+                
+                items.forEach(item => {
+                    addEditSizeToGroup(lastGroup.querySelector('button:last-child'));
+                    const rows = lastGroup.querySelectorAll('.size-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('.size-input').value = item.size;
+                    lastRow.querySelector('.qty-input').value = item.qty;
                 });
             });
 
@@ -1674,74 +1353,43 @@
             editingShoeId = null;
         }
 
-        // EDIT FORM SUBMIT
-        document.getElementById('editForm').addEventListener('submit', async function(e) {
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const invDate = document.getElementById('editInvDate').value;
-            const shoeName = document.getElementById('editShoeName').value;
-            const atno = document.getElementById('editAtno').value || 'N/A';
-            const supplierName = document.getElementById('editSupplierName').value || 'N/A';
-            const costPerPair = parseFloat(document.getElementById('editCostPerPair').value) || 0;
-
-            const colorGroups = document.querySelectorAll('#editColorGroups .color-group');
-            const inventory = [];
-
-            colorGroups.forEach(group => {
-                const color = group.querySelector('.color-input').value.trim();
-                if (!color) return;
-
-                const sizeRows = group.querySelectorAll('.size-row');
-                sizeRows.forEach(row => {
-                    const size = row.querySelector('.size-input').value.trim();
-                    const qty = parseInt(row.querySelector('.qty-input').value);
-                    if (size && qty) {
-                        inventory.push({ color, size, qty });
-                    }
-                });
-            });
-
-            if (inventory.length === 0) {
-                alert('Please add at least one color with size and quantity');
-                return;
-            }
-
-            const updatedShoe = {
-                date: invDate,
-                name: shoeName,
-                atno: atno,
-                supplier: supplierName,
-                cost: costPerPair,
-                inventory: inventory,
+            const data = {
+                date: document.getElementById('editInvDate').value,
+                name: document.getElementById('editShoeName').value,
+                atno: document.getElementById('editAtno').value || 'N/A',
+                supplier: document.getElementById('editSupplierName').value || 'N/A',
+                cost: parseFloat(document.getElementById('editCostPerPair').value) || 0,
+                inventory: [],
                 updatedAt: new Date().toISOString()
             };
 
-            const success = await updateShoe(editingShoeId, updatedShoe);
-            if (success) {
+            document.querySelectorAll('#editColorGroups .color-group').forEach(group => {
+                const color = group.querySelector('.color-input').value.trim();
+                if (!color) return;
+                group.querySelectorAll('.size-row').forEach(row => {
+                    const size = row.querySelector('.size-input').value.trim();
+                    const qty = parseInt(row.querySelector('.qty-input').value);
+                    if (size && qty) data.inventory.push({ color, size, qty });
+                });
+            });
+
+            if (await updateShoe(editingShoeId, data)) {
                 closeEditModal();
                 loadInventory();
-                alert('Inventory updated successfully!');
-            } else {
-                alert('Failed to update inventory. Please try again.');
+                alert('✅ Updated');
             }
         });
 
-        // ADVANCED SEARCH FUNCTIONS
         function performAdvancedSearch() {
-            const searchParams = {
+            loadInventory({
                 name: document.getElementById('searchName').value,
                 atno: document.getElementById('searchAtno').value,
                 color: document.getElementById('searchColor').value,
                 size: document.getElementById('searchSize').value,
-                supplier: document.getElementById('searchSupplier').value
-            };
-            
-            // Remove empty parameters
-            Object.keys(searchParams).forEach(key => {
-                if (!searchParams[key]) delete searchParams[key];
+                supplier: document.getElementById('searchSupplier')?.value
             });
-            
-            loadInventory(searchParams);
         }
 
         function clearSearch() {
@@ -1749,120 +1397,132 @@
             document.getElementById('searchAtno').value = '';
             document.getElementById('searchColor').value = '';
             document.getElementById('searchSize').value = '';
-            document.getElementById('searchSupplier').value = '';
+            if (document.getElementById('searchSupplier')) document.getElementById('searchSupplier').value = '';
             loadInventory();
         }
 
-        // ENHANCED SALES WITH MULTI-SIZE SELECTION
+        async function performSaleSearch() {
+            const customer = document.getElementById('searchSaleCustomer').value.toLowerCase();
+            const shoe = document.getElementById('searchSaleShoe').value.toLowerCase();
+            const fromDate = document.getElementById('searchSaleFromDate').value;
+            const toDate = document.getElementById('searchSaleToDate').value;
+
+            let sales = await getSales();
+            
+            const filtered = sales.filter(sale => {
+                if (customer && !sale.customerName.toLowerCase().includes(customer)) return false;
+                if (shoe && !sale.items.some(item => item.shoeName.toLowerCase().includes(shoe))) return false;
+                if (fromDate && sale.date < fromDate) return false;
+                if (toDate && sale.date > toDate) return false;
+                return true;
+            });
+
+            renderSalesList(filtered);
+        }
+
+        function clearSaleSearch() {
+            document.getElementById('searchSaleCustomer').value = '';
+            document.getElementById('searchSaleShoe').value = '';
+            document.getElementById('searchSaleFromDate').value = '';
+            document.getElementById('searchSaleToDate').value = '';
+            loadSales();
+        }
+
         function openShoeSelectionModal() {
             document.getElementById('shoeSelectionModal').classList.add('active');
             document.getElementById('shoeSelectionSearch').value = '';
-            displayShoeVariantsForSale();
+            loadShoeSelection();
         }
 
         function closeShoeSelectionModal() {
             document.getElementById('shoeSelectionModal').classList.remove('active');
+            document.getElementById('shoeSelectionSearch').value = '';
+            cachedShoesForSelection = [];
         }
 
-        async function displayShoeVariantsForSale(query = '') {
+        async function loadShoeSelection() {
             const shoes = await getShoes();
+            cachedShoesForSelection = shoes;
+            renderShoeSelectionResults(shoes);
+        }
+
+        function renderShoeSelectionResults(shoes) {
             const container = document.getElementById('shoeSelectionResults');
             
-            let filteredVariants = [];
+            let variants = [];
             shoes.forEach(shoe => {
                 shoe.inventory.forEach(inv => {
-                    if (inv.qty > 0) { // Only show items with available stock
-                        const matchesQuery = !query || 
-                            shoe.name.toLowerCase().includes(query) ||
-                            (shoe.atno || '').toLowerCase().includes(query) ||
-                            inv.color.toLowerCase().includes(query) ||
-                            inv.size.toLowerCase().includes(query);
-                        
-                        if (matchesQuery) {
-                            filteredVariants.push({
-                                ...inv,
-                                shoeId: shoe.id,
-                                shoeName: shoe.name,
-                                atno: shoe.atno || 'N/A',
-                                cost: shoe.cost || 0
-                            });
-                        }
+                    if (inv.qty > 0) {
+                        variants.push({ ...inv, shoeId: shoe.id, shoeName: shoe.name, atno: shoe.atno, cost: shoe.cost });
                     }
                 });
             });
 
-            if (filteredVariants.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
+            const grouped = {};
+            variants.forEach(v => {
+                const key = `${v.shoeId}_${v.color}`;
+                if (!grouped[key]) grouped[key] = { ...v, sizes: [] };
+                grouped[key].sizes.push({ size: v.size, qty: v.qty });
+            });
+
+            if (Object.keys(grouped).length === 0) {
+                container.innerHTML = '<p class="empty-state">No items in stock</p>';
                 return;
             }
 
-            // Group by shoe and color for multi-size selection
-            const groupedVariants = {};
-            filteredVariants.forEach(variant => {
-                const key = `${variant.shoeId}_${variant.color}`;
-                if (!groupedVariants[key]) {
-                    groupedVariants[key] = {
-                        shoeId: variant.shoeId,
-                        shoeName: variant.shoeName,
-                        atno: variant.atno,
-                        cost: variant.cost,
-                        color: variant.color,
-                        sizes: []
-                    };
-                }
-                groupedVariants[key].sizes.push({
-                    size: variant.size,
-                    qty: variant.qty
-                });
-            });
-
-            container.innerHTML = Object.values(groupedVariants).map(group => {
-                const totalAvailable = group.sizes.reduce((sum, s) => sum + s.qty, 0);
-                return `
-                    <div class="variant-card" data-group='${JSON.stringify(group)}' onclick="openMultiSizeModal('${group.shoeId}', '${group.color}')">
-                        <div class="cart-item-header">${group.shoeName}</div>
-                        <div class="variant-info">
-                            <strong>ATNO:</strong> ${group.atno}<br>
-                            <strong>Color:</strong> ${group.color}<br>
-                            <strong>Available Sizes:</strong> ${group.sizes.map(s => s.size).join(', ')}<br>
-                            <strong>Total Pairs:</strong> ${totalAvailable}<br>
-                            <strong>Cost:</strong> KSh ${(group.cost || 0).toFixed(2)}
-                        </div>
-                        <div class="variant-actions">
-                            <button class="btn-success" onclick="event.stopPropagation(); openMultiSizeModal('${group.shoeId}', '${group.color}')">Select Sizes</button>
-                        </div>
+            container.innerHTML = Object.values(grouped).map(g => `
+                <div class="variant-card" onclick="openMultiSizeModal('${g.shoeId}', '${g.color}')">
+                    <div class="variant-title">${g.shoeName}</div>
+                    <div class="variant-info">
+                        ATNO: ${g.atno}<br>
+                        Color: ${g.color}<br>
+                        Sizes: ${g.sizes.map(s => s.size).join(', ')}<br>
+                        Stock: ${g.sizes.reduce((a,b) => a + b.qty, 0)} pairs
                     </div>
-                `;
-            }).join('');
+                </div>
+            `).join('');
+        }
+
+        function filterShoeSelection(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            
+            if (!term) {
+                renderShoeSelectionResults(cachedShoesForSelection);
+                return;
+            }
+            
+            const filtered = cachedShoesForSelection.filter(shoe => {
+                if (shoe.name.toLowerCase().includes(term)) return true;
+                if (shoe.atno && shoe.atno.toLowerCase().includes(term)) return true;
+                return shoe.inventory.some(inv => 
+                    inv.color.toLowerCase().includes(term) || 
+                    inv.size.toLowerCase().includes(term)
+                );
+            });
+            
+            renderShoeSelectionResults(filtered);
         }
 
         function openMultiSizeModal(shoeId, color) {
             currentMultiSizeSelection = { shoeId, color };
-            
-            // Find the shoe data
             getShoes().then(shoes => {
                 const shoe = shoes.find(s => s.id === shoeId);
-                if (!shoe) return;
-                
-                const colorInventory = shoe.inventory.filter(inv => inv.color === color);
+                const items = shoe.inventory.filter(i => i.color === color);
                 
                 document.getElementById('selectedShoeName').textContent = shoe.name;
                 document.getElementById('selectedColor').textContent = color;
+                document.getElementById('multiSizePrice').value = (shoe.cost || 0) * 2;
                 
                 const container = document.getElementById('sizeSelectionContainer');
-                container.innerHTML = colorInventory.map(inv => `
+                container.innerHTML = items.map(item => `
                     <div class="size-option">
-                        <input type="checkbox" id="size_${inv.size}" value="${inv.size}" data-max="${inv.qty}" onchange="updateSizeSummary()">
-                        <label for="size_${inv.size}">Size ${inv.size}</label>
-                        <input type="number" min="1" max="${inv.qty}" value="1" style="width: 60px;" 
-                               onchange="updateSizeQty('${inv.size}', this.value)" 
-                               oninput="validateSizeQty('${inv.size}', this)">
+                        <input type="checkbox" id="size_${item.size}" value="${item.size}" data-max="${item.qty}" onchange="updateSizeSummary()">
+                        <label for="size_${item.size}">Size ${item.size}</label>
+                        <input type="number" min="1" max="${item.qty}" value="1" onchange="validateSizeQty('${item.size}', this)">
                     </div>
                 `).join('');
                 
                 updateSizeSummary();
-                document.getElementById('multiSizePrice').value = (shoe.cost || 0) * 2; // Default to 2x cost
-                
                 document.getElementById('multiSizeModal').classList.add('active');
                 closeShoeSelectionModal();
             });
@@ -1874,85 +1534,50 @@
         }
 
         function validateSizeQty(size, input) {
-            const checkbox = document.getElementById(`size_${size}`);
-            const maxQty = parseInt(checkbox.dataset.max);
-            if (parseInt(input.value) > maxQty) {
-                input.value = maxQty;
-            }
-            if (parseInt(input.value) < 1) {
-                input.value = 1;
-            }
+            const max = parseInt(document.getElementById(`size_${size}`).dataset.max);
+            if (parseInt(input.value) > max) input.value = max;
+            if (parseInt(input.value) < 1) input.value = 1;
             updateSizeSummary();
         }
 
-        function updateSizeQty(size, qty) {
-            const checkbox = document.getElementById(`size_${size}`);
-            if (checkbox.checked) {
-                updateSizeSummary();
-            }
-        }
-
         function updateSizeSummary() {
-            const selectedSizes = [];
-            const checkboxes = document.querySelectorAll('#sizeSelectionContainer input[type="checkbox"]');
-            
-            checkboxes.forEach(cb => {
-                if (cb.checked) {
-                    const size = cb.value;
-                    const qtyInput = cb.parentElement.querySelector('input[type="number"]');
-                    const qty = parseInt(qtyInput.value) || 1;
-                    selectedSizes.push({ size, qty });
-                }
+            const selected = [];
+            document.querySelectorAll('#sizeSelectionContainer input[type="checkbox"]:checked').forEach(cb => {
+                const qty = cb.parentElement.querySelector('input[type="number"]').value;
+                selected.push(`${qty}x Size ${cb.value}`);
             });
-            
-            const summary = document.getElementById('sizeSummary');
-            if (selectedSizes.length === 0) {
-                summary.textContent = 'No sizes selected';
-                summary.style.color = '#d32f2f';
-            } else {
-                const totalPairs = selectedSizes.reduce((sum, s) => sum + s.qty, 0);
-                const sizeList = selectedSizes.map(s => `${s.qty}x Size ${s.size}`).join(', ');
-                summary.innerHTML = `<strong>Selected:</strong> ${totalPairs} pairs (${sizeList})`;
-                summary.style.color = '#43a047';
-            }
+            document.getElementById('sizeSummary').textContent = selected.length ? `Selected: ${selected.join(', ')}` : 'No sizes selected';
         }
 
         function addMultiSizeToSale() {
             const price = parseFloat(document.getElementById('multiSizePrice').value);
-            if (!price || price < 0) {
-                alert('Please enter a valid price');
+            if (!price || price <= 0) {
+                alert('Enter valid price');
                 return;
             }
-            
-            const selectedSizes = [];
+
             const checkboxes = document.querySelectorAll('#sizeSelectionContainer input[type="checkbox"]:checked');
-            
             if (checkboxes.length === 0) {
-                alert('Please select at least one size');
+                alert('Select at least one size');
                 return;
             }
-            
+
             getShoes().then(shoes => {
                 const shoe = shoes.find(s => s.id === currentMultiSizeSelection.shoeId);
                 
                 checkboxes.forEach(cb => {
-                    const size = cb.value;
-                    const qtyInput = cb.parentElement.querySelector('input[type="number"]');
-                    const qty = parseInt(qtyInput.value) || 1;
-                    
-                    const saleItem = {
-                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    const qty = parseInt(cb.parentElement.querySelector('input[type="number"]').value);
+                    currentSaleItems.push({
+                        id: Date.now().toString() + Math.random(),
                         shoeId: shoe.id,
                         shoeName: shoe.name,
                         atno: shoe.atno || 'N/A',
                         color: currentMultiSizeSelection.color,
-                        size: size,
+                        size: cb.value,
                         qty: qty,
                         pricePerPair: price,
                         total: qty * price
-                    };
-                    
-                    currentSaleItems.push(saleItem);
+                    });
                 });
                 
                 renderSaleItems();
@@ -1960,243 +1585,129 @@
             });
         }
 
-        function removeSaleItem(itemId) {
-            currentSaleItems = currentSaleItems.filter(item => item.id !== itemId);
+        function removeSaleItem(id) {
+            currentSaleItems = currentSaleItems.filter(i => i.id !== id);
             renderSaleItems();
-        }
-
-        function removeEditSaleItem(itemId) {
-            saleItemsForEdit = saleItemsForEdit.filter(item => item.id !== itemId);
-            renderEditSaleItems();
         }
 
         function renderSaleItems() {
             const container = document.getElementById('saleItemsCart');
-            
             if (currentSaleItems.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Sale" to begin.</p>';
-                updateSaleTotal();
-                return;
-            }
-
-            container.innerHTML = currentSaleItems.map(item => `
-                <div class="cart-item">
-                    <div>
+                container.innerHTML = '<p class="text-center text-muted" style="padding: 20px;">Cart is empty</p>';
+            } else {
+                container.innerHTML = currentSaleItems.map(item => `
+                    <div class="cart-item">
                         <div class="cart-item-header">${item.shoeName}</div>
-                        <div class="cart-item-detail">${item.color} - Size ${item.size} | ATNO: ${item.atno}</div>
+                        <div class="cart-item-details">
+                            ${item.color} - Size ${item.size} | ATNO: ${item.atno}<br>
+                            ${item.qty} pairs @ KSh ${item.pricePerPair.toFixed(2)}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                            <strong>Total: KSh ${item.total.toFixed(2)}</strong>
+                            <button onclick="removeSaleItem('${item.id}')" class="btn-danger btn-small" style="width: auto;">Remove</button>
+                        </div>
                     </div>
-                    <div>
-                        <label>Qty</label>
-                        <input type="number" value="${item.qty}" min="1" readonly>
-                    </div>
-                    <div>
-                        <label>Price</label>
-                        <input type="number" value="${item.pricePerPair.toFixed(2)}" min="0" step="0.01" readonly>
-                    </div>
-                    <div>
-                        <label>Total</label>
-                        <input type="text" value="KSh ${item.total.toFixed(2)}" readonly>
-                    </div>
-                    <div>
-                        <button class="btn-danger" onclick="removeSaleItem('${item.id}')">Remove</button>
-                    </div>
-                </div>
-            `).join('');
-
+                `).join('');
+            }
             updateSaleTotal();
         }
 
-        function renderEditSaleItems() {
-            const container = document.getElementById('editSaleItemsCart');
-            
-            if (saleItemsForEdit.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3; padding: 30px;">No items in this sale.</p>';
-                updateEditSaleTotal();
-                return;
-            }
-
-            container.innerHTML = saleItemsForEdit.map(item => `
-                <div class="cart-item">
-                    <div>
-                        <div class="cart-item-header">${item.shoeName}</div>
-                        <div class="cart-item-detail">ATNO: ${item.atno} | ${item.color} - Size ${item.size}</div>
-                    </div>
-                    <div>
-                        <label>Qty</label>
-                        <input type="number" value="${item.qty}" min="1" onchange="updateEditItemQty('${item.id}', this.value)">
-                    </div>
-                    <div>
-                        <label>Price</label>
-                        <input type="number" value="${item.pricePerPair.toFixed(2)}" min="0" step="0.01" onchange="updateEditItemPrice('${item.id}', this.value)">
-                    </div>
-                    <div>
-                        <label>Total</label>
-                        <input type="text" value="KSh ${item.total.toFixed(2)}" readonly>
-                    </div>
-                    <div>
-                        <button class="btn-danger" onclick="removeEditSaleItem('${item.id}')">Remove</button>
-                    </div>
-                </div>
-            `).join('');
-
-            updateEditSaleTotal();
-        }
-
-        function updateEditItemQty(itemId, newQty) {
-            const item = saleItemsForEdit.find(i => i.id === itemId);
-            if (item) {
-                item.qty = parseInt(newQty);
-                item.total = item.qty * item.pricePerPair;
-                renderEditSaleItems();
-            }
-        }
-
-        function updateEditItemPrice(itemId, newPrice) {
-            const item = saleItemsForEdit.find(i => i.id === itemId);
-            if (item) {
-                item.pricePerPair = parseFloat(newPrice);
-                item.total = item.qty * item.pricePerPair;
-                renderEditSaleItems();
-            }
-        }
-
         function updateSaleTotal() {
-            const grandTotal = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
-            document.getElementById('grandTotal').textContent = `KSh ${grandTotal.toFixed(2)}`;
-            document.getElementById('completeSaleBtn').disabled = currentSaleItems.length === 0;
-            validatePayment();
-        }
-
-        function updateEditSaleTotal() {
-            const grandTotal = saleItemsForEdit.reduce((sum, item) => sum + item.total, 0);
-            document.getElementById('editGrandTotal').textContent = `KSh ${grandTotal.toFixed(2)}`;
-        }
-
-        // Payment calculation
-        document.getElementById('mpesaAmount').addEventListener('input', validatePayment);
-        document.getElementById('cashAmount').addEventListener('input', validatePayment);
-
-        function validatePayment() {
-            const mpesa = parseFloat(document.getElementById('mpesaAmount').value) || 0;
-            const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
-            const total = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
-            const paymentTotal = mpesa + cash;
+            const total = currentSaleItems.reduce((sum, i) => sum + i.total, 0);
+            document.getElementById('grandTotal').textContent = `KSh ${total.toFixed(2)}`;
             
-            document.getElementById('paymentStatus').textContent = 
-                Math.abs(paymentTotal - total) < 0.01 ? 'BALANCED ✓' : `UNBALANCED (Diff: KSh ${(paymentTotal - total).toFixed(2)})`;
-            document.getElementById('paymentStatus').style.color = 
-                Math.abs(paymentTotal - total) < 0.01 ? '#43a047' : '#d32f2f';
-        }
-
-        // SALES FORM SUBMIT
-        document.getElementById('salesForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            if (currentSaleItems.length === 0) {
-                alert('Please add at least one item to the sale');
-                return;
-            }
-
-            const saleDate = document.getElementById('saleDate').value;
-            const customerName = document.getElementById('customerName').value.trim();
             const mpesa = parseFloat(document.getElementById('mpesaAmount').value) || 0;
             const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
-            const grandTotal = currentSaleItems.reduce((sum, item) => sum + item.total, 0);
+            const balanced = Math.abs((mpesa + cash) - total) < 0.01;
+            
+            document.getElementById('paymentStatus').textContent = balanced ? 'BALANCED ✓' : 'UNBALANCED';
+            document.getElementById('paymentStatus').style.color = balanced ? 'var(--success-color)' : 'var(--danger-color)';
+            document.getElementById('completeSaleBtn').disabled = !balanced || currentSaleItems.length === 0;
+        }
 
-            if (Math.abs(mpesa + cash - grandTotal) > 0.01) {
-                alert(`Payment amounts (KSh ${(mpesa + cash).toFixed(2)}) don't match sale total (KSh ${grandTotal.toFixed(2)})`);
-                return;
-            }
+        document.getElementById('mpesaAmount').addEventListener('input', updateSaleTotal);
+        document.getElementById('cashAmount').addEventListener('input', updateSaleTotal);
 
-            // Check and update inventory
-            const shoes = await getShoes();
-            for (let item of currentSaleItems) {
-                const shoe = shoes.find(s => s.id === item.shoeId);
-                const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                
-                if (!invItem || invItem.qty < item.qty) {
-                    alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
-                    return;
-                }
-                invItem.qty -= item.qty;
-            }
+        document.getElementById('salesForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (currentSaleItems.length === 0) return;
 
-            // Update inventory in database
-            for (let shoe of shoes) {
-                await updateShoe(shoe.id, {
-                    date: shoe.date,
-                    name: shoe.name,
-                    atno: shoe.atno,
-                    supplier: shoe.supplier,
-                    cost: shoe.cost,
-                    inventory: shoe.inventory,
-                    updatedAt: new Date().toISOString()
-                });
-            }
-
-            // Save sale
             const sale = {
-                date: saleDate,
-                customerName: customerName || 'N/A',
+                date: document.getElementById('saleDate').value,
+                customerName: document.getElementById('customerName').value || 'Walk-in',
                 items: [...currentSaleItems],
-                mpesa: mpesa,
-                cash: cash,
-                total: grandTotal,
+                mpesa: parseFloat(document.getElementById('mpesaAmount').value) || 0,
+                cash: parseFloat(document.getElementById('cashAmount').value) || 0,
+                total: currentSaleItems.reduce((sum, i) => sum + i.total, 0),
                 createdAt: new Date().toISOString()
             };
 
-            const success = await saveSale(sale);
-            if (success) {
-                alert('Sale recorded successfully!');
-                this.reset();
+            const shoes = await getShoes();
+            for (let item of currentSaleItems) {
+                const shoe = shoes.find(s => s.id === item.shoeId);
+                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                if (inv.qty < item.qty) {
+                    alert(`Insufficient stock for ${item.shoeName} ${item.color} Size ${item.size}`);
+                    return;
+                }
+                inv.qty -= item.qty;
+            }
+
+            for (let shoe of shoes) {
+                await updateShoe(shoe.id, { ...shoe, updatedAt: new Date().toISOString() });
+            }
+
+            if (await saveSale(sale)) {
+                alert('✅ Sale completed');
+                e.target.reset();
                 document.getElementById('saleDate').valueAsDate = new Date();
                 currentSaleItems = [];
                 renderSaleItems();
                 loadSales();
-            } else {
-                alert('Failed to record sale. Please try again.');
+                loadInventory();
             }
         });
 
-        async function loadSales() {
-            const sales = await getSales();
-            sales.sort((a, b) => new Date(b.date) - new Date(a.date));
+        function renderSalesList(sales) {
             const container = document.getElementById('salesList');
-
             if (sales.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No sales recorded yet</p>';
+                container.innerHTML = '<p class="empty-state">No sales found</p>';
                 return;
             }
 
-            container.innerHTML = sales.slice(0, 20).map(sale => `
+            container.innerHTML = sales.sort((a,b) => new Date(b.date) - new Date(a.date)).map(sale => `
                 <div class="sale-item">
                     <div class="sale-header">
-                        <span>Sale #${sale.id ? sale.id.substring(sale.id.length - 6) : 'N/A'}</span>
-                        <span>KSh ${sale.total.toFixed(2)}</span>
+                        <span>Sale #${sale.id.slice(-6)}</span>
+                        <strong>KSh ${sale.total.toFixed(2)}</strong>
                     </div>
                     <div class="sale-details">
-                        <strong>Date:</strong> ${sale.date} | <strong>Customer:</strong> ${sale.customerName}<br>
-                        <strong>Items:</strong> ${sale.items ? sale.items.length : 0} item(s)<br>
-                        ${sale.items ? sale.items.map(item => 
-                            `${item.qty}x ${item.shoeName} (${item.color}, Size ${item.size}) @ KSh ${item.pricePerPair.toFixed(2)}`
-                        ).join('<br>') : ''}
+                        <strong>Date:</strong> ${sale.date}<br>
+                        <strong>Customer:</strong> ${sale.customerName}<br>
+                        ${sale.items.map(i => `${i.qty}x ${i.shoeName} (${i.color}, ${i.size}) @ KSh ${i.pricePerPair.toFixed(2)}`).join('<br>')}
                         <br><strong>Payment:</strong> M-Pesa: KSh ${sale.mpesa.toFixed(2)} | Cash: KSh ${sale.cash.toFixed(2)}
                     </div>
-                    <div class="card-actions" style="margin-top: 10px;">
-                        <button onclick="editSale('${sale.id}')" class="btn-secondary">Edit Sale</button>
-                        <button onclick="deleteSaleHandler('${sale.id}')" class="btn-danger">Delete Sale</button>
+                    <div class="sale-actions">
+                        <button onclick="editSale('${sale.id}')" class="btn-secondary btn-small">Edit</button>
+                        <button onclick="deleteSale('${sale.id}')" class="btn-danger btn-small">Delete</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function editSale(saleId) {
+        async function loadSales() {
             const sales = await getSales();
-            const sale = sales.find(s => s.id === saleId);
+            allSalesData = sales;
+            renderSalesList(sales);
+        }
+
+        async function editSale(id) {
+            const sales = await getSales();
+            const sale = sales.find(s => s.id === id);
             if (!sale) return;
 
-            editingSaleId = saleId;
-            saleItemsForEdit = JSON.parse(JSON.stringify(sale.items || [])); // Deep copy
+            editingSaleId = id;
+            saleItemsForEdit = JSON.parse(JSON.stringify(sale.items));
             
             document.getElementById('editSaleDate').value = sale.date;
             document.getElementById('editCustomerName').value = sale.customerName;
@@ -2207,605 +1718,379 @@
             document.getElementById('editSaleModal').classList.add('active');
         }
 
+        function renderEditSaleItems() {
+            const container = document.getElementById('editSaleItemsCart');
+            if (saleItemsForEdit.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No items</p>';
+            } else {
+                container.innerHTML = saleItemsForEdit.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-header">${item.shoeName}</div>
+                        <div class="cart-item-details">${item.color} - Size ${item.size}</div>
+                        <div class="cart-item-actions">
+                            <input type="number" value="${item.qty}" min="1" onchange="updateEditItemQty('${item.id}', this.value)">
+                            <input type="number" value="${item.pricePerPair}" min="0" step="0.01" onchange="updateEditItemPrice('${item.id}', this.value)">
+                            <button onclick="removeEditItem('${item.id}')" class="btn-danger btn-small">Remove</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            updateEditTotal();
+        }
+
+        function updateEditItemQty(id, qty) {
+            const item = saleItemsForEdit.find(i => i.id === id);
+            if (item) {
+                item.qty = parseInt(qty);
+                item.total = item.qty * item.pricePerPair;
+                renderEditSaleItems();
+            }
+        }
+
+        function updateEditItemPrice(id, price) {
+            const item = saleItemsForEdit.find(i => i.id === id);
+            if (item) {
+                item.pricePerPair = parseFloat(price);
+                item.total = item.qty * item.pricePerPair;
+                renderEditSaleItems();
+            }
+        }
+
+        function removeEditItem(id) {
+            saleItemsForEdit = saleItemsForEdit.filter(i => i.id !== id);
+            renderEditSaleItems();
+        }
+
+        function updateEditTotal() {
+            const total = saleItemsForEdit.reduce((sum, i) => sum + i.total, 0);
+            document.getElementById('editGrandTotal').textContent = `KSh ${total.toFixed(2)}`;
+        }
+
         function closeEditSaleModal() {
             document.getElementById('editSaleModal').classList.remove('active');
             editingSaleId = null;
-            saleItemsForEdit = [];
         }
 
-        async function deleteSaleHandler(saleId) {
-            if (!confirm('Are you sure you want to delete this sale? This will return the items to inventory.')) return;
-
-            const sales = await getSales();
-            const saleIndex = sales.findIndex(s => s.id === saleId);
-            
-            if (saleIndex !== -1) {
-                // Return items to inventory
-                const shoes = await getShoes();
-                sales[saleIndex].items.forEach(item => {
-                    const shoe = shoes.find(s => s.id === item.shoeId);
-                    if (shoe) {
-                        const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                        if (invItem) {
-                            invItem.qty += item.qty;
-                        }
-                    }
-                });
-
-                // Update inventory in database
-                for (let shoe of shoes) {
-                    await updateShoe(shoe.id, {
-                        date: shoe.date,
-                        name: shoe.name,
-                        atno: shoe.atno,
-                        supplier: shoe.supplier,
-                        cost: shoe.cost,
-                        inventory: shoe.inventory,
-                        updatedAt: new Date().toISOString()
-                    });
-                }
-
-                // Remove sale
-                const success = await deleteSaleFromStorage(saleId);
-                if (success) {
-                    loadSales();
-                    alert('Sale deleted successfully!');
-                } else {
-                    alert('Failed to delete sale. Please try again.');
-                }
-            }
-        }
-
-        // EDIT SALE FORM SUBMIT
-        document.getElementById('editSaleForm').addEventListener('submit', async function(e) {
+        document.getElementById('editSaleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (saleItemsForEdit.length === 0) return;
 
-            if (saleItemsForEdit.length === 0) {
-                alert('Please add at least one item to the sale');
-                return;
-            }
+            const data = {
+                date: document.getElementById('editSaleDate').value,
+                customerName: document.getElementById('editCustomerName').value,
+                items: saleItemsForEdit,
+                mpesa: parseFloat(document.getElementById('editMpesaAmount').value) || 0,
+                cash: parseFloat(document.getElementById('editCashAmount').value) || 0,
+                total: saleItemsForEdit.reduce((sum, i) => sum + i.total, 0),
+                updatedAt: new Date().toISOString()
+            };
 
-            const saleDate = document.getElementById('editSaleDate').value;
-            const customerName = document.getElementById('editCustomerName').value.trim();
-            const mpesa = parseFloat(document.getElementById('editMpesaAmount').value) || 0;
-            const cash = parseFloat(document.getElementById('editCashAmount').value) || 0;
-            const grandTotal = saleItemsForEdit.reduce((sum, item) => sum + item.total, 0);
-
-            if (Math.abs(mpesa + cash - grandTotal) > 0.01) {
-                alert(`Payment amounts (KSh ${(mpesa + cash).toFixed(2)}) don't match sale total (KSh ${grandTotal.toFixed(2)})`);
-                return;
-            }
-
-            const sales = await getSales();
-            const saleIndex = sales.findIndex(s => s.id === editingSaleId);
-            
-            if (saleIndex !== -1) {
-                // Return old items to inventory
-                const shoes = await getShoes();
-                sales[saleIndex].items.forEach(item => {
-                    const shoe = shoes.find(s => s.id === item.shoeId);
-                    if (shoe) {
-                        const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                        if (invItem) {
-                            invItem.qty += item.qty;
-                        }
-                    }
-                });
-
-                // Deduct new items from inventory
-                for (let item of saleItemsForEdit) {
-                    const shoe = shoes.find(s => s.id === item.shoeId);
-                    if (shoe) {
-                        const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                        
-                        if (!invItem || invItem.qty < item.qty) {
-                            alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
-                            return;
-                        }
-                        invItem.qty -= item.qty;
-                    }
-                }
-
-                // Update inventory in database
-                for (let shoe of shoes) {
-                    await updateShoe(shoe.id, {
-                        date: shoe.date,
-                        name: shoe.name,
-                        atno: shoe.atno,
-                        supplier: shoe.supplier,
-                        cost: shoe.cost,
-                        inventory: shoe.inventory,
-                        updatedAt: new Date().toISOString()
-                    });
-                }
-
-                // Update sale
-                const updatedSale = {
-                    date: saleDate,
-                    customerName: customerName || 'N/A',
-                    items: [...saleItemsForEdit],
-                    mpesa: mpesa,
-                    cash: cash,
-                    total: grandTotal,
-                    updatedAt: new Date().toISOString()
-                };
-
-                const success = await updateSale(editingSaleId, updatedSale);
-                if (success) {
-                    closeEditSaleModal();
-                    loadSales();
-                    alert('Sale updated successfully!');
-                } else {
-                    alert('Failed to update sale. Please try again.');
-                }
+            if (await updateSale(editingSaleId, data)) {
+                closeEditSaleModal();
+                loadSales();
+                alert('✅ Sale updated');
             }
         });
 
-        // TRANSFER FUNCTIONALITY
+        async function deleteSale(id) {
+            if (!confirm('Delete this sale? Inventory will be restored.')) return;
+            
+            const sales = await getSales();
+            const sale = sales.find(s => s.id === id);
+            
+            const shoes = await getShoes();
+            for (let item of sale.items) {
+                const shoe = shoes.find(s => s.id === item.shoeId);
+                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                if (inv) inv.qty += item.qty;
+            }
+            
+            for (let shoe of shoes) {
+                await updateShoe(shoe.id, shoe);
+            }
+            
+            if (await deleteSaleFromStorage(id)) {
+                loadSales();
+                loadInventory();
+                alert('✅ Sale deleted');
+            }
+        }
+
         function openTransferSelectionModal() {
             document.getElementById('transferSelectionModal').classList.add('active');
             document.getElementById('transferSelectionSearch').value = '';
-            displayTransferVariants();
+            loadTransferSelection();
         }
 
         function closeTransferSelectionModal() {
             document.getElementById('transferSelectionModal').classList.remove('active');
+            document.getElementById('transferSelectionSearch').value = '';
+            cachedVariantsForTransfer = [];
         }
 
-        async function displayTransferVariants(query = '') {
+        async function loadTransferSelection() {
             const shoes = await getShoes();
-            const container = document.getElementById('transferSelectionResults');
+            cachedVariantsForTransfer = [];
             
-            let filteredVariants = [];
             shoes.forEach(shoe => {
                 shoe.inventory.forEach(inv => {
-                    const matchesQuery = !query || 
-                        shoe.name.toLowerCase().includes(query) ||
-                        (shoe.atno || '').toLowerCase().includes(query) ||
-                        inv.color.toLowerCase().includes(query) ||
-                        inv.size.toLowerCase().includes(query);
-                    
-                    if (matchesQuery) {
-                        filteredVariants.push({
-                            ...inv,
-                            shoeId: shoe.id,
-                            shoeName: shoe.name,
-                            atno: shoe.atno || 'N/A'
+                    if (inv.qty > 0) {
+                        cachedVariantsForTransfer.push({ 
+                            ...inv, 
+                            shoeId: shoe.id, 
+                            shoeName: shoe.name, 
+                            atno: shoe.atno 
                         });
                     }
                 });
             });
+            
+            renderTransferSelectionResults(cachedVariantsForTransfer);
+        }
 
-            if (filteredVariants.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No variants found</p>';
+        function renderTransferSelectionResults(variants) {
+            const container = document.getElementById('transferSelectionResults');
+            
+            if (variants.length === 0) {
+                container.innerHTML = '<p class="empty-state">No items found</p>';
                 return;
             }
 
-            container.innerHTML = filteredVariants.map(variant => `
-                <div class="variant-card" data-variant='${JSON.stringify(variant)}'>
-                    <div class="cart-item-header">${variant.shoeName}</div>
+            container.innerHTML = variants.map(v => `
+                <div class="variant-card">
+                    <div class="variant-title">${v.shoeName}</div>
                     <div class="variant-info">
-                        <strong>ATNO:</strong> ${variant.atno}<br>
-                        <strong>Color:</strong> ${variant.color}<br>
-                        <strong>Size:</strong> ${variant.size}<br>
-                        <strong>Available:</strong> ${variant.qty} pairs<br>
+                        ATNO: ${v.atno}<br>
+                        ${v.color} - Size ${v.size}<br>
+                        Stock: ${v.qty} pairs
                     </div>
-                    <div class="variant-actions">
-                        <input type="number" placeholder="Qty" min="1" max="${variant.qty}" class="transfer-qty-input">
-                        <button class="btn-success" onclick="addVariantToTransfer(this)">Add</button>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <input type="number" placeholder="Qty" min="1" max="${v.qty}" class="transfer-qty" style="flex: 1;">
+                        <button onclick="addToTransfer('${v.shoeId}', '${v.color}', '${v.size}', '${v.shoeName}', '${v.atno}', this)" class="btn-success btn-small">Add</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function addAllVariantsToTransfer() {
-            const variantCards = document.querySelectorAll('#transferSelectionResults .variant-card');
-            let addedCount = 0;
-            let errorCount = 0;
-
-            variantCards.forEach(variantCard => {
-                const variant = JSON.parse(variantCard.dataset.variant);
-                const qtyInput = variantCard.querySelector('.transfer-qty-input');
-                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
-
-                if (!qty || qty < 1) {
-                    return;
-                }
-                if (qty > variant.qty) {
-                    errorCount++;
-                    return;
-                }
-
-                const transferItem = {
-                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + addedCount,
-                    shoeId: variant.shoeId,
-                    shoeName: variant.shoeName,
-                    atno: variant.atno,
-                    color: variant.color,
-                    size: variant.size,
-                    qty: qty
-                };
-
-                currentTransferItems.push(transferItem);
-                addedCount++;
-
-                if (qtyInput) qtyInput.value = '';
-            });
-
-            if (addedCount > 0) {
-                renderTransferItems();
-                alert(`Added ${addedCount} items to transfer.`);
-                if (errorCount > 0) {
-                    alert(`${errorCount} items skipped due to insufficient quantity.`);
-                }
-                closeTransferSelectionModal();
-            } else if (errorCount > 0) {
-                alert('No items added. Some have insufficient quantity.');
-            } else {
-                alert('Please enter quantities for the items you want to transfer.');
+        function filterTransferSelection(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            
+            if (!term) {
+                renderTransferSelectionResults(cachedVariantsForTransfer);
+                return;
             }
+            
+            const filtered = cachedVariantsForTransfer.filter(v => 
+                v.shoeName.toLowerCase().includes(term) ||
+                (v.atno && v.atno.toLowerCase().includes(term)) ||
+                v.color.toLowerCase().includes(term) ||
+                v.size.toLowerCase().includes(term)
+            );
+            
+            renderTransferSelectionResults(filtered);
         }
 
-        function addVariantToTransfer(btn) {
-            const variantCard = btn.closest('.variant-card');
-            const variant = JSON.parse(variantCard.dataset.variant);
-            const qty = parseInt(variantCard.querySelector('.transfer-qty-input').value);
-
+        function addToTransfer(shoeId, color, size, shoeName, atno, btn) {
+            const qty = parseInt(btn.previousElementSibling.value);
             if (!qty || qty < 1) {
                 alert('Please enter a valid quantity');
                 return;
             }
-            if (qty > variant.qty) {
-                alert(`Only ${variant.qty} pairs available`);
-                return;
-            }
-
-            const transferItem = {
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                shoeId: variant.shoeId,
-                shoeName: variant.shoeName,
-                atno: variant.atno,
-                color: variant.color,
-                size: variant.size,
-                qty: qty
-            };
-
-            currentTransferItems.push(transferItem);
+            
+            currentTransferItems.push({
+                id: Date.now().toString(),
+                shoeId, color, size, shoeName, atno, qty
+            });
+            
             renderTransferItems();
-
-            variantCard.querySelector('.transfer-qty-input').value = '';
             closeTransferSelectionModal();
         }
 
-        function removeTransferItem(itemId) {
-            currentTransferItems = currentTransferItems.filter(item => item.id !== itemId);
+        function removeTransferItem(id) {
+            currentTransferItems = currentTransferItems.filter(i => i.id !== id);
             renderTransferItems();
         }
 
         function renderTransferItems() {
             const container = document.getElementById('transferItemsCart');
-            
             if (currentTransferItems.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3; padding: 30px;">No items added. Click "Add Item to Transfer" to begin.</p>';
+                container.innerHTML = '<p class="text-center text-muted" style="padding: 20px;">No items added</p>';
                 document.getElementById('completeTransferBtn').disabled = true;
-                return;
-            }
-
-            container.innerHTML = currentTransferItems.map(item => `
-                <div class="cart-item">
-                    <div>
+            } else {
+                container.innerHTML = currentTransferItems.map(item => `
+                    <div class="cart-item">
                         <div class="cart-item-header">${item.shoeName}</div>
-                        <div class="cart-item-detail">ATNO: ${item.atno} | ${item.color} - Size ${item.size}</div>
+                        <div class="cart-item-details">${item.color} - Size ${item.size} | Qty: ${item.qty}</div>
+                        <button onclick="removeTransferItem('${item.id}')" class="btn-danger btn-small" style="width: auto; margin-top: 8px;">Remove</button>
                     </div>
-                    <div>
-                        <label>Qty</label>
-                        <input type="number" value="${item.qty}" min="1" readonly>
-                    </div>
-                    <div>
-                        <label>&nbsp;</label>
-                        <button class="btn-danger" onclick="removeTransferItem('${item.id}')">Remove</button>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('completeTransferBtn').disabled = false;
+                `).join('');
+                document.getElementById('completeTransferBtn').disabled = false;
+            }
         }
 
-        // TRANSFER FORM SUBMIT
-        document.getElementById('transferForm').addEventListener('submit', async function(e) {
+        document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (currentTransferItems.length === 0) return;
 
-            if (currentTransferItems.length === 0) {
-                alert('Please add at least one item to the transfer');
-                return;
-            }
+            const location = document.getElementById('transferLocation').value;
+            const date = document.getElementById('transferDate').value;
 
-            const transferDate = document.getElementById('transferDate').value;
-            const location = document.getElementById('transferLocation').value.trim();
-
-            if (!location) {
-                alert('Please enter a transfer location');
-                return;
-            }
-
-            // Check and update inventory
             const shoes = await getShoes();
             for (let item of currentTransferItems) {
                 const shoe = shoes.find(s => s.id === item.shoeId);
-                const invItem = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                
-                if (!invItem || invItem.qty < item.qty) {
-                    alert(`Insufficient inventory for ${item.shoeName} (${item.color}, Size ${item.size})`);
+                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
+                if (inv.qty < item.qty) {
+                    alert(`Insufficient stock for ${item.shoeName}`);
                     return;
                 }
-                invItem.qty -= item.qty;
+                inv.qty -= item.qty;
             }
 
-            // Update inventory in database
             for (let shoe of shoes) {
-                await updateShoe(shoe.id, {
-                    date: shoe.date,
-                    name: shoe.name,
-                    atno: shoe.atno,
-                    supplier: shoe.supplier,
-                    cost: shoe.cost,
-                    inventory: shoe.inventory,
-                    updatedAt: new Date().toISOString()
-                });
+                await updateShoe(shoe.id, shoe);
             }
 
-            // Save transfers
-            let allSuccess = true;
+            let success = true;
             for (let item of currentTransferItems) {
-                const transfer = {
-                    date: transferDate,
-                    location: location,
+                if (!await saveTransfer({
+                    date,
+                    location,
                     shoeId: item.shoeId,
                     shoeName: item.shoeName,
                     color: item.color,
                     size: item.size,
                     qty: item.qty,
                     createdAt: new Date().toISOString()
-                };
-                
-                const success = await saveTransfer(transfer);
-                if (!success) {
-                    allSuccess = false;
-                }
+                })) success = false;
             }
 
-            if (allSuccess) {
-                alert('Transfer recorded successfully!');
-                this.reset();
+            if (success) {
+                alert('✅ Transfer completed');
+                e.target.reset();
                 document.getElementById('transferDate').valueAsDate = new Date();
                 currentTransferItems = [];
                 renderTransferItems();
                 loadTransfers();
-            } else {
-                alert('Some transfers failed to save. Please check your data.');
+                loadInventory();
             }
         });
 
         async function loadTransfers() {
             const transfers = await getTransfers();
-            transfers.sort((a, b) => new Date(b.date) - new Date(a.date));
             const container = document.getElementById('transfersList');
-
+            
             if (transfers.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #c8c6c3;">No transfers recorded yet</p>';
+                container.innerHTML = '<p class="empty-state">No transfers found</p>';
                 return;
             }
 
-            // Group transfers by ID (multiple items per transfer)
-            const transfersById = {};
-            transfers.forEach(transfer => {
-                if (!transfersById[transfer.id]) {
-                    transfersById[transfer.id] = {
-                        id: transfer.id,
-                        date: transfer.date,
-                        location: transfer.location,
-                        items: []
-                    };
-                }
-                transfersById[transfer.id].items.push(transfer);
+            const groups = {};
+            transfers.forEach(t => {
+                const key = `${t.date}_${t.location}`;
+                if (!groups[key]) groups[key] = { date: t.date, location: t.location, items: [], id: t.id };
+                groups[key].items.push(t);
             });
 
-            container.innerHTML = Object.values(transfersById).slice(0, 20).map(transferGroup => `
+            container.innerHTML = Object.values(groups).sort((a,b) => new Date(b.date) - new Date(a.date)).map(group => `
                 <div class="sale-item">
                     <div class="sale-header">
-                        <span>Transfer #${transferGroup.id.substring(transferGroup.id.length - 6)}</span>
-                        <span>${transferGroup.location}</span>
+                        <span>Transfer to ${group.location}</span>
+                        <span>${group.date}</span>
                     </div>
                     <div class="sale-details">
-                        <strong>Date:</strong> ${transferGroup.date}<br>
-                        <strong>Items:</strong> ${transferGroup.items.length} item(s)<br>
-                        ${transferGroup.items.map(item => 
-                            `${item.qty}x ${item.shoeName} (${item.color}, Size ${item.size})`
-                        ).join('<br>')}
+                        ${group.items.map(i => `${i.qty}x ${i.shoeName} (${i.color}, ${i.size})`).join('<br>')}
                     </div>
                 </div>
             `).join('');
         }
 
-        // CSV Functions - These will download data from Firebase
-        async function downloadInventoryCSV() {
-            const shoes = await getShoes();
-            if (shoes.length === 0) {
-                alert('No inventory data to download');
-                return;
-            }
-
-            let csv = 'ID,Date,Shoe Name,ATNO,Supplier,Cost Per Pair,Color,Size,Quantity\n';
-            
-            shoes.forEach(shoe => {
-                shoe.inventory.forEach(inv => {
-                    csv += `"${shoe.id}","${shoe.date}","${shoe.name}","${shoe.atno}","${shoe.supplier}",${shoe.cost || 0},"${inv.color}","${inv.size}",${inv.qty}\n`;
-                });
-            });
-
-            downloadCSV(csv, 'inventory_' + new Date().toISOString().split('T')[0] + '.csv');
-            alert('Inventory data downloaded successfully!');
-        }
-
-        function downloadCSV(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // REPORTS
         async function generateReport() {
-            const fromDate = document.getElementById('reportFromDate').value;
-            const toDate = document.getElementById('reportToDate').value;
-
-            let sales = await getSales();
-            let transfers = await getTransfers();
-
-            if (fromDate) {
-                sales = sales.filter(s => s.date >= fromDate);
-                transfers = transfers.filter(t => t.date >= fromDate);
-            }
-            if (toDate) {
-                sales = sales.filter(s => s.date <= toDate);
-                transfers = transfers.filter(t => t.date <= toDate);
-            }
+            const from = document.getElementById('reportFromDate').value;
+            const to = document.getElementById('reportToDate').value;
+            
+            const sales = (await getSales()).filter(s => {
+                if (from && s.date < from) return false;
+                if (to && s.date > to) return false;
+                return true;
+            });
 
             const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
             const totalMpesa = sales.reduce((sum, s) => sum + s.mpesa, 0);
             const totalCash = sales.reduce((sum, s) => sum + s.cash, 0);
-            const totalPairs = sales.reduce((sum, s) => sum + (s.items ? s.items.reduce((a, b) => a + b.qty, 0) : 0), 0);
-            
-            // Group transfers by ID for counting
-            const transferGroups = {};
-            transfers.forEach(t => {
-                if (!transferGroups[t.id]) {
-                    transferGroups[t.id] = { date: t.date, location: t.location, items: [] };
-                }
-                transferGroups[t.id].items.push(t);
-            });
-            const totalTransferPairs = transfers.reduce((sum, t) => sum + t.qty, 0);
+            const totalPairs = sales.reduce((sum, s) => sum + s.items.reduce((a,b) => a + b.qty, 0), 0);
 
-            // Sales by date
-            const salesByDate = {};
-            sales.forEach(s => {
-                if (!salesByDate[s.date]) {
-                    salesByDate[s.date] = { total: 0, mpesa: 0, cash: 0, pairs: 0 };
-                }
-                salesByDate[s.date].total += s.total;
-                salesByDate[s.date].mpesa += s.mpesa;
-                salesByDate[s.date].cash += s.cash;
-                salesByDate[s.date].pairs += s.items ? s.items.reduce((a, b) => a + b.qty, 0) : 0;
-            });
-
-            // Transfers by location
-            const transfersByLocation = {};
-            Object.values(transferGroups).forEach(group => {
-                if (!transfersByLocation[group.location]) {
-                    transfersByLocation[group.location] = { pairs: 0, count: 0 };
-                }
-                transfersByLocation[group.location].pairs += group.items.reduce((sum, item) => sum + item.qty, 0);
-                transfersByLocation[group.location].count++;
-            });
-
-            const container = document.getElementById('reportContent');
-            container.innerHTML = `
-                <div class="report-card">
-                    <h2 style="margin-bottom: 20px;">Sales Summary</h2>
-                    <div class="report-stat">
-                        <span class="stat-label">Total Sales Amount</span>
+            document.getElementById('reportContent').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-row">
+                        <span class="stat-label">Total Sales</span>
                         <span class="stat-value">KSh ${totalSales.toFixed(2)}</span>
                     </div>
-                    <div class="report-stat">
-                        <span class="stat-label">Total M-Pesa Payments</span>
+                    <div class="stat-row">
+                        <span class="stat-label">M-Pesa Payments</span>
                         <span class="stat-value">KSh ${totalMpesa.toFixed(2)}</span>
                     </div>
-                    <div class="report-stat">
-                        <span class="stat-label">Total Cash Payments</span>
+                    <div class="stat-row">
+                        <span class="stat-label">Cash Payments</span>
                         <span class="stat-value">KSh ${totalCash.toFixed(2)}</span>
                     </div>
-                    <div class="report-stat">
-                        <span class="stat-label">Total Pairs Sold</span>
+                    <div class="stat-row">
+                        <span class="stat-label">Pairs Sold</span>
                         <span class="stat-value">${totalPairs}</span>
                     </div>
-                    <div class="report-stat">
-                        <span class="stat-label">Number of Transactions</span>
+                    <div class="stat-row">
+                        <span class="stat-label">Transactions</span>
                         <span class="stat-value">${sales.length}</span>
                     </div>
-                </div>
-
-                <div class="report-card">
-                    <h2 style="margin-bottom: 20px;">Transfer Summary</h2>
-                    <div class="report-stat">
-                        <span class="stat-label">Total Pairs Transferred</span>
-                        <span class="stat-value">${totalTransferPairs}</span>
-                    </div>
-                    <div class="report-stat">
-                        <span class="stat-label">Total Transfers</span>
-                        <span class="stat-value">${Object.keys(transferGroups).length}</span>
-                    </div>
-                    ${Object.keys(transfersByLocation).length > 0 ? `
-                        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #f5f3f0;">By Location</h3>
-                        ${Object.entries(transfersByLocation).map(([location, data]) => `
-                            <div class="report-stat">
-                                <span class="stat-label">${location}</span>
-                                <span class="stat-value">${data.pairs} pairs (${data.count} transfers)</span>
-                            </div>
-                        `).join('')}
-                    ` : ''}
-                </div>
-
-                <div class="report-card">
-                    <h2 style="margin-bottom: 20px;">Sales by Date</h2>
-                    ${Object.entries(salesByDate).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([date, data]) => `
-                        <div class="report-stat">
-                            <span class="stat-label">${date}</span>
-                            <span class="stat-value">KSh ${data.total.toFixed(2)}</span>
-                        </div>
-                        <div style="padding-left: 20px; font-size: 13px; color: #a8a6a3; margin-bottom: 10px;">
-                            M-Pesa: KSh ${data.mpesa.toFixed(2)} | Cash: KSh ${data.cash.toFixed(2)} | ${data.pairs} pairs sold
-                        </div>
-                    `).join('')}
                 </div>
             `;
         }
 
-        // Initialize
-        loadInventory();
-        
-        // Remove CSV upload functions since they're not working with Firebase
-        function uploadInventoryCSV(event) {
-            alert('CSV upload is temporarily disabled for Firebase storage.');
+        async function downloadInventoryCSV() {
+            const shoes = await getShoes();
+            let csv = 'Name,ATNO,Supplier,Cost,Color,Size,Qty\n';
+            shoes.forEach(shoe => {
+                shoe.inventory.forEach(inv => {
+                    csv += `"${shoe.name}","${shoe.atno}","${shoe.supplier}",${shoe.cost},"${inv.color}","${inv.size}",${inv.qty}\n`;
+                });
+            });
+            downloadCSV(csv, 'inventory.csv');
         }
-        
-        function uploadSalesCSV(event) {
-            alert('CSV upload is temporarily disabled for Firebase storage.');
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
         }
-        
-        function uploadTransfersCSV(event) {
-            alert('CSV upload is temporarily disabled for Firebase storage.');
+
+        function updateStorageDisplay() {
+            const hasLocal = localStorage.getItem('shoes') && localStorage.getItem('shoes') !== '[]';
+            const migrated = localStorage.getItem('migrationDone') === 'true';
+            document.getElementById('migrationBanner').style.display = (hasLocal && !migrated) ? 'block' : 'none';
         }
-        
-        function downloadSalesCSV() {
-            alert('Sales CSV download is temporarily disabled for Firebase storage.');
+
+        async function migrateToFirebase() {
+            const shoes = JSON.parse(localStorage.getItem('shoes') || '[]');
+            const sales = JSON.parse(localStorage.getItem('sales') || '[]');
+            const transfers = JSON.parse(localStorage.getItem('transfers') || '[]');
+            
+            let count = 0;
+            for (const s of shoes) { await saveShoe(s); count++; }
+            for (const s of sales) { await saveSale(s); count++; }
+            for (const t of transfers) { await saveTransfer(t); count++; }
+            
+            localStorage.setItem('migrationDone', 'true');
+            updateStorageDisplay();
+            alert(`✅ Migrated ${count} records`);
+            loadInventory();
+            loadSales();
         }
-        
-        function downloadTransfersCSV() {
-            alert('Transfers CSV download is temporarily disabled for Firebase storage.');
-        }
-        
-        function downloadReport() {
-            alert('Report download is temporarily disabled for Firebase storage.');
-        }
-        
-        function openShoeSelectionModalForEdit() {
-            alert('Adding items to existing sales is temporarily disabled for Firebase storage.');
-        }
+
+        function downloadSalesCSV() { alert('Feature disabled'); }
+        function downloadTransfersCSV() { alert('Feature disabled'); }
+        function downloadReport() { alert('Feature disabled'); }
     </script>
 </body>
 </html>
