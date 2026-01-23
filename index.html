@@ -534,6 +534,17 @@
             font-size: 12px;
         }
 
+        /* NEW: Select All button styles */
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
         @media (max-width: 768px) {
             .sales-form {
                 grid-template-columns: 1fr;
@@ -557,6 +568,10 @@
 
             .cart-item {
                 grid-template-columns: 1fr;
+            }
+
+            .modal-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -827,6 +842,11 @@
             </div>
             <div class="form-group">
                 <input type="text" id="transferSelectionSearch" placeholder="Search by name, ATNO, color, or size..." style="margin-bottom: 20px;">
+            </div>
+            <!-- NEW: Select All button -->
+            <div class="modal-actions">
+                <button type="button" class="btn-success" onclick="addAllVariantsToTransfer()">Select All Shown Variants</button>
+                <button type="button" class="btn-secondary" onclick="closeTransferSelectionModal()">Cancel</button>
             </div>
             <div id="transferSelectionResults" class="shoe-variant-grid"></div>
         </div>
@@ -1951,6 +1971,58 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // NEW: Add all variants to transfer at once
+        function addAllVariantsToTransfer() {
+            const variantCards = document.querySelectorAll('#transferSelectionResults .variant-card');
+            let addedCount = 0;
+            let errorCount = 0;
+
+            variantCards.forEach(variantCard => {
+                const variant = JSON.parse(variantCard.dataset.variant);
+                const qtyInput = variantCard.querySelector('.transfer-qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1; // Default to 1 if no qty entered
+
+                if (!qty || qty < 1) {
+                    // Skip if no valid quantity
+                    return;
+                }
+                if (qty > variant.qty) {
+                    // Skip if insufficient stock
+                    errorCount++;
+                    return;
+                }
+
+                const transferItem = {
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + addedCount,
+                    shoeId: variant.shoeId,
+                    shoeName: variant.shoeName,
+                    atno: variant.atno,
+                    color: variant.color,
+                    size: variant.size,
+                    qty: qty
+                };
+
+                currentTransferItems.push(transferItem);
+                addedCount++;
+
+                // Clear the quantity input
+                if (qtyInput) qtyInput.value = '';
+            });
+
+            if (addedCount > 0) {
+                renderTransferItems();
+                alert(`Added ${addedCount} items to transfer.`);
+                if (errorCount > 0) {
+                    alert(`${errorCount} items skipped due to insufficient quantity.`);
+                }
+                closeTransferSelectionModal();
+            } else if (errorCount > 0) {
+                alert('No items added. Some have insufficient quantity.');
+            } else {
+                alert('Please enter quantities for the items you want to transfer.');
+            }
         }
 
         function addVariantToTransfer(btn) {
