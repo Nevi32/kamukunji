@@ -611,7 +611,7 @@
             <div class="info-banner">
                 <p><strong>Data Management:</strong></p>
                 <p>• Download your inventory as CSV to backup or transfer to another browser</p>
-                <p>• Upload a CSV file to restore or import inventory data</p>
+                <p>• Upload a CSV file to add to your existing inventory data</p>
             </div>
 
             <div class="toolbar">
@@ -1126,7 +1126,7 @@
                 lastGroup.querySelector('.color-input').value = color;
                 
                 lastGroup.querySelector('.sizes-container').innerHTML = '';
-                colorMap[color].forEach(sizeInfo => {
+                colorMap[inv.color].forEach(sizeInfo => {
                     addEditSizeToGroup(lastGroup.querySelector('button'));
                     const sizeRows = lastGroup.querySelectorAll('.size-row');
                     const lastRow = sizeRows[sizeRows.length - 1];
@@ -1728,8 +1728,10 @@
                         return;
                     }
 
-                    if (confirm(`Found ${newShoes.length} shoe(s) in the file. This will replace your current inventory. Continue?`)) {
-                        localStorage.setItem('shoes', JSON.stringify(newShoes));
+                    if (confirm(`Found ${newShoes.length} shoe(s) in the file. This will add to your existing inventory. Continue?`)) {
+                        const existingShoes = getShoes();
+                        const combinedShoes = [...existingShoes, ...newShoes];
+                        localStorage.setItem('shoes', JSON.stringify(combinedShoes));
                         loadInventory();
                         alert('Inventory data imported successfully!');
                     }
@@ -1793,8 +1795,10 @@
                         return;
                     }
 
-                    if (confirm(`Found ${salesData.length} sale(s) in the file. This will replace your current sales records. Continue?`)) {
-                        localStorage.setItem('sales', JSON.stringify(salesData));
+                    if (confirm(`Found ${salesData.length} sale(s) in the file. This will add to your existing sales records. Continue?`)) {
+                        const existingSales = getSales();
+                        const combinedSales = [...existingSales, ...salesData];
+                        localStorage.setItem('sales', JSON.stringify(combinedSales));
                         loadSales();
                         alert('Sales data imported successfully!');
                     }
@@ -1859,8 +1863,10 @@
                         return;
                     }
 
-                    if (confirm(`Found ${transfersData.length} transfer(s) in the file. This will replace your current transfer records. Continue?`)) {
-                        localStorage.setItem('transfers', JSON.stringify(transfersData));
+                    if (confirm(`Found ${transfersData.length} transfer(s) in the file. This will add to your existing transfer records. Continue?`)) {
+                        const existingTransfers = getTransfers();
+                        const combinedTransfers = [...existingTransfers, ...transfersData];
+                        localStorage.setItem('transfers', JSON.stringify(combinedTransfers));
                         loadTransfers();
                         alert('Transfer data imported successfully!');
                     }
