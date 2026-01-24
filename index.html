@@ -16,7 +16,7 @@
             --primary-bg: #0f0f0f;
             --secondary-bg: #1a1a1a;
             --card-bg: #252525;
-            --border-color: #333;
+            --border-color: #444;
             --accent-color: #fff;
             --success-color: #22c55e;
             --danger-color: #ef4444;
@@ -150,47 +150,51 @@
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.9rem;
+            font-weight: 600;
+            font-size: 0.95rem;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: var(--secondary-bg);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: var(--radius-sm);
             color: var(--text-primary);
-            font-size: 1rem;
+            font-size: 1.05rem;
             transition: all 0.2s;
+            min-height: 48px;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
         }
 
         button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: var(--accent-color);
             color: #000;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: 700;
+            font-size: 1.05rem;
             transition: all 0.2s;
             margin-top: 8px;
             touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
+            min-height: 52px;
         }
 
         button:active {
@@ -198,8 +202,9 @@
         }
 
         button:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
         .btn-secondary {
@@ -208,7 +213,7 @@
         }
 
         .btn-secondary:hover:not(:disabled) {
-            background: #444;
+            background: #555;
         }
 
         .btn-danger {
@@ -227,9 +232,116 @@
         }
 
         .btn-small {
-            padding: 8px 12px;
-            font-size: 0.85rem;
+            padding: 10px 16px;
+            font-size: 0.9rem;
             margin-top: 0;
+            min-height: 40px;
+        }
+
+        /* Improved Color Group Styling */
+        .color-group {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            border: 2px solid var(--border-color);
+            position: relative;
+        }
+
+        .color-group-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .color-group-header input {
+            flex: 1;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: var(--card-bg);
+            border-color: #555;
+        }
+
+        .color-group-header input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .sizes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .size-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid #444;
+        }
+
+        @media (max-width: 480px) {
+            .size-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .size-row button {
+                grid-column: 1 / -1;
+                margin-top: 4px;
+            }
+        }
+
+        .size-row input {
+            margin: 0;
+            min-height: 44px;
+            font-size: 1rem;
+        }
+
+        .add-size-btn {
+            width: 100%;
+            margin-top: 0;
+            background: transparent;
+            border: 2px dashed var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .add-size-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .remove-color-btn {
+            width: auto;
+            padding: 12px 16px;
+            margin: 0;
+            background: var(--danger-color);
+            color: white;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+
+        .add-color-btn {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: 2px dashed var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-top: 8px;
+            border-radius: var(--radius);
+        }
+
+        .add-color-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: rgba(255,255,255,0.05);
         }
 
         .search-grid {
@@ -286,7 +398,7 @@
 
         .shoe-card:hover {
             transform: translateY(-2px);
-            border-color: #444;
+            border-color: #555;
         }
 
         .shoe-card h3 {
@@ -314,12 +426,13 @@
 
         .color-badge {
             display: inline-block;
-            padding: 2px 8px;
+            padding: 4px 12px;
             background: var(--secondary-bg);
-            border-radius: 12px;
+            border-radius: 20px;
             margin: 2px 4px 2px 0;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             border: 1px solid var(--border-color);
+            font-weight: 500;
         }
 
         .cart-container {
@@ -339,6 +452,12 @@
             border: 1px solid var(--border-color);
             display: grid;
             gap: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .cart-item-header {
@@ -375,6 +494,7 @@
             padding: 16px;
             border-radius: var(--radius);
             border: 1px solid var(--border-color);
+            animation: slideIn 0.3s ease;
         }
 
         .sale-header {
@@ -429,10 +549,12 @@
         @media (min-width: 640px) {
             .modal-content {
                 min-height: auto;
-                max-width: 600px;
+                max-width: 700px;
                 margin: 40px auto;
                 border-radius: var(--radius);
                 border: 1px solid var(--border-color);
+                max-height: 90vh;
+                overflow-y: auto;
             }
         }
 
@@ -440,9 +562,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
             position: sticky;
             top: 0;
             background: var(--card-bg);
@@ -451,16 +573,19 @@
 
         .close-btn {
             background: var(--danger-color);
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             padding: 0;
             margin: 0;
+            border: none;
+            color: white;
+            font-weight: bold;
         }
 
         .variant-grid {
@@ -575,32 +700,51 @@
             color: var(--text-muted);
         }
 
-        .color-group {
-            background: var(--secondary-bg);
-            padding: 16px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 12px;
-            border: 1px solid var(--border-color);
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(4px);
         }
 
-        .size-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 8px;
-            margin-bottom: 8px;
-            align-items: end;
+        .loading-overlay.active {
+            display: flex;
         }
 
-        @media (max-width: 480px) {
-            .size-row {
-                grid-template-columns: 1fr;
-            }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
-        /* New Sales UI Styles */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Size Selection Styles */
         .size-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 12px;
             margin: 16px 0;
         }
@@ -609,7 +753,7 @@
             background: var(--secondary-bg);
             border: 2px solid var(--border-color);
             border-radius: var(--radius-sm);
-            padding: 12px;
+            padding: 16px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
@@ -620,56 +764,59 @@
         .size-box:hover:not(.disabled) {
             border-color: var(--accent-color);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .size-box.selected {
             background: var(--accent-color);
             border-color: var(--accent-color);
             color: #000;
+            transform: scale(1.05);
         }
 
         .size-box.disabled {
-            opacity: 0.4;
+            opacity: 0.3;
             cursor: not-allowed;
             background: #1a1a1a;
         }
 
         .size-box .size-label {
             font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 4px;
+            font-size: 1.2rem;
+            margin-bottom: 6px;
         }
 
         .size-box .stock-label {
-            font-size: 0.75rem;
-            opacity: 0.8;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            font-weight: 500;
         }
 
         .size-box.selected .stock-label {
             color: #000;
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         .quantity-control {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             margin-top: 24px;
-            padding: 16px;
+            padding: 20px;
             background: var(--secondary-bg);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
         }
 
         .qty-btn {
-            width: 48px;
-            height: 48px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             border: 2px solid var(--border-color);
             background: var(--card-bg);
             color: var(--text-primary);
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
             cursor: pointer;
             display: flex;
@@ -692,50 +839,39 @@
         }
 
         .qty-display {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
             min-width: 80px;
             text-align: center;
             color: var(--accent-color);
         }
 
-        .stock-info {
-            text-align: center;
-            margin-top: 8px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .stock-info .available {
-            color: var(--success-color);
-            font-weight: 600;
-        }
-
-        .stock-info .low {
-            color: var(--warning-color);
-            font-weight: 600;
-        }
-
-        .stock-info .out {
-            color: var(--danger-color);
-            font-weight: 600;
-        }
-
         .selected-sizes-preview {
-            margin-top: 20px;
-            max-height: 200px;
+            margin-top: 24px;
+            max-height: 250px;
             overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .selected-sizes-preview::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .selected-sizes-preview::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
         }
 
         .selected-size-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
+            padding: 16px;
             background: var(--secondary-bg);
             border-radius: var(--radius-sm);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             border: 1px solid var(--border-color);
+            animation: slideIn 0.2s ease;
         }
 
         .selected-size-info {
@@ -745,65 +881,76 @@
         .selected-size-name {
             font-weight: 600;
             color: var(--accent-color);
+            font-size: 1.05rem;
+            margin-bottom: 4px;
         }
 
         .selected-size-qty {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-secondary);
         }
 
         .remove-size-btn {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--danger-color);
             color: white;
             border: none;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
             padding: 0;
+            margin-left: 12px;
         }
 
         .price-input-group {
-            margin: 20px 0;
+            margin: 24px 0;
+        }
+
+        .price-input-group input {
+            font-size: 1.2rem;
+            font-weight: 600;
         }
 
         .validation-message {
             color: var(--danger-color);
-            font-size: 0.9rem;
-            margin-top: 8px;
+            font-size: 1rem;
+            margin-top: 12px;
             text-align: center;
-            min-height: 20px;
+            min-height: 24px;
+            font-weight: 500;
         }
 
         .cart-item-sizes {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 4px;
+            gap: 6px;
+            margin-top: 6px;
         }
 
         .cart-size-tag {
             background: var(--secondary-bg);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 0.85rem;
             border: 1px solid var(--border-color);
+            font-weight: 500;
         }
 
         .shoe-search-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 16px;
             background: var(--secondary-bg);
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: var(--radius-sm);
             color: var(--text-primary);
-            font-size: 1rem;
+            font-size: 1.1rem;
             margin-bottom: 16px;
+            font-weight: 500;
         }
 
         .shoe-search-input:focus {
@@ -813,21 +960,72 @@
 
         .color-section {
             margin-bottom: 24px;
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: var(--radius);
             overflow: hidden;
+            background: var(--secondary-bg);
         }
 
         .color-header {
-            background: var(--secondary-bg);
-            padding: 12px 16px;
-            font-weight: 600;
+            background: #2a2a2a;
+            padding: 16px;
+            font-weight: 700;
             color: var(--accent-color);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .color-content {
-            padding: 16px;
+            padding: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 16px 28px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            display: none;
+            animation: slideUp 0.3s ease;
+            z-index: 3000;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Edit Mode Specific Styles */
+        .edit-section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .current-stock-badge {
+            display: inline-block;
+            background: var(--info-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -866,12 +1064,14 @@
                         <label>Cost per Pair (KSh)</label>
                         <input type="number" id="costPerPair" placeholder="0.00" min="0" step="0.01">
                     </div>
+                    
                     <div class="form-group">
-                        <label>Colors & Sizes</label>
+                        <label>Colors & Sizes Configuration</label>
                         <div id="colorGroups"></div>
-                        <button type="button" onclick="addColorGroup()" class="btn-secondary">+ Add Color</button>
+                        <button type="button" onclick="addColorGroup()" class="add-color-btn">+ Add Color Variant</button>
                     </div>
-                    <button type="submit">Save to Inventory</button>
+                    
+                    <button type="submit" style="margin-top: 24px;">Save to Inventory</button>
                 </form>
             </div>
 
@@ -890,8 +1090,8 @@
             </div>
 
             <div class="info-banner">
-                <p><strong>Storage:</strong> <span id="storageInfo">Firebase Cloud</span></p>
-                <p>Backup your data regularly using the download button below.</p>
+                <p><strong>Storage:</strong> <span>Firebase Cloud</span></p>
+                <p>Optimized for fast updates ⚡</p>
             </div>
 
             <div class="toolbar">
@@ -940,21 +1140,21 @@
                         </div>
                     </div>
 
-                    <div style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+                    <div style="background: var(--secondary-bg); padding: 20px; border-radius: var(--radius-sm); margin-bottom: 16px; border: 1px solid var(--border-color);">
                         <div class="form-group">
                             <label>M-Pesa Amount (KSh)</label>
                             <input type="number" id="mpesaAmount" min="0" step="0.01" value="0">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 0;">
                             <label>Cash Amount (KSh)</label>
                             <input type="number" id="cashAmount" min="0" step="0.01" value="0">
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                            <span style="font-size: 1.1rem; font-weight: 600;">Total:</span>
-                            <span id="grandTotal" style="font-size: 1.3rem; font-weight: 700; color: var(--success-color);">KSh 0.00</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid var(--border-color);">
+                            <span style="font-size: 1.2rem; font-weight: 700;">Total:</span>
+                            <span id="grandTotal" style="font-size: 1.5rem; font-weight: 800; color: var(--success-color);">KSh 0.00</span>
                         </div>
-                        <div style="text-align: center; margin-top: 8px;">
-                            <span id="paymentStatus" style="color: var(--danger-color); font-weight: 600; font-size: 0.9rem;">UNBALANCED</span>
+                        <div style="text-align: center; margin-top: 12px;">
+                            <span id="paymentStatus" style="color: var(--danger-color); font-weight: 700; font-size: 1rem; padding: 4px 12px; border-radius: 20px; background: rgba(239, 68, 68, 0.1);">UNBALANCED</span>
                         </div>
                     </div>
 
@@ -1029,10 +1229,20 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing...</div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Edit Modal - Improved Layout -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Edit Item</h2>
+                <h2>Edit Inventory Item</h2>
                 <button class="close-btn" onclick="closeEditModal()">✕</button>
             </div>
             <form id="editForm">
@@ -1056,17 +1266,21 @@
                     <label>Cost per Pair</label>
                     <input type="number" id="editCostPerPair" min="0" step="0.01">
                 </div>
+                
                 <div class="form-group">
-                    <label>Inventory</label>
+                    <label style="font-size: 1.1rem; color: var(--accent-color);">Manage Colors & Sizes</label>
+                    <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">
+                        Edit existing variants or add new ones below
+                    </p>
                     <div id="editColorGroups"></div>
-                    <button type="button" onclick="addEditColorGroup()" class="btn-secondary">+ Add Color</button>
+                    <button type="button" onclick="addEditColorGroup()" class="add-color-btn">+ Add New Color Variant</button>
                 </div>
-                <button type="submit">Update Item</button>
+                
+                <button type="submit" style="margin-top: 24px; font-size: 1.1rem;">Update Item</button>
             </form>
         </div>
     </div>
 
-    <!-- New Improved Shoe Selection Modal -->
     <div id="shoeSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1078,7 +1292,6 @@
         </div>
     </div>
 
-    <!-- New Improved Size Selection Modal -->
     <div id="sizeSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1086,9 +1299,7 @@
                 <button class="close-btn" onclick="closeSizeSelectionModal()">✕</button>
             </div>
             
-            <div id="sizeSelectionContent">
-                <!-- Dynamic content loaded here -->
-            </div>
+            <div id="sizeSelectionContent"></div>
 
             <div class="price-input-group">
                 <label>Selling Price per Pair (KSh)</label>
@@ -1109,7 +1320,7 @@
                 <h2>Select for Transfer</h2>
                 <button class="close-btn" onclick="closeTransferSelectionModal()">✕</button>
             </div>
-            <input type="text" id="transferSelectionSearch" placeholder="Search shoes..." style="margin-bottom: 16px;">
+            <input type="text" id="transferSelectionSearch" placeholder="Search shoes..." style="margin-bottom: 16px; padding: 14px; font-size: 1.1rem;">
             <div id="transferSelectionResults" class="variant-grid"></div>
         </div>
     </div>
@@ -1133,17 +1344,17 @@
                     <label>Items</label>
                     <div id="editSaleItemsCart" class="cart-container"></div>
                 </div>
-                <div style="background: var(--secondary-bg); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+                <div style="background: var(--secondary-bg); padding: 20px; border-radius: var(--radius-sm); margin-bottom: 16px; border: 1px solid var(--border-color);">
                     <div class="form-group">
                         <label>M-Pesa</label>
                         <input type="number" id="editMpesaAmount" min="0" step="0.01">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 0;">
                         <label>Cash</label>
                         <input type="number" id="editCashAmount" min="0" step="0.01">
                     </div>
-                    <div style="text-align: right; margin-top: 8px;">
-                        <strong>Total: <span id="editGrandTotal" style="color: var(--success-color);">KSh 0.00</span></strong>
+                    <div style="text-align: right; margin-top: 12px; font-size: 1.2rem; font-weight: 700;">
+                        Total: <span id="editGrandTotal" style="color: var(--success-color);">KSh 0.00</span>
                     </div>
                 </div>
                 <button type="submit">Update Sale</button>
@@ -1152,8 +1363,8 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js ";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js ";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
         import { 
             getFirestore, 
             collection, 
@@ -1164,8 +1375,10 @@
             doc,
             query,
             where,
-            orderBy
-        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js ";
+            orderBy,
+            writeBatch,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBKqd_AGJcPaTbb8y-pMiNUoGkFkQqqXXU",
@@ -1191,6 +1404,8 @@
         window.query = query;
         window.where = where;
         window.orderBy = orderBy;
+        window.writeBatch = writeBatch;
+        window.getDoc = getDoc;
         window.firebaseReady = true;
         
         if (typeof initializeAppData === 'function') {
@@ -1207,10 +1422,26 @@
         let currentShoeSelection = null;
         let tempSelectedSizes = [];
         let allSalesData = [];
-        
         let cachedShoesForSelection = [];
+        let isProcessing = false;
 
         const COLLECTIONS = { SHOES: 'shoes', SALES: 'sales', TRANSFERS: 'transfers' };
+
+        function showLoading(text = 'Processing...') {
+            document.querySelector('.loading-text').textContent = text;
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
 
         function initializeAppData() {
             document.getElementById('invDate').valueAsDate = new Date();
@@ -1248,29 +1479,47 @@
                 });
                 return shoes;
             } catch (e) {
-                alert('Error loading inventory: ' + e.message);
+                console.error('Error loading inventory:', e);
                 return [];
             }
         }
 
         async function saveShoe(shoe) {
-            try { await addDoc(collection(db, COLLECTIONS.SHOES), shoe); return true; }
-            catch (e) { alert('Error saving: ' + e.message); return false; }
+            try { 
+                await addDoc(collection(db, COLLECTIONS.SHOES), shoe); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error saving: ' + e.message); 
+                return false; 
+            }
         }
 
         async function updateShoe(id, data) {
-            try { await updateDoc(doc(db, COLLECTIONS.SHOES, id), data); return true; }
-            catch (e) { alert('Error updating: ' + e.message); return false; }
+            try { 
+                await updateDoc(doc(db, COLLECTIONS.SHOES, id), data); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error updating: ' + e.message); 
+                return false; 
+            }
         }
 
         async function deleteShoeFromStorage(id) {
-            try { await deleteDoc(doc(db, COLLECTIONS.SHOES, id)); return true; }
-            catch (e) { alert('Error deleting: ' + e.message); return false; }
+            try { 
+                await deleteDoc(doc(db, COLLECTIONS.SHOES, id)); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error deleting: ' + e.message); 
+                return false; 
+            }
         }
 
         async function getSales() {
             try {
-                const snapshot = await getDocs(collection(db, COLLECTIONS.SALES));
+                const snapshot = await getDocs(query(collection(db, COLLECTIONS.SALES), orderBy('date', 'desc')));
                 const sales = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -1291,41 +1540,65 @@
                 });
                 return sales;
             } catch (e) {
-                alert('Error loading sales: ' + e.message);
+                console.error('Error loading sales:', e);
                 return [];
             }
         }
 
         async function saveSale(sale) {
-            try { await addDoc(collection(db, COLLECTIONS.SALES), sale); return true; }
-            catch (e) { alert('Error saving sale: ' + e.message); return false; }
+            try { 
+                await addDoc(collection(db, COLLECTIONS.SALES), sale); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error saving sale: ' + e.message); 
+                return false; 
+            }
         }
 
         async function updateSale(id, data) {
-            try { await updateDoc(doc(db, COLLECTIONS.SALES, id), data); return true; }
-            catch (e) { alert('Error updating sale: ' + e.message); return false; }
+            try { 
+                await updateDoc(doc(db, COLLECTIONS.SALES, id), data); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error updating sale: ' + e.message); 
+                return false; 
+            }
         }
 
         async function deleteSaleFromStorage(id) {
-            try { await deleteDoc(doc(db, COLLECTIONS.SALES, id)); return true; }
-            catch (e) { alert('Error deleting sale: ' + e.message); return false; }
+            try { 
+                await deleteDoc(doc(db, COLLECTIONS.SALES, id)); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error deleting sale: ' + e.message); 
+                return false; 
+            }
         }
 
         async function getTransfers() {
             try {
-                const snapshot = await getDocs(collection(db, COLLECTIONS.TRANSFERS));
+                const snapshot = await getDocs(query(collection(db, COLLECTIONS.TRANSFERS), orderBy('date', 'desc')));
                 const transfers = [];
                 snapshot.forEach(doc => transfers.push({ id: doc.id, ...doc.data() }));
                 return transfers;
             } catch (e) {
-                alert('Error loading transfers: ' + e.message);
+                console.error('Error loading transfers:', e);
                 return [];
             }
         }
 
         async function saveTransfer(transfer) {
-            try { await addDoc(collection(db, COLLECTIONS.TRANSFERS), transfer); return true; }
-            catch (e) { alert('Error saving transfer: ' + e.message); return false; }
+            try { 
+                await addDoc(collection(db, COLLECTIONS.TRANSFERS), transfer); 
+                return true; 
+            }
+            catch (e) { 
+                alert('Error saving transfer: ' + e.message); 
+                return false; 
+            }
         }
 
         function switchTab(tabName) {
@@ -1339,20 +1612,21 @@
             if (tabName === 'report') generateReport();
         }
 
+        // IMPROVED: Bigger, more visible color group inputs
         function addColorGroup() {
             const container = document.getElementById('colorGroups');
             const div = document.createElement('div');
             div.className = 'color-group';
             div.innerHTML = `
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" placeholder="Color" class="color-input" style="flex: 1;">
-                    <button type="button" onclick="this.closest('.color-group').remove()" class="btn-danger btn-small">Remove</button>
+                <div class="color-group-header">
+                    <input type="text" placeholder="Color (e.g., Red, Black)" class="color-input" style="flex: 1;">
+                    <button type="button" onclick="this.closest('.color-group').remove()" class="remove-color-btn">Remove</button>
                 </div>
                 <div class="sizes-container"></div>
-                <button type="button" onclick="addSizeToGroup(this)" class="btn-secondary btn-small">+ Size</button>
+                <button type="button" onclick="addSizeToGroup(this)" class="add-size-btn">+ Add Size</button>
             `;
             container.appendChild(div);
-            addSizeToGroup(div.querySelector('button'));
+            addSizeToGroup(div.querySelector('.add-size-btn'));
         }
 
         function addSizeToGroup(btn) {
@@ -1360,26 +1634,48 @@
             const row = document.createElement('div');
             row.className = 'size-row';
             row.innerHTML = `
-                <input type="text" placeholder="Size" class="size-input">
-                <input type="number" placeholder="Qty" min="1" class="qty-input">
+                <input type="text" placeholder="Size (e.g., 42, L, 10US)" class="size-input">
+                <input type="number" placeholder="Quantity" min="0" class="qty-input">
                 <button type="button" onclick="this.parentElement.remove()" class="btn-danger btn-small">Remove</button>
             `;
             container.appendChild(row);
         }
 
-        function addEditColorGroup() {
+        // IMPROVED: Better edit color group with clear existing data display
+        function addEditColorGroup(colorName = '', sizes = []) {
             const container = document.getElementById('editColorGroups');
             const div = document.createElement('div');
             div.className = 'color-group';
+            
+            let sizesHtml = '';
+            if (sizes.length > 0) {
+                sizes.forEach(size => {
+                    sizesHtml += `
+                        <div class="size-row">
+                            <input type="text" placeholder="Size" class="size-input" value="${size.size}">
+                            <input type="number" placeholder="Qty" min="0" class="qty-input" value="${size.qty}">
+                            <button type="button" onclick="this.parentElement.remove()" class="btn-danger btn-small">Remove</button>
+                        </div>
+                    `;
+                });
+            }
+            
             div.innerHTML = `
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" placeholder="Color" class="color-input" style="flex: 1;">
-                    <button type="button" onclick="this.closest('.color-group').remove()" class="btn-danger btn-small">Remove</button>
+                <div class="color-group-header">
+                    <input type="text" placeholder="Color name" class="color-input" value="${colorName}" style="flex: 1; font-weight: 600;">
+                    <button type="button" onclick="this.closest('.color-group').remove()" class="remove-color-btn">Remove Color</button>
                 </div>
-                <div class="sizes-container"></div>
-                <button type="button" onclick="addEditSizeToGroup(this)" class="btn-secondary btn-small">+ Size</button>
+                <div class="sizes-container">
+                    ${sizesHtml}
+                </div>
+                <button type="button" onclick="addEditSizeToGroup(this)" class="add-size-btn">+ Add Size to this Color</button>
             `;
             container.appendChild(div);
+            
+            // If no sizes were pre-populated, add one empty row
+            if (sizes.length === 0) {
+                addEditSizeToGroup(div.querySelector('.add-size-btn'));
+            }
         }
 
         function addEditSizeToGroup(btn) {
@@ -1387,8 +1683,8 @@
             const row = document.createElement('div');
             row.className = 'size-row';
             row.innerHTML = `
-                <input type="text" placeholder="Size" class="size-input">
-                <input type="number" placeholder="Qty" min="1" class="qty-input">
+                <input type="text" placeholder="Size (e.g., 42)" class="size-input">
+                <input type="number" placeholder="Quantity" min="0" class="qty-input">
                 <button type="button" onclick="this.parentElement.remove()" class="btn-danger btn-small">Remove</button>
             `;
             container.appendChild(row);
@@ -1396,6 +1692,8 @@
 
         document.getElementById('inventoryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            showLoading('Saving inventory...');
+            
             const shoe = {
                 date: document.getElementById('invDate').value,
                 name: document.getElementById('shoeName').value,
@@ -1411,13 +1709,14 @@
                 if (!color) return;
                 group.querySelectorAll('.size-row').forEach(row => {
                     const size = row.querySelector('.size-input').value.trim();
-                    const qty = parseInt(row.querySelector('.qty-input').value);
-                    if (size && qty) shoe.inventory.push({ color, size, qty });
+                    const qty = parseInt(row.querySelector('.qty-input').value) || 0;
+                    if (size && qty >= 0) shoe.inventory.push({ color, size, qty });
                 });
             });
 
             if (shoe.inventory.length === 0) {
-                alert('Add at least one color/size');
+                hideLoading();
+                alert('Add at least one color/size with quantity');
                 return;
             }
 
@@ -1427,9 +1726,10 @@
                 document.getElementById('atno').value = 'N/A';
                 document.getElementById('colorGroups').innerHTML = '';
                 addColorGroup();
-                loadInventory();
-                alert('✅ Saved successfully');
+                await loadInventory();
+                showToast('✅ Saved successfully');
             }
+            hideLoading();
         });
 
         async function loadInventory(searchParams = null) {
@@ -1461,6 +1761,12 @@
             container.innerHTML = shoes.map(shoe => {
                 const total = shoe.inventory.reduce((sum, inv) => sum + inv.qty, 0);
                 const colors = [...new Set(shoe.inventory.map(i => i.color))];
+                const colorDetails = colors.map(c => {
+                    const colorItems = shoe.inventory.filter(i => i.color === c);
+                    const sizes = colorItems.map(i => `${i.size}(${i.qty})`).join(', ');
+                    return `<span class="color-badge" title="${sizes}">${c}</span>`;
+                }).join('');
+                
                 return `
                     <div class="shoe-card">
                         <h3>${shoe.name}</h3>
@@ -1468,9 +1774,10 @@
                         <div class="shoe-detail"><strong>Date:</strong> ${shoe.date}</div>
                         <div class="shoe-detail"><strong>Supplier:</strong> ${shoe.supplier}</div>
                         <div class="shoe-detail"><strong>Cost:</strong> KSh ${(shoe.cost || 0).toFixed(2)}</div>
-                        <div class="shoe-detail"><strong>Stock:</strong> ${total} pairs</div>
-                        <div style="margin: 8px 0;">
-                            ${colors.map(c => `<span class="color-badge">${c}</span>`).join('')}
+                        <div class="shoe-detail"><strong>Total Stock:</strong> ${total} pairs</div>
+                        <div style="margin: 12px 0;">
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">Colors:</div>
+                            ${colorDetails}
                         </div>
                         <div class="card-actions">
                             <button onclick="editShoe('${shoe.id}')" class="btn-secondary btn-small">Edit</button>
@@ -1483,15 +1790,21 @@
 
         async function deleteShoe(id) {
             if (!confirm('Delete this item?')) return;
+            showLoading('Deleting...');
             if (await deleteShoeFromStorage(id)) {
-                loadInventory();
-                alert('✅ Deleted');
+                await loadInventory();
+                showToast('✅ Deleted');
             }
+            hideLoading();
         }
 
+        // OPTIMIZED: Faster edit loading with better UI
         async function editShoe(id) {
+            showLoading('Loading item...');
             const shoes = await getShoes();
             const shoe = shoes.find(s => s.id === id);
+            hideLoading();
+            
             if (!shoe) return;
 
             editingShoeId = id;
@@ -1504,27 +1817,22 @@
             const container = document.getElementById('editColorGroups');
             container.innerHTML = '';
             
+            // Group by color for better display
             const colorMap = {};
             shoe.inventory.forEach(inv => {
                 if (!colorMap[inv.color]) colorMap[inv.color] = [];
                 colorMap[inv.color].push(inv);
             });
 
+            // Add each color group with existing data clearly visible
             Object.entries(colorMap).forEach(([color, items]) => {
-                addEditColorGroup();
-                const groups = container.querySelectorAll('.color-group');
-                const lastGroup = groups[groups.length - 1];
-                lastGroup.querySelector('.color-input').value = color;
-                lastGroup.querySelector('.sizes-container').innerHTML = '';
-                
-                items.forEach(item => {
-                    addEditSizeToGroup(lastGroup.querySelector('button:last-child'));
-                    const rows = lastGroup.querySelectorAll('.size-row');
-                    const lastRow = rows[rows.length - 1];
-                    lastRow.querySelector('.size-input').value = item.size;
-                    lastRow.querySelector('.qty-input').value = item.qty;
-                });
+                addEditColorGroup(color, items);
             });
+
+            // If no inventory, add one empty group
+            if (Object.keys(colorMap).length === 0) {
+                addEditColorGroup();
+            }
 
             document.getElementById('editModal').classList.add('active');
         }
@@ -1534,8 +1842,11 @@
             editingShoeId = null;
         }
 
+        // OPTIMIZED: Faster update with loading state
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            showLoading('Updating inventory...');
+            
             const data = {
                 date: document.getElementById('editInvDate').value,
                 name: document.getElementById('editShoeName').value,
@@ -1551,16 +1862,23 @@
                 if (!color) return;
                 group.querySelectorAll('.size-row').forEach(row => {
                     const size = row.querySelector('.size-input').value.trim();
-                    const qty = parseInt(row.querySelector('.qty-input').value);
-                    if (size && qty) data.inventory.push({ color, size, qty });
+                    const qty = parseInt(row.querySelector('.qty-input').value) || 0;
+                    if (size && qty >= 0) data.inventory.push({ color, size, qty });
                 });
             });
 
+            if (data.inventory.length === 0) {
+                hideLoading();
+                alert('Add at least one color/size');
+                return;
+            }
+
             if (await updateShoe(editingShoeId, data)) {
                 closeEditModal();
-                loadInventory();
-                alert('✅ Updated');
+                await loadInventory();
+                showToast('✅ Updated successfully');
             }
+            hideLoading();
         });
 
         function performAdvancedSearch() {
@@ -1609,7 +1927,7 @@
             loadSales();
         }
 
-        // New Improved Sales Functions
+        // Sales Functions
         function openShoeSelectionModal() {
             document.getElementById('shoeSelectionModal').classList.add('active');
             document.getElementById('shoeSelectionSearch').value = '';
@@ -1619,7 +1937,6 @@
         function closeShoeSelectionModal() {
             document.getElementById('shoeSelectionModal').classList.remove('active');
             document.getElementById('shoeSelectionSearch').value = '';
-            cachedShoesForSelection = [];
         }
 
         async function loadShoeSelection() {
@@ -1631,14 +1948,10 @@
         function renderShoeSelectionResults(shoes) {
             const container = document.getElementById('shoeSelectionResults');
             
-            // Group by shoe, then by color
             const shoeGroups = {};
             shoes.forEach(shoe => {
                 if (!shoeGroups[shoe.id]) {
-                    shoeGroups[shoe.id] = {
-                        ...shoe,
-                        colors: {}
-                    };
+                    shoeGroups[shoe.id] = { ...shoe, colors: {} };
                 }
                 shoe.inventory.forEach(inv => {
                     if (inv.qty > 0) {
@@ -1703,7 +2016,6 @@
             document.getElementById('sizeModalTitle').textContent = `Select Sizes - ${shoe.name}`;
             document.getElementById('sizeModalPrice').value = (shoe.cost || 0) * 2;
             
-            // Group inventory by color
             const colorGroups = {};
             shoe.inventory.forEach(inv => {
                 if (!colorGroups[inv.color]) colorGroups[inv.color] = [];
@@ -1721,7 +2033,10 @@
                 
                 const header = document.createElement('div');
                 header.className = 'color-header';
-                header.textContent = color;
+                header.innerHTML = `
+                    <span>${color}</span>
+                    <span class="current-stock-badge">${items.reduce((a,b) => a + b.qty, 0)} pairs</span>
+                `;
                 colorSection.appendChild(header);
                 
                 const colorContent = document.createElement('div');
@@ -1771,11 +2086,9 @@
             const existingIndex = tempSelectedSizes.findIndex(s => s.id === id);
             
             if (existingIndex >= 0) {
-                // Deselect
                 tempSelectedSizes.splice(existingIndex, 1);
                 element.classList.remove('selected');
             } else {
-                // Select with qty 1
                 tempSelectedSizes.push({
                     id: id,
                     color: color,
@@ -1801,24 +2114,29 @@
             }
             
             if (tempSelectedSizes.length === 0) {
-                previewDiv.innerHTML = '<p class="text-muted text-center">No sizes selected</p>';
+                previewDiv.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">No sizes selected yet</p>';
                 return;
             }
             
-            previewDiv.innerHTML = tempSelectedSizes.map(item => `
-                <div class="selected-size-item">
-                    <div class="selected-size-info">
-                        <div class="selected-size-name">${item.color} - Size ${item.size}</div>
-                        <div class="selected-size-qty">Stock: ${item.stock} | Selected: ${item.qty}</div>
-                    </div>
-                    <div class="quantity-control" style="margin: 0; padding: 0; background: transparent; border: none;">
-                        <button type="button" class="qty-btn" onclick="updateTempQty('${item.id}', -1)" ${item.qty <= 1 ? 'disabled' : ''}>−</button>
-                        <span class="qty-display" style="font-size: 1.2rem; min-width: 40px;">${item.qty}</span>
-                        <button type="button" class="qty-btn" onclick="updateTempQty('${item.id}', 1)" ${item.qty >= item.stock ? 'disabled' : ''}>+</button>
-                    </div>
-                    <button class="remove-size-btn" onclick="removeTempSize('${item.id}')">×</button>
+            previewDiv.innerHTML = `
+                <div style="margin-bottom: 12px; font-weight: 600; color: var(--accent-color);">
+                    Selected Items (${tempSelectedSizes.length}):
                 </div>
-            `).join('');
+                ${tempSelectedSizes.map(item => `
+                    <div class="selected-size-item">
+                        <div class="selected-size-info">
+                            <div class="selected-size-name">${item.color} - Size ${item.size}</div>
+                            <div class="selected-size-qty">Available: ${item.stock} pairs</div>
+                        </div>
+                        <div class="quantity-control" style="margin: 0; padding: 8px; background: transparent; border: none;">
+                            <button type="button" class="qty-btn" onclick="updateTempQty('${item.id}', -1)" ${item.qty <= 1 ? 'disabled' : ''}>−</button>
+                            <span class="qty-display" style="font-size: 1.3rem; min-width: 50px;">${item.qty}</span>
+                            <button type="button" class="qty-btn" onclick="updateTempQty('${item.id}', 1)" ${item.qty >= item.stock ? 'disabled' : ''}>+</button>
+                        </div>
+                        <button class="remove-size-btn" onclick="removeTempSize('${item.id}')">×</button>
+                    </div>
+                `).join('')}
+            `;
         }
 
         function updateTempQty(id, change) {
@@ -1836,7 +2154,6 @@
         function removeTempSize(id) {
             tempSelectedSizes = tempSelectedSizes.filter(s => s.id !== id);
             
-            // Update visual selection
             const box = document.querySelector(`.size-box[data-id="${id}"]`);
             if (box) box.classList.remove('selected');
             
@@ -1853,7 +2170,7 @@
             if (!hasSelection) {
                 msg.textContent = 'Please select at least one size';
             } else if (!validPrice) {
-                msg.textContent = 'Please enter a valid price';
+                msg.textContent = 'Please enter a valid selling price';
             } else {
                 msg.textContent = '';
             }
@@ -1901,7 +2218,6 @@
             if (currentSaleItems.length === 0) {
                 container.innerHTML = '<p class="text-center text-muted" style="padding: 20px;">Cart is empty</p>';
             } else {
-                // Group by shoe/color for better display
                 const groups = {};
                 currentSaleItems.forEach(item => {
                     const key = `${item.shoeId}_${item.color}`;
@@ -1931,7 +2247,7 @@
                                 </div>
                             `).join('')}
                         </div>
-                        <div style="margin-top: 8px; text-align: right; font-weight: 600; color: var(--accent-color);">
+                        <div style="margin-top: 8px; text-align: right; font-weight: 700; color: var(--accent-color); font-size: 1.1rem;">
                             Subtotal: KSh ${group.items.reduce((a, b) => a + b.total, 0).toFixed(2)}
                         </div>
                     </div>
@@ -1948,58 +2264,107 @@
             const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
             const balanced = Math.abs((mpesa + cash) - total) < 0.01;
             
-            document.getElementById('paymentStatus').textContent = balanced ? 'BALANCED ✓' : 'UNBALANCED';
-            document.getElementById('paymentStatus').style.color = balanced ? 'var(--success-color)' : 'var(--danger-color)';
+            const statusEl = document.getElementById('paymentStatus');
+            statusEl.textContent = balanced ? 'BALANCED ✓' : 'UNBALANCED';
+            statusEl.style.color = balanced ? 'var(--success-color)' : 'var(--danger-color)';
+            statusEl.style.background = balanced ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+            
             document.getElementById('completeSaleBtn').disabled = !balanced || currentSaleItems.length === 0;
         }
 
         document.getElementById('mpesaAmount').addEventListener('input', updateSaleTotal);
         document.getElementById('cashAmount').addEventListener('input', updateSaleTotal);
 
+        // OPTIMIZED SALE SUBMISSION
         document.getElementById('salesForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (currentSaleItems.length === 0) return;
+            if (currentSaleItems.length === 0 || isProcessing) return;
 
-            // Validate stock levels before proceeding
-            const shoes = await getShoes();
-            for (let item of currentSaleItems) {
-                const shoe = shoes.find(s => s.id === item.shoeId);
-                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                if (inv.qty < item.qty) {
-                    alert(`Insufficient stock for ${item.shoeName} ${item.color} Size ${item.size}. Available: ${inv.qty}, Requested: ${item.qty}`);
-                    return;
+            isProcessing = true;
+            showLoading('Processing sale...');
+            
+            try {
+                // Group items by shoe ID
+                const itemsByShoe = {};
+                currentSaleItems.forEach(item => {
+                    if (!itemsByShoe[item.shoeId]) itemsByShoe[item.shoeId] = [];
+                    itemsByShoe[item.shoeId].push(item);
+                });
+
+                const shoeIds = Object.keys(itemsByShoe);
+                
+                // Fetch only required shoes in parallel
+                const shoeDocs = await Promise.all(
+                    shoeIds.map(id => getDoc(doc(db, COLLECTIONS.SHOES, id)))
+                );
+
+                // Prepare batch
+                const batch = writeBatch(db);
+                
+                for (let i = 0; i < shoeDocs.length; i++) {
+                    const shoeDoc = shoeDocs[i];
+                    if (!shoeDoc.exists()) throw new Error('Shoe not found');
+                    
+                    const shoeData = shoeDoc.data();
+                    const items = itemsByShoe[shoeIds[i]];
+                    const newInventory = [...shoeData.inventory];
+                    
+                    for (const item of items) {
+                        const invIndex = newInventory.findIndex(
+                            inv => inv.color === item.color && inv.size === item.size
+                        );
+                        
+                        if (invIndex === -1) throw new Error(`Item not found: ${item.shoeName}`);
+                        
+                        const currentQty = newInventory[invIndex].qty;
+                        if (currentQty < item.qty) {
+                            throw new Error(
+                                `Insufficient stock for ${item.shoeName} ${item.color} Size ${item.size}. ` +
+                                `Available: ${currentQty}, Requested: ${item.qty}`
+                            );
+                        }
+                        
+                        newInventory[invIndex] = {
+                            ...newInventory[invIndex],
+                            qty: currentQty - item.qty
+                        };
+                    }
+                    
+                    batch.update(doc(db, COLLECTIONS.SHOES, shoeIds[i]), { 
+                        inventory: newInventory,
+                        updatedAt: new Date().toISOString()
+                    });
                 }
-            }
 
-            const sale = {
-                date: document.getElementById('saleDate').value,
-                customerName: document.getElementById('customerName').value || 'Walk-in',
-                items: [...currentSaleItems],
-                mpesa: parseFloat(document.getElementById('mpesaAmount').value) || 0,
-                cash: parseFloat(document.getElementById('cashAmount').value) || 0,
-                total: currentSaleItems.reduce((sum, i) => sum + i.total, 0),
-                createdAt: new Date().toISOString()
-            };
+                // Create sale
+                const saleRef = doc(collection(db, COLLECTIONS.SALES));
+                const sale = {
+                    date: document.getElementById('saleDate').value,
+                    customerName: document.getElementById('customerName').value || 'Walk-in',
+                    items: [...currentSaleItems],
+                    mpesa: parseFloat(document.getElementById('mpesaAmount').value) || 0,
+                    cash: parseFloat(document.getElementById('cashAmount').value) || 0,
+                    total: currentSaleItems.reduce((sum, i) => sum + i.total, 0),
+                    createdAt: new Date().toISOString()
+                };
+                
+                batch.set(saleRef, sale);
+                await batch.commit();
 
-            // Update inventory
-            for (let item of currentSaleItems) {
-                const shoe = shoes.find(s => s.id === item.shoeId);
-                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                inv.qty -= item.qty;
-            }
-
-            for (let shoe of shoes) {
-                await updateShoe(shoe.id, { ...shoe, updatedAt: new Date().toISOString() });
-            }
-
-            if (await saveSale(sale)) {
-                alert('✅ Sale completed');
+                showToast('✅ Sale completed successfully');
                 e.target.reset();
                 document.getElementById('saleDate').valueAsDate = new Date();
                 currentSaleItems = [];
                 renderSaleItems();
                 loadSales();
                 loadInventory();
+                
+            } catch (error) {
+                console.error('Sale error:', error);
+                alert('Error: ' + error.message);
+            } finally {
+                isProcessing = false;
+                hideLoading();
             }
         });
 
@@ -2010,7 +2375,7 @@
                 return;
             }
 
-            container.innerHTML = sales.sort((a,b) => new Date(b.date) - new Date(a.date)).map(sale => `
+            container.innerHTML = sales.map(sale => `
                 <div class="sale-item">
                     <div class="sale-header">
                         <span>Sale #${sale.id.slice(-6)}</span>
@@ -2110,6 +2475,8 @@
             e.preventDefault();
             if (saleItemsForEdit.length === 0) return;
 
+            showLoading('Updating sale...');
+            
             const data = {
                 date: document.getElementById('editSaleDate').value,
                 customerName: document.getElementById('editCustomerName').value,
@@ -2122,32 +2489,63 @@
 
             if (await updateSale(editingSaleId, data)) {
                 closeEditSaleModal();
-                loadSales();
-                alert('✅ Sale updated');
+                await loadSales();
+                showToast('✅ Sale updated');
             }
+            hideLoading();
         });
 
         async function deleteSale(id) {
             if (!confirm('Delete this sale? Inventory will be restored.')) return;
             
-            const sales = await getSales();
-            const sale = sales.find(s => s.id === id);
+            showLoading('Deleting sale...');
             
-            const shoes = await getShoes();
-            for (let item of sale.items) {
-                const shoe = shoes.find(s => s.id === item.shoeId);
-                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                if (inv) inv.qty += item.qty;
-            }
-            
-            for (let shoe of shoes) {
-                await updateShoe(shoe.id, shoe);
-            }
-            
-            if (await deleteSaleFromStorage(id)) {
-                loadSales();
-                loadInventory();
-                alert('✅ Sale deleted');
+            try {
+                const sales = await getSales();
+                const sale = sales.find(s => s.id === id);
+                
+                const batch = writeBatch(db);
+                
+                const itemsByShoe = {};
+                sale.items.forEach(item => {
+                    if (!itemsByShoe[item.shoeId]) itemsByShoe[item.shoeId] = [];
+                    itemsByShoe[item.shoeId].push(item);
+                });
+
+                await Promise.all(Object.entries(itemsByShoe).map(async ([shoeId, items]) => {
+                    const shoeRef = doc(db, COLLECTIONS.SHOES, shoeId);
+                    const shoeSnap = await getDoc(shoeRef);
+                    if (shoeSnap.exists()) {
+                        const shoeData = shoeSnap.data();
+                        const newInventory = [...shoeData.inventory];
+                        
+                        items.forEach(item => {
+                            const invIndex = newInventory.findIndex(
+                                inv => inv.color === item.color && inv.size === item.size
+                            );
+                            if (invIndex !== -1) {
+                                newInventory[invIndex] = {
+                                    ...newInventory[invIndex],
+                                    qty: newInventory[invIndex].qty + item.qty
+                                };
+                            }
+                        });
+                        
+                        batch.update(shoeRef, { inventory: newInventory });
+                    }
+                }));
+
+                batch.delete(doc(db, COLLECTIONS.SALES, id));
+                await batch.commit();
+                
+                await loadSales();
+                await loadInventory();
+                showToast('✅ Sale deleted');
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Error deleting sale: ' + error.message);
+            } finally {
+                hideLoading();
             }
         }
 
@@ -2217,7 +2615,6 @@
                 return;
             }
             
-            // Check if already in cart
             const existing = currentTransferItems.find(i => 
                 i.shoeId === shoeId && i.color === color && i.size === size
             );
@@ -2257,50 +2654,93 @@
             }
         }
 
+        // OPTIMIZED TRANSFER
         document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (currentTransferItems.length === 0) return;
+            if (currentTransferItems.length === 0 || isProcessing) return;
 
-            const location = document.getElementById('transferLocation').value;
-            const date = document.getElementById('transferDate').value;
+            isProcessing = true;
+            showLoading('Processing transfer...');
+            
+            try {
+                const location = document.getElementById('transferLocation').value;
+                const date = document.getElementById('transferDate').value;
+                
+                const itemsByShoe = {};
+                currentTransferItems.forEach(item => {
+                    if (!itemsByShoe[item.shoeId]) itemsByShoe[item.shoeId] = [];
+                    itemsByShoe[item.shoeId].push(item);
+                });
 
-            const shoes = await getShoes();
-            for (let item of currentTransferItems) {
-                const shoe = shoes.find(s => s.id === item.shoeId);
-                const inv = shoe.inventory.find(i => i.color === item.color && i.size === item.size);
-                if (inv.qty < item.qty) {
-                    alert(`Insufficient stock for ${item.shoeName}`);
-                    return;
+                const shoeIds = Object.keys(itemsByShoe);
+                const shoeDocs = await Promise.all(
+                    shoeIds.map(id => getDoc(doc(db, COLLECTIONS.SHOES, id)))
+                );
+
+                const batch = writeBatch(db);
+                
+                for (let i = 0; i < shoeDocs.length; i++) {
+                    const shoeDoc = shoeDocs[i];
+                    if (!shoeDoc.exists()) throw new Error('Shoe not found');
+                    
+                    const shoeData = shoeDoc.data();
+                    const items = itemsByShoe[shoeIds[i]];
+                    const newInventory = [...shoeData.inventory];
+                    
+                    for (const item of items) {
+                        const invIndex = newInventory.findIndex(
+                            inv => inv.color === item.color && inv.size === item.size
+                        );
+                        
+                        if (invIndex === -1) throw new Error(`Item not found: ${item.shoeName}`);
+                        
+                        const currentQty = newInventory[invIndex].qty;
+                        if (currentQty < item.qty) {
+                            throw new Error(`Insufficient stock for ${item.shoeName}`);
+                        }
+                        
+                        newInventory[invIndex] = {
+                            ...newInventory[invIndex],
+                            qty: currentQty - item.qty
+                        };
+                    }
+                    
+                    batch.update(doc(db, COLLECTIONS.SHOES, shoeIds[i]), { 
+                        inventory: newInventory,
+                        updatedAt: new Date().toISOString()
+                    });
                 }
-                inv.qty -= item.qty;
-            }
 
-            for (let shoe of shoes) {
-                await updateShoe(shoe.id, shoe);
-            }
+                currentTransferItems.forEach(item => {
+                    const transferRef = doc(collection(db, COLLECTIONS.TRANSFERS));
+                    batch.set(transferRef, {
+                        date,
+                        location,
+                        shoeId: item.shoeId,
+                        shoeName: item.shoeName,
+                        color: item.color,
+                        size: item.size,
+                        qty: item.qty,
+                        createdAt: new Date().toISOString()
+                    });
+                });
 
-            let success = true;
-            for (let item of currentTransferItems) {
-                if (!await saveTransfer({
-                    date,
-                    location,
-                    shoeId: item.shoeId,
-                    shoeName: item.shoeName,
-                    color: item.color,
-                    size: item.size,
-                    qty: item.qty,
-                    createdAt: new Date().toISOString()
-                })) success = false;
-            }
-
-            if (success) {
-                alert('✅ Transfer completed');
+                await batch.commit();
+                
+                showToast('✅ Transfer completed');
                 e.target.reset();
                 document.getElementById('transferDate').valueAsDate = new Date();
                 currentTransferItems = [];
                 renderTransferItems();
                 loadTransfers();
                 loadInventory();
+                
+            } catch (error) {
+                console.error('Transfer error:', error);
+                alert('Error: ' + error.message);
+            } finally {
+                isProcessing = false;
+                hideLoading();
             }
         });
 
@@ -2320,7 +2760,7 @@
                 groups[key].items.push(t);
             });
 
-            container.innerHTML = Object.values(groups).sort((a,b) => new Date(b.date) - new Date(a.date)).map(group => `
+            container.innerHTML = Object.values(groups).map(group => `
                 <div class="sale-item">
                     <div class="sale-header">
                         <span>Transfer to ${group.location}</span>
@@ -2375,6 +2815,7 @@
         }
 
         async function downloadInventoryCSV() {
+            showLoading('Generating CSV...');
             const shoes = await getShoes();
             let csv = 'Name,ATNO,Supplier,Cost,Color,Size,Qty\n';
             shoes.forEach(shoe => {
@@ -2383,6 +2824,7 @@
                 });
             });
             downloadCSV(csv, 'inventory.csv');
+            hideLoading();
         }
 
         function downloadCSV(content, filename) {
@@ -2395,6 +2837,7 @@
         }
 
         function downloadSalesCSV() { 
+            showLoading('Generating CSV...');
             getSales().then(sales => {
                 let csv = 'Date,Customer,Shoe,Color,Size,Qty,Price,Total,Mpesa,Cash\n';
                 sales.forEach(sale => {
@@ -2403,16 +2846,19 @@
                     });
                 });
                 downloadCSV(csv, 'sales.csv');
+                hideLoading();
             });
         }
         
         function downloadTransfersCSV() { 
+            showLoading('Generating CSV...');
             getTransfers().then(transfers => {
                 let csv = 'Date,Location,Shoe,Color,Size,Qty\n';
                 transfers.forEach(t => {
                     csv += `"${t.date}","${t.location}","${t.shoeName}","${t.color}","${t.size}",${t.qty}\n`;
                 });
                 downloadCSV(csv, 'transfers.csv');
+                hideLoading();
             });
         }
         
