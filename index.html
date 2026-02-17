@@ -1170,7 +1170,23 @@
             <div id="salesList" class="sales-list"></div>
         </div>
 
+        <!-- UPDATED TRANSFERS SECTION -->
         <div id="transfers" class="tab-content">
+            <!-- Search Card for Transfers -->
+            <div class="search-card">
+                <h3>🔍 Search Transfers</h3>
+                <div class="search-grid">
+                    <input type="text" id="searchTransferLocation" placeholder="Destination location">
+                    <input type="text" id="searchTransferShoe" placeholder="Shoe name">
+                    <input type="date" id="searchTransferFromDate" placeholder="From date">
+                    <input type="date" id="searchTransferToDate" placeholder="To date">
+                </div>
+                <div class="search-actions">
+                    <button onclick="clearTransferSearch()" class="btn-secondary">Clear</button>
+                    <button onclick="performTransferSearch()" class="btn-success">Search</button>
+                </div>
+            </div>
+
             <div class="form-card">
                 <h2>New Transfer</h2>
                 <form id="transferForm">
@@ -1183,7 +1199,7 @@
                         <input type="text" id="transferLocation" placeholder="e.g., Downtown Store" required>
                     </div>
                     
-                    <button type="button" class="btn-success" onclick="openTransferSelectionModal()" style="margin-bottom: 16px;">
+                    <button type="button" class="btn-success" onclick="openTransferShoeSelectionModal()" style="margin-bottom: 16px;">
                         + Add Items to Transfer
                     </button>
 
@@ -1259,6 +1275,13 @@
                     <input type="text" id="editAtno">
                 </div>
                 <div class="form-group">
+                    date="editShoeName" required>
+                </div>
+                <div class="form-group">
+                    <label>ATNO</label>
+                    <input type="text" id="editAtno">
+                </div>
+                <div class="form-group">
                     <label>Supplier</label>
                     <input type="text" id="editSupplierName">
                 </div>
@@ -1281,6 +1304,7 @@
         </div>
     </div>
 
+    <!-- Sales Shoe Selection Modal -->
     <div id="shoeSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1292,6 +1316,7 @@
         </div>
     </div>
 
+    <!-- Sales Size Selection Modal -->
     <div id="sizeSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1314,14 +1339,33 @@
         </div>
     </div>
 
-    <div id="transferSelectionModal" class="modal">
+    <!-- NEW: Transfer Shoe Selection Modal -->
+    <div id="transferShoeSelectionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Select for Transfer</h2>
-                <button class="close-btn" onclick="closeTransferSelectionModal()">✕</button>
+                <h2>Select Shoe for Transfer</h2>
+                <button class="close-btn" onclick="closeTransferShoeSelectionModal()">✕</button>
             </div>
-            <input type="text" id="transferSelectionSearch" placeholder="Search shoes..." style="margin-bottom: 16px; padding: 14px; font-size: 1.1rem;">
-            <div id="transferSelectionResults" class="variant-grid"></div>
+            <input type="text" id="transferShoeSelectionSearch" class="shoe-search-input" placeholder="Search shoes by name, ATNO, color...">
+            <div id="transferShoeSelectionResults" class="variant-grid"></div>
+        </div>
+    </div>
+
+    <!-- NEW: Transfer Size Selection Modal -->
+    <div id="transferSizeSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="transferSizeModalTitle">Select Sizes to Transfer</h2>
+                <button class="close-btn" onclick="closeTransferSizeSelectionModal()">✕</button>
+            </div>
+            
+            <div id="transferSizeSelectionContent"></div>
+
+            <div id="transferValidationMessage" class="validation-message"></div>
+
+            <button onclick="confirmTransferSizeSelection()" class="btn-success" id="confirmTransferSizeBtn" disabled>
+                Add to Transfer
+            </button>
         </div>
     </div>
 
@@ -1425,6 +1469,12 @@
         let cachedShoesForSelection = [];
         let isProcessing = false;
 
+        // NEW: Transfer-specific variables
+        let currentTransferShoeSelection = null;
+        let tempTransferSelectedSizes = [];
+        let cachedShoesForTransfer = [];
+        let allTransfersData = [];
+
         const COLLECTIONS = { SHOES: 'shoes', SALES: 'sales', TRANSFERS: 'transfers' };
 
         function showLoading(text = 'Processing...') {
@@ -1450,6 +1500,7 @@
             addColorGroup();
             loadInventory();
             loadSales();
+            loadTransfers();
             
             setupModalSearchListeners();
         }
@@ -1458,14 +1509,19 @@
 
         function setupModalSearchListeners() {
             const shoeSearch = document.getElementById('shoeSelectionSearch');
-            shoeSearch.addEventListener('input', (e) => {
-                filterShoeSelection(e.target.value);
-            });
+            if (shoeSearch) {
+                shoeSearch.addEventListener('input', (e) => {
+                    filterShoeSelection(e.target.value);
+                });
+            }
             
-            const transferSearch = document.getElementById('transferSelectionSearch');
-            transferSearch.addEventListener('input', (e) => {
-                filterTransferSelection(e.target.value);
-            });
+            // NEW: Transfer search listener
+            const transferShoeSearch = document.getElementById('transferShoeSelectionSearch');
+            if (transferShoeSearch) {
+                transferShoeSearch.addEventListener('input', (e) => {
+                    filterTransferShoeSelection(e.target.value);
+                });
+            }
         }
 
         async function getShoes() {
@@ -1582,7 +1638,22 @@
             try {
                 const snapshot = await getDocs(query(collection(db, COLLECTIONS.TRANSFERS), orderBy('date', 'desc')));
                 const transfers = [];
-                snapshot.forEach(doc => transfers.push({ id: doc.id, ...doc.data() }));
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Support both old format and new format with items array
+                    if (!data.items && data.shoeId) {
+                        data.items = [{
+                            id: doc.id + '_item',
+                            shoeId: data.shoeId,
+                            shoeName: data.shoeName,
+                            atno: data.atno || 'N/A',
+                            color: data.color,
+                            size: data.size,
+                            qty: data.qty
+                        }];
+                    }
+                    transfers.push({ id: doc.id, ...data });
+                });
                 return transfers;
             } catch (e) {
                 console.error('Error loading transfers:', e);
@@ -2105,7 +2176,7 @@
 
         function updateSelectedSizesPreview() {
             const container = document.getElementById('sizeSelectionContent');
-            let previewDiv = document.querySelector('.selected-sizes-preview');
+            let previewDiv = document.querySelector('#sizeSelectionContent .selected-sizes-preview');
             
             if (!previewDiv) {
                 previewDiv = document.createElement('div');
@@ -2549,87 +2620,277 @@
             }
         }
 
-        function openTransferSelectionModal() {
-            document.getElementById('transferSelectionModal').classList.add('active');
-            document.getElementById('transferSelectionSearch').value = '';
-            loadTransferSelection();
+        // ============================================
+        // NEW TRANSFER FUNCTIONS - Similar to Sales
+        // ============================================
+
+        function openTransferShoeSelectionModal() {
+            document.getElementById('transferShoeSelectionModal').classList.add('active');
+            document.getElementById('transferShoeSelectionSearch').value = '';
+            loadTransferShoeSelection();
         }
 
-        function closeTransferSelectionModal() {
-            document.getElementById('transferSelectionModal').classList.remove('active');
+        function closeTransferShoeSelectionModal() {
+            document.getElementById('transferShoeSelectionModal').classList.remove('active');
+            document.getElementById('transferShoeSelectionSearch').value = '';
         }
 
-        async function loadTransferSelection() {
+        async function loadTransferShoeSelection() {
             const shoes = await getShoes();
-            const container = document.getElementById('transferSelectionResults');
+            cachedShoesForTransfer = shoes;
+            renderTransferShoeSelectionResults(shoes);
+        }
+
+        function renderTransferShoeSelectionResults(shoes) {
+            const container = document.getElementById('transferShoeSelectionResults');
             
-            let variants = [];
+            const shoeGroups = {};
             shoes.forEach(shoe => {
+                if (!shoeGroups[shoe.id]) {
+                    shoeGroups[shoe.id] = { ...shoe, colors: {} };
+                }
                 shoe.inventory.forEach(inv => {
                     if (inv.qty > 0) {
-                        variants.push({ 
-                            ...inv, 
-                            shoeId: shoe.id, 
-                            shoeName: shoe.name, 
-                            atno: shoe.atno 
-                        });
+                        if (!shoeGroups[shoe.id].colors[inv.color]) {
+                            shoeGroups[shoe.id].colors[inv.color] = [];
+                        }
+                        shoeGroups[shoe.id].colors[inv.color].push(inv);
                     }
                 });
             });
 
-            if (variants.length === 0) {
-                container.innerHTML = '<p class="empty-state">No items found</p>';
+            const validShoes = Object.values(shoeGroups).filter(s => Object.keys(s.colors).length > 0);
+
+            if (validShoes.length === 0) {
+                container.innerHTML = '<p class="empty-state">No items in stock</p>';
                 return;
             }
 
-            container.innerHTML = variants.map(v => `
-                <div class="variant-card">
-                    <div class="variant-title">${v.shoeName}</div>
-                    <div class="variant-info">
-                        ATNO: ${v.atno}<br>
-                        ${v.color} - Size ${v.size}<br>
-                        Stock: ${v.qty} pairs
+            container.innerHTML = validShoes.map(shoe => {
+                const totalStock = Object.values(shoe.colors).flat().reduce((a, b) => a + b.qty, 0);
+                return `
+                    <div class="variant-card" onclick="openTransferSizeSelectionModal('${shoe.id}')">
+                        <div class="variant-title">${shoe.name}</div>
+                        <div class="variant-info">
+                            ATNO: ${shoe.atno}<br>
+                            Colors: ${Object.keys(shoe.colors).join(', ')}<br>
+                            Total Stock: ${totalStock} pairs
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <input type="number" placeholder="Qty" min="1" max="${v.qty}" class="transfer-qty" style="flex: 1;">
-                        <button onclick="addToTransfer('${v.shoeId}', '${v.color}', '${v.size}', '${v.shoeName}', '${v.atno}', this)" class="btn-success btn-small">Add</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function filterTransferSelection(searchTerm) {
+        function filterTransferShoeSelection(searchTerm) {
             const term = searchTerm.toLowerCase().trim();
-            const cards = document.querySelectorAll('#transferSelectionResults .variant-card');
             
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(term) ? 'block' : 'none';
-            });
-        }
-
-        function addToTransfer(shoeId, color, size, shoeName, atno, btn) {
-            const qty = parseInt(btn.previousElementSibling.value);
-            if (!qty || qty < 1) {
-                alert('Please enter a valid quantity');
+            if (!term) {
+                renderTransferShoeSelectionResults(cachedShoesForTransfer);
                 return;
             }
             
-            const existing = currentTransferItems.find(i => 
-                i.shoeId === shoeId && i.color === color && i.size === size
-            );
+            const filtered = cachedShoesForTransfer.filter(shoe => {
+                if (shoe.name.toLowerCase().includes(term)) return true;
+                if (shoe.atno && shoe.atno.toLowerCase().includes(term)) return true;
+                return shoe.inventory.some(inv => 
+                    inv.color.toLowerCase().includes(term) || 
+                    inv.size.toLowerCase().includes(term)
+                );
+            });
             
-            if (existing) {
-                existing.qty += qty;
-            } else {
-                currentTransferItems.push({
-                    id: Date.now().toString(),
-                    shoeId, color, size, shoeName, atno, qty
+            renderTransferShoeSelectionResults(filtered);
+        }
+
+        async function openTransferSizeSelectionModal(shoeId) {
+            const shoes = await getShoes();
+            const shoe = shoes.find(s => s.id === shoeId);
+            if (!shoe) return;
+
+            currentTransferShoeSelection = shoe;
+            tempTransferSelectedSizes = [];
+            
+            document.getElementById('transferSizeModalTitle').textContent = `Select Sizes to Transfer - ${shoe.name}`;
+            
+            const colorGroups = {};
+            shoe.inventory.forEach(inv => {
+                if (!colorGroups[inv.color]) colorGroups[inv.color] = [];
+                colorGroups[inv.color].push(inv);
+            });
+
+            const content = document.getElementById('transferSizeSelectionContent');
+            content.innerHTML = '';
+
+            Object.entries(colorGroups).forEach(([color, items]) => {
+                if (items.length === 0) return;
+                
+                const colorSection = document.createElement('div');
+                colorSection.className = 'color-section';
+                
+                const header = document.createElement('div');
+                header.className = 'color-header';
+                header.innerHTML = `
+                    <span>${color}</span>
+                    <span class="current-stock-badge">${items.reduce((a,b) => a + b.qty, 0)} pairs</span>
+                `;
+                colorSection.appendChild(header);
+                
+                const colorContent = document.createElement('div');
+                colorContent.className = 'color-content';
+                
+                const sizeGrid = document.createElement('div');
+                sizeGrid.className = 'size-grid';
+                
+                items.forEach(item => {
+                    const sizeBox = document.createElement('div');
+                    sizeBox.className = 'size-box';
+                    sizeBox.dataset.color = color;
+                    sizeBox.dataset.size = item.size;
+                    sizeBox.dataset.stock = item.qty;
+                    sizeBox.dataset.id = `${color}_${item.size}`;
+                    
+                    if (item.qty === 0) {
+                        sizeBox.classList.add('disabled');
+                    }
+                    
+                    sizeBox.innerHTML = `
+                        <div class="size-label">${item.size}</div>
+                        <div class="stock-label">${item.qty} in stock</div>
+                    `;
+                    
+                    if (item.qty > 0) {
+                        sizeBox.onclick = () => toggleTransferSizeSelection(sizeBox, color, item.size, item.qty);
+                    }
+                    
+                    sizeGrid.appendChild(sizeBox);
                 });
+                
+                colorContent.appendChild(sizeGrid);
+                colorSection.appendChild(colorContent);
+                content.appendChild(colorSection);
+            });
+
+            updateTransferSelectedSizesPreview();
+            validateTransferSizeSelection();
+            
+            closeTransferShoeSelectionModal();
+            document.getElementById('transferSizeSelectionModal').classList.add('active');
+        }
+
+        function toggleTransferSizeSelection(element, color, size, stock) {
+            const id = `${color}_${size}`;
+            const existingIndex = tempTransferSelectedSizes.findIndex(s => s.id === id);
+            
+            if (existingIndex >= 0) {
+                tempTransferSelectedSizes.splice(existingIndex, 1);
+                element.classList.remove('selected');
+            } else {
+                tempTransferSelectedSizes.push({
+                    id: id,
+                    color: color,
+                    size: size,
+                    stock: stock,
+                    qty: 1
+                });
+                element.classList.add('selected');
             }
+            
+            updateTransferSelectedSizesPreview();
+            validateTransferSizeSelection();
+        }
+
+        function updateTransferSelectedSizesPreview() {
+            const container = document.getElementById('transferSizeSelectionContent');
+            let previewDiv = document.querySelector('#transferSizeSelectionContent .selected-sizes-preview');
+            
+            if (!previewDiv) {
+                previewDiv = document.createElement('div');
+                previewDiv.className = 'selected-sizes-preview';
+                container.appendChild(previewDiv);
+            }
+            
+            if (tempTransferSelectedSizes.length === 0) {
+                previewDiv.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">No sizes selected yet</p>';
+                return;
+            }
+            
+            previewDiv.innerHTML = `
+                <div style="margin-bottom: 12px; font-weight: 600; color: var(--accent-color);">
+                    Selected Items (${tempTransferSelectedSizes.length}):
+                </div>
+                ${tempTransferSelectedSizes.map(item => `
+                    <div class="selected-size-item">
+                        <div class="selected-size-info">
+                            <div class="selected-size-name">${item.color} - Size ${item.size}</div>
+                            <div class="selected-size-qty">Available: ${item.stock} pairs</div>
+                        </div>
+                        <div class="quantity-control" style="margin: 0; padding: 8px; background: transparent; border: none;">
+                            <button type="button" class="qty-btn" onclick="updateTransferTempQty('${item.id}', -1)" ${item.qty <= 1 ? 'disabled' : ''}>−</button>
+                            <span class="qty-display" style="font-size: 1.3rem; min-width: 50px;">${item.qty}</span>
+                            <button type="button" class="qty-btn" onclick="updateTransferTempQty('${item.id}', 1)" ${item.qty >= item.stock ? 'disabled' : ''}>+</button>
+                        </div>
+                        <button class="remove-size-btn" onclick="removeTransferTempSize('${item.id}')">×</button>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function updateTransferTempQty(id, change) {
+            const item = tempTransferSelectedSizes.find(s => s.id === id);
+            if (!item) return;
+            
+            const newQty = item.qty + change;
+            if (newQty < 1 || newQty > item.stock) return;
+            
+            item.qty = newQty;
+            updateTransferSelectedSizesPreview();
+            validateTransferSizeSelection();
+        }
+
+        function removeTransferTempSize(id) {
+            tempTransferSelectedSizes = tempTransferSelectedSizes.filter(s => s.id !== id);
+            
+            const box = document.querySelector(`#transferSizeSelectionContent .size-box[data-id="${id}"]`);
+            if (box) box.classList.remove('selected');
+            
+            updateTransferSelectedSizesPreview();
+            validateTransferSizeSelection();
+        }
+
+        function validateTransferSizeSelection() {
+            const hasSelection = tempTransferSelectedSizes.length > 0;
+            
+            const msg = document.getElementById('transferValidationMessage');
+            if (!hasSelection) {
+                msg.textContent = 'Please select at least one size to transfer';
+            } else {
+                msg.textContent = '';
+            }
+            
+            document.getElementById('confirmTransferSizeBtn').disabled = !hasSelection;
+        }
+
+        function closeTransferSizeSelectionModal() {
+            document.getElementById('transferSizeSelectionModal').classList.remove('active');
+            currentTransferShoeSelection = null;
+            tempTransferSelectedSizes = [];
+        }
+
+        function confirmTransferSizeSelection() {
+            tempTransferSelectedSizes.forEach(item => {
+                currentTransferItems.push({
+                    id: Date.now().toString() + Math.random(),
+                    shoeId: currentTransferShoeSelection.id,
+                    shoeName: currentTransferShoeSelection.name,
+                    atno: currentTransferShoeSelection.atno || 'N/A',
+                    color: item.color,
+                    size: item.size,
+                    qty: item.qty,
+                    maxStock: item.stock
+                });
+            });
             
             renderTransferItems();
-            closeTransferSelectionModal();
+            closeTransferSizeSelectionModal();
         }
 
         function removeTransferItem(id) {
@@ -2643,18 +2904,45 @@
                 container.innerHTML = '<p class="text-center text-muted" style="padding: 20px;">No items added</p>';
                 document.getElementById('completeTransferBtn').disabled = true;
             } else {
-                container.innerHTML = currentTransferItems.map(item => `
+                const groups = {};
+                currentTransferItems.forEach(item => {
+                    const key = `${item.shoeId}_${item.color}`;
+                    if (!groups[key]) {
+                        groups[key] = {
+                            shoeName: item.shoeName,
+                            atno: item.atno,
+                            color: item.color,
+                            items: []
+                        };
+                    }
+                    groups[key].items.push(item);
+                });
+
+                container.innerHTML = Object.values(groups).map(group => `
                     <div class="cart-item">
-                        <div class="cart-item-header">${item.shoeName}</div>
-                        <div class="cart-item-details">${item.color} - Size ${item.size} | Qty: ${item.qty}</div>
-                        <button onclick="removeTransferItem('${item.id}')" class="btn-danger btn-small" style="width: auto; margin-top: 8px;">Remove</button>
+                        <div class="cart-item-header">${group.shoeName}</div>
+                        <div class="cart-item-details">
+                            ATNO: ${group.atno}<br>
+                            Color: ${group.color}
+                        </div>
+                        <div class="cart-item-sizes">
+                            ${group.items.map(item => `
+                                <div class="cart-size-tag">
+                                    Size ${item.size}: ${item.qty} pairs
+                                    <button onclick="removeTransferItem('${item.id}')" style="background: none; border: none; color: var(--danger-color); cursor: pointer; margin-left: 4px; font-weight: bold;">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 8px; text-align: right; font-weight: 700; color: var(--accent-color); font-size: 1.1rem;">
+                            Total: ${group.items.reduce((a, b) => a + b.qty, 0)} pairs
+                        </div>
                     </div>
                 `).join('');
                 document.getElementById('completeTransferBtn').disabled = false;
             }
         }
 
-        // OPTIMIZED TRANSFER
+        // OPTIMIZED TRANSFER SUBMISSION
         document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (currentTransferItems.length === 0 || isProcessing) return;
@@ -2696,7 +2984,7 @@
                         
                         const currentQty = newInventory[invIndex].qty;
                         if (currentQty < item.qty) {
-                            throw new Error(`Insufficient stock for ${item.shoeName}`);
+                            throw new Error(`Insufficient stock for ${item.shoeName} ${item.color} Size ${item.size}. Available: ${currentQty}, Requested: ${item.qty}`);
                         }
                         
                         newInventory[invIndex] = {
@@ -2711,23 +2999,20 @@
                     });
                 }
 
-                currentTransferItems.forEach(item => {
-                    const transferRef = doc(collection(db, COLLECTIONS.TRANSFERS));
-                    batch.set(transferRef, {
-                        date,
-                        location,
-                        shoeId: item.shoeId,
-                        shoeName: item.shoeName,
-                        color: item.color,
-                        size: item.size,
-                        qty: item.qty,
-                        createdAt: new Date().toISOString()
-                    });
-                });
-
+                // Create single transfer document with items array
+                const transferRef = doc(collection(db, COLLECTIONS.TRANSFERS));
+                const transfer = {
+                    date,
+                    location,
+                    items: [...currentTransferItems],
+                    totalPairs: currentTransferItems.reduce((sum, i) => sum + i.qty, 0),
+                    createdAt: new Date().toISOString()
+                };
+                
+                batch.set(transferRef, transfer);
                 await batch.commit();
                 
-                showToast('✅ Transfer completed');
+                showToast('✅ Transfer completed successfully');
                 e.target.reset();
                 document.getElementById('transferDate').valueAsDate = new Date();
                 currentTransferItems = [];
@@ -2746,6 +3031,11 @@
 
         async function loadTransfers() {
             const transfers = await getTransfers();
+            allTransfersData = transfers;
+            renderTransfersList(transfers);
+        }
+
+        function renderTransfersList(transfers) {
             const container = document.getElementById('transfersList');
             
             if (transfers.length === 0) {
@@ -2753,24 +3043,65 @@
                 return;
             }
 
-            const groups = {};
-            transfers.forEach(t => {
-                const key = `${t.date}_${t.location}`;
-                if (!groups[key]) groups[key] = { date: t.date, location: t.location, items: [], id: t.id };
-                groups[key].items.push(t);
+            container.innerHTML = transfers.map(transfer => {
+                // Group items by shoe for display
+                const shoeGroups = {};
+                transfer.items.forEach(item => {
+                    const key = `${item.shoeId}_${item.color}`;
+                    if (!shoeGroups[key]) {
+                        shoeGroups[key] = {
+                            shoeName: item.shoeName,
+                            color: item.color,
+                            items: []
+                        };
+                    }
+                    shoeGroups[key].items.push(item);
+                });
+
+                return `
+                    <div class="sale-item">
+                        <div class="sale-header">
+                            <span>Transfer to ${transfer.location}</span>
+                            <span>${transfer.date}</span>
+                        </div>
+                        <div class="sale-details">
+                            <strong>Transfer #:</strong> ${transfer.id.slice(-6)}<br>
+                            <strong>Total Pairs:</strong> ${transfer.totalPairs || transfer.items.reduce((a, b) => a + b.qty, 0)}<br>
+                            ${Object.values(shoeGroups).map(group => 
+                                `${group.shoeName} (${group.color}): ${group.items.map(i => `Size ${i.size}(${i.qty})`).join(', ')}`
+                            ).join('<br>')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // NEW: Transfer search functionality
+        async function performTransferSearch() {
+            const location = document.getElementById('searchTransferLocation').value.toLowerCase();
+            const shoe = document.getElementById('searchTransferShoe').value.toLowerCase();
+            const fromDate = document.getElementById('searchTransferFromDate').value;
+            const toDate = document.getElementById('searchTransferToDate').value;
+
+            let transfers = allTransfersData.length > 0 ? allTransfersData : await getTransfers();
+            
+            const filtered = transfers.filter(transfer => {
+                if (location && !transfer.location.toLowerCase().includes(location)) return false;
+                if (shoe && !transfer.items.some(item => item.shoeName.toLowerCase().includes(shoe))) return false;
+                if (fromDate && transfer.date < fromDate) return false;
+                if (toDate && transfer.date > toDate) return false;
+                return true;
             });
 
-            container.innerHTML = Object.values(groups).map(group => `
-                <div class="sale-item">
-                    <div class="sale-header">
-                        <span>Transfer to ${group.location}</span>
-                        <span>${group.date}</span>
-                    </div>
-                    <div class="sale-details">
-                        ${group.items.map(i => `${i.qty}x ${i.shoeName} (${i.color}, ${i.size})`).join('<br>')}
-                    </div>
-                </div>
-            `).join('');
+            renderTransfersList(filtered);
+        }
+
+        function clearTransferSearch() {
+            document.getElementById('searchTransferLocation').value = '';
+            document.getElementById('searchTransferShoe').value = '';
+            document.getElementById('searchTransferFromDate').value = '';
+            document.getElementById('searchTransferToDate').value = '';
+            loadTransfers();
         }
 
         async function generateReport() {
@@ -2853,9 +3184,11 @@
         function downloadTransfersCSV() { 
             showLoading('Generating CSV...');
             getTransfers().then(transfers => {
-                let csv = 'Date,Location,Shoe,Color,Size,Qty\n';
+                let csv = 'Date,Location,Shoe,ATNO,Color,Size,Qty,TotalPairs\n';
                 transfers.forEach(t => {
-                    csv += `"${t.date}","${t.location}","${t.shoeName}","${t.color}","${t.size}",${t.qty}\n`;
+                    t.items.forEach(item => {
+                        csv += `"${t.date}","${t.location}","${item.shoeName}","${item.atno}","${item.color}","${item.size}",${item.qty},${t.totalPairs || t.items.reduce((a,b) => a + b.qty, 0)}\n`;
+                    });
                 });
                 downloadCSV(csv, 'transfers.csv');
                 hideLoading();
